@@ -84,6 +84,8 @@ def print_amazon_instances():
     ]
     if not args.all:
         filters = [{'Name': 'instance-state-name', 'Values': ['running']}]
+    else:
+        filters = None
     try:
         instances = aws.get_instances(filters=filters)
     except SomeError as error:
@@ -126,10 +128,13 @@ def print_azure_instances():
         statuses[1].display_status == 'VM deallocated'"""
     if not args.all:
         filter_instance_view = "statuses[1].display_status == 'VM running'"
-    try:
-        filter_instance_view = jmespath.compile(filter_instance_view)
-    except JMESPathError as error:
-        perror("Azure", error)
+    else:
+        filter_instance_view = None
+    if filter_instance_view:
+        try:
+            filter_instance_view = jmespath.compile(filter_instance_view)
+        except JMESPathError as error:
+            perror("Azure", error)
     try:
         instances = azure.get_instances(
             filter_instance_view=filter_instance_view)
@@ -177,6 +182,8 @@ def print_google_instances():
     """
     if not args.all:
         filters = "status = running"
+    else:
+        filters = None
     try:
         instances = gcp.get_instances(filters=filters)
     except SomeError as error:
