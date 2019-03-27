@@ -56,7 +56,7 @@ class Output:
         keys are the items in the dictionary
         """
         self.type = type
-        self.keys = keys
+        self.keys = keys.split()
         self.fmt = fmt
         self.last_item = None
 
@@ -67,15 +67,13 @@ class Output:
         if self.type == "text":
             print(self.fmt.format(d={
                 _: _.upper()
-                for _ in self.keys.split()
+                for _ in self.keys
                 }))
         elif self.type == "json":
             print("[")
         elif self.type == "html":
             table_header = "\n".join([
-                "<th>%s</th>" % _.upper()
-                for _ in self.keys.split()
-            ])
+                "<th>%s</th>" % _.upper() for _ in self.keys])
             print(HTML_HEADER + table_header)
 
     def info(self, item=None, **kwargs):
@@ -96,7 +94,7 @@ class Output:
             print(
                 "<tr>\n" +
                 "\n".join([
-                    "<td>%s</td>" % kwargs[_] for _ in self.keys.split()]) +
+                    "<td>%s</td>" % kwargs[_] for _ in self.keys]) +
                 "</tr>")
 
     def footer(self):
