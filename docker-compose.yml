@@ -1,0 +1,18 @@
+version: '2.1'
+
+services:
+  cloudview:
+    build: .
+    command: --all --sort time --port 7777
+    environment:
+      - AZURE_CLIENT_ID
+      - AZURE_CLIENT_SECRET
+      - AZURE_SUBSCRIPTION_ID
+      - AZURE_TENANT_ID
+      - GOOGLE_APPLICATION_CREDENTIALS
+      - TZ=Europe/Berlin
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:${GOOGLE_APPLICATION_CREDENTIALS}:ro
+    ports:
+      - "7777:7777"

@@ -1,0 +1,8 @@
+azure-mgmt-compute
+boto3
+cachetools
+google-api-python-client
+google-cloud-resource-manager
+jmespath
+oauth2client
+pyramid

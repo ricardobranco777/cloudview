@@ -1,0 +1,304 @@
+#!/usr/bin/env python3
+#
+# Copyright 2019 Ricardo Branco <rbranco@suse.de>
+# MIT License
+#
+"""
+Show all instances created on cloud providers
+"""
+
+import argparse
+import datetime
+import logging
+import sys
+
+from os.path import basename
+from operator import attrgetter, itemgetter
+from threading import Thread
+from dateutil import parser
+
+import jmespath
+from jmespath.exceptions import JMESPathError
+
+from cachetools import cached, TTLCache
+
+from providers.amazon import AWS
+from providers.az import Azure
+from providers.gcp import GCP
+from providers.exceptions import SomeError
+
+from output import Output
+
+
+USAGE = "Usage: " + basename(sys.argv[0]) + """ [OPTIONS]
+Options:
+    -a, --all                       show all instances
+    -o, --output text|html|json     output type
+    -p, --port PORT                 run a web server on port PORT
+    -r, --reverse                   reverse sort
+    -s, --sort name|time|status     sort type
+    -h, --help                      show this help message and exit
+    -d, --debug                     debug mode
+    -V, --version                   show version and exit
+"""
+
+__version__ = "0.1.6"
+
+
+def pretty_date(date):
+    """
+    Converts datetime object or string to local time or the
+    timezone specified by the TZ environment variable
+    """
+    date_fmt = "%a %b %d %H:%M:%S %Z %Y"
+    # NOTE: From Python 3.3 we can omit tz in datetime.astimezone()
+    if isinstance(date, datetime.datetime):
+        return date.astimezone().strftime(date_fmt)
+    if isinstance(date, str):
+        return parser.parse(timestr=date).astimezone().strftime(date_fmt)
+    if date is None:
+        return ""
+    return "%s" % date
+
+
+def perror(msg, err):
+    """
+    Print an error message and exit
+    """
+    logging.error("%s: %s", msg, err)
+    sys.exit(1)
+
+
+def print_amazon_instances():
+    """
+    Print information about AWS EC2 instances
+    """
+    filters = [
+        {
+            'Name': 'instance-state-name',
+            'Values': [
+                'pending', 'running', 'stopping',
+                'stopped', 'shutting-down', 'terminated'
+            ]
+        }
+    ]
+    if not args.all:
+        filters = [{'Name': 'instance-state-name', 'Values': ['running']}]
+    try:
+        instances = aws.get_instances(filters=filters)
+    except SomeError as error:
+        perror("AWS", error)
+    if args.sort:
+        try:
+            instances = [_ for _ in instances]
+        except SomeError as error:
+            perror("AWS", error)
+        keys = {
+            'name': itemgetter('InstanceId'),
+            'time': itemgetter('LaunchTime', 'InstanceId'),
+            'status': lambda k: (aws.get_status(k), k['InstanceId'])
+        }
+        instances.sort(key=keys[args.sort], reverse=args.reverse)
+    for instance in instances:
+        output.info(
+            cloud="AWS",
+            name=instance['InstanceId'],
+            type=instance['InstanceType'],
+            status=aws.get_status(instance),
+            created=pretty_date(instance['LaunchTime']),
+            location=instance['Placement']['AvailabilityZone'])
+
+
+def print_azure_instances():
+    """
+    Print information about Azure Compute instances
+    """
+    filter_instance_view = """
+        statuses[1].display_status == 'VM starting' ||
+        statuses[1].display_status == 'VM running' ||
+        statuses[1].display_status == 'VM stopping' ||
+        statuses[1].display_status == 'VM stopped' ||
+        statuses[1].display_status == 'VM deallocating' ||
+        statuses[1].display_status == 'VM deallocated'"""
+    if not args.all:
+        filter_instance_view = "statuses[1].display_status == 'VM running'"
+    try:
+        filter_instance_view = jmespath.compile(filter_instance_view)
+    except JMESPathError as error:
+        perror("Azure", error)
+    try:
+        instances = azure.get_instances(
+            filter_instance_view=filter_instance_view)
+    except SomeError as error:
+        perror("Azure", error)
+    if args.sort:
+        try:
+            instances = [_ for _ in instances]
+        except SomeError as error:
+            perror("Azure", error)
+        keys = {
+            'name': attrgetter('name'),
+            'time': attrgetter('date', 'name'),
+            'status': attrgetter('status', 'name')
+        }
+        instances.sort(key=keys[args.sort], reverse=args.reverse)
+    for instance in instances:
+        output.info(
+            cloud="Azure",
+            name=instance.name,
+            type=instance.hardware_profile.vm_size,
+            status=instance.status,
+            created=pretty_date(instance.date),
+            location=instance.location)
+
+
+def print_google_instances():
+    """
+    Print information about Google Compute instances
+    """
+    filters = """
+        status = provisioning OR
+        status = staging OR
+        status = running OR
+        status = stopping OR
+        status = stopped OR
+        status = suspending OR
+        status = suspended OR
+        status = terminated
+    """
+    if not args.all:
+        filters = "status = running"
+    try:
+        instances = gcp.get_instances(filters=filters)
+    except SomeError as error:
+        perror("GCP", error)
+    if args.sort:
+        try:
+            instances = [_ for _ in instances]
+        except SomeError as error:
+            perror("GCP", error)
+        keys = {
+            'name': itemgetter('name'),
+            'time': itemgetter('creationTimestamp', 'name'),
+            'status': itemgetter('status', 'name'),
+        }
+        instances.sort(key=keys[args.sort], reverse=args.reverse)
+    for instance in instances:
+        output.info(
+            cloud="GCP",
+            name=instance['name'],
+            type=instance['machineType'].rsplit('/', 1)[-1],
+            status=gcp.get_status(instance),
+            created=pretty_date(instance['creationTimestamp']),
+            location=instance['zone'].rsplit('/', 1)[-1])
+
+
+@cached(cache=TTLCache(maxsize=2, ttl=120))
+def main():
+    """
+    Main function
+    """
+    if args.port:
+        sys.stdout = StringIO()
+    output.header()
+    threads = [
+        Thread(target=print_amazon_instances),
+        Thread(target=print_azure_instances),
+        Thread(target=print_google_instances)
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    output.footer()
+    if args.port:
+        sys.stdout.flush()
+        response = sys.stdout.getvalue()
+        sys.stdout.close()
+        return response
+    return None
+
+
+def handle_requests(request):
+    """
+    Handle HTTP requests
+    """
+    logging.info(request)
+    response = main()
+    return Response(response)
+
+
+def web_server():
+    """
+    Setup the WSGI server
+    """
+    with Configurator() as config:
+        config.add_route('handle_requests', '/')
+        config.add_view(handle_requests, route_name='handle_requests')
+        app = config.make_wsgi_app()
+        server = make_server('0.0.0.0', args.port, app)
+        server.serve_forever()
+
+
+def setup_logging():
+    """
+    Setup logging
+    """
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)-8s %(message)s" if args.port else None,
+        stream=sys.stderr,
+        level=logging.DEBUG if args.debug else
+        logging.INFO if args.port else logging.ERROR)
+
+
+if __name__ == "__main__":
+    argparser = argparse.ArgumentParser(usage=USAGE, add_help=False)
+    argparser.add_argument('-a', '--all', action='store_true')
+    argparser.add_argument('-d', '--debug', action='store_true')
+    argparser.add_argument('-h', '--help', action='store_true')
+    argparser.add_argument('-o', '--output', choices=['text', 'html', 'json'],
+                           default="text")
+    argparser.add_argument('-p', '--port', type=int)
+    argparser.add_argument('-r', '--reverse', action='store_true')
+    argparser.add_argument('-s', '--sort', choices=['name', 'status', 'time'])
+    argparser.add_argument('-V', '--version', action='store_true')
+    args = argparser.parse_args()
+
+    if args.help or args.version:
+        print(USAGE if args.help else __version__)
+        sys.exit(0)
+
+    setup_logging()
+
+    try:
+        aws = AWS()
+    except SomeError as error:
+        perror("AWS", error)
+    try:
+        azure = Azure()
+    except SomeError as error:
+        perror("Azure", error)
+    try:
+        gcp = GCP()
+    except SomeError as error:
+        perror("GCP", error)
+
+    _keys = "cloud name type status created location"
+    _fmt = '{d[cloud]}\t{d[name]:32}\t{d[type]:>23}\t{d[status]:>16}\t{d[created]:30}\t{d[location]}'
+
+    output = Output(type=args.output, keys=_keys, fmt=_fmt)
+
+    if args.port:
+        from io import StringIO
+        from wsgiref.simple_server import make_server
+        from pyramid.config import Configurator
+        from pyramid.response import Response
+
+        args.output = "html"
+        web_server()
+        sys.exit(1)
+
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(1)
