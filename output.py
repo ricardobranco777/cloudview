@@ -11,7 +11,8 @@ from json import JSONEncoder
 
 # TODO: Parameterize refresh time
 HTML_HEADER = '''<!DOCTYPE html>
-<html><head><meta charset="utf-8" http-equiv="refresh" content="600"/><title>Instances</title></head>
+<html><head><meta charset="utf-8" http-equiv="refresh" content="600"/>
+<title>Instances</title></head>
 <style>
 table, th, td {
   border: 1px solid black;
@@ -77,19 +78,19 @@ class Output:
             ])
             print(HTML_HEADER + table_header)
 
-    def info(self, **kwargs):
+    def info(self, item=None, **kwargs):
         """
         Dump item information
         """
-        item = dict(kwargs)
+        if item is None:
+            item = dict(kwargs)
         if self.type == "text":
             print(self.fmt.format(d=item))
         elif self.type == "json":
             if self.last_item is not None:
                 print("%s," % self.last_item)
             self.last_item = JSONEncoder(
-                sort_keys=True,
-                indent=2
+                default=str, indent=2, sort_keys=True
             ).encode(item)
         elif self.type == "html":
             print(

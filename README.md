@@ -6,15 +6,18 @@ View instance information on all supported cloud providers
 ```
 Usage: cloudview [OPTIONS]
 Options:
-    -a, --all                       show all instances
-    -o, --output text|html|json     output type
-    -p, --port PORT                 run a web server on port PORT
-    -r, --reverse                   reverse sort
-    -s, --sort name|time|status     sort type
-    -h, --help                      show this help message and exit
-    -d, --debug                     debug mode
-    -V, --version                   show version and exit
+    -a, --all                           show all instances
+    -o, --output text|html|json|JSON    output type
+    -p, --port PORT                     run a web server on port PORT
+    -r, --reverse                       reverse sort
+    -s, --sort name|time|status         sort type
+    -t, --time TIME_FORMAT              time format as used by strftime(3)
+    -h, --help                          show this help message and exit
+    -d, --debug                         debug mode
+    -V, --version                       show version and exit
 ```
+
+**NOTE**: Use `--output JSON` to dump _all_ available information received from each provider's SDK.
 
 This script is best run with Docker to have all dependencies in just one packages, but it may be run stand-alone on systems with Python 3.4+
 
@@ -24,7 +27,7 @@ This script is best run with Docker to have all dependencies in just one package
 pip install --user cloudview
 ```
 
-NOTE: You may need to upgrade `pip` before with `pip install --user --upgrade pip`.
+**NOTE**: You may need to upgrade `pip` before with `pip install --user --upgrade pip`.
 
 ## To run with Docker:
 
