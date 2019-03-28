@@ -12,23 +12,18 @@ import os
 
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.compute import ComputeManagementClient
-from providers.exceptions import SomeError
 
 
 def get_credentials():
     """
     Get credentials for Azure
     """
-    try:
-        subscription_id = os.environ['AZURE_SUBSCRIPTION_ID']
-        credentials = ServicePrincipalCredentials(
-            client_id=os.environ['AZURE_CLIENT_ID'],
-            secret=os.environ['AZURE_CLIENT_SECRET'],
-            tenant=os.environ['AZURE_TENANT_ID']
-        )
-        return credentials, subscription_id
-    except Exception as error:
-        raise SomeError(error)
+    subscription_id = os.environ['AZURE_SUBSCRIPTION_ID']
+    credentials = ServicePrincipalCredentials(
+        client_id=os.environ['AZURE_CLIENT_ID'],
+        secret=os.environ['AZURE_CLIENT_SECRET'],
+        tenant=os.environ['AZURE_TENANT_ID'])
+    return credentials, subscription_id
 
 
 class Azure:
@@ -46,12 +41,9 @@ class Azure:
         """
         resource_group = re.search(
             r"/resourceGroups/([^/]+)/", instance_id).group(1)
-        try:
-            # https://github.com/Azure/azure-sdk-for-python/issues/573
-            return self.compute.virtual_machines.instance_view(
-                resource_group, instance_name)
-        except Exception as error:
-            raise SomeError(error)
+        # https://github.com/Azure/azure-sdk-for-python/issues/573
+        return self.compute.virtual_machines.instance_view(
+            resource_group, instance_name)
 
     @staticmethod
     def _get_date(instance):
@@ -91,21 +83,18 @@ class Azure:
         Reference:
         https://docs.microsoft.com/en-us/python/azure/python-sdk-azure-operation-config?view=azure-python
         """
-        try:
-            for instance in self.compute.virtual_machines.list_all():
-                # https://github.com/Azure/azure-sdk-for-python/issues/573
-                if instance.instance_view is None:
-                    instance.instance_view = self._get_instance_view(
-                        instance.id, instance.name)
-                setattr(instance, 'date', self._get_date(instance))
-                setattr(instance, 'status', self._get_status(instance))
-                if (filter_instance is not None and not
-                        filter_instance.search(instance.as_dict())):
-                    continue
-                if (filter_instance_view is not None and not
-                        filter_instance_view.search(
-                            instance.instance_view.as_dict())):
-                    continue
-                yield instance
-        except Exception as error:
-            raise SomeError(error)
+        for instance in self.compute.virtual_machines.list_all():
+            # https://github.com/Azure/azure-sdk-for-python/issues/573
+            if instance.instance_view is None:
+                instance.instance_view = self._get_instance_view(
+                    instance.id, instance.name)
+            setattr(instance, 'date', self._get_date(instance))
+            setattr(instance, 'status', self._get_status(instance))
+            if (filter_instance is not None and not
+                    filter_instance.search(instance.as_dict())):
+                continue
+            if (filter_instance_view is not None and not
+                    filter_instance_view.search(
+                        instance.instance_view.as_dict())):
+                continue
+            yield instance

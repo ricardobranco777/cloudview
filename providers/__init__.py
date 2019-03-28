@@ -1,1 +1,1 @@
-NAME = "cloud"
+"""providers subpackage"""
