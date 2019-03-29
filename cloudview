@@ -40,7 +40,7 @@ Options:
     -V, --version                       show version and exit
 """
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 
 
 def fix_date(date):
