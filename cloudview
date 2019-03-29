@@ -313,6 +313,8 @@ if __name__ == "__main__":
     _keys = "cloud name type status created location"
     _fmt = '{d[cloud]}\t{d[name]:32}\t{d[type]:>23}\t{d[status]:>16}\t{d[created]:30}\t{d[location]}'
 
+    if args.port:
+        args.output = "html"
     output = Output(type=args.output.lower(), keys=_keys, fmt=_fmt)
 
     if args.port:
@@ -321,7 +323,6 @@ if __name__ == "__main__":
         from pyramid.config import Configurator
         from pyramid.response import Response
 
-        args.output = "html"
         web_server()
         sys.exit(1)
 
