@@ -41,9 +41,10 @@ Options:
     -V, --version                       show version and exit
 Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
+    --filter-azure FILTER               Filter for Azure
 """
 
-__version__ = "0.1.10"
+__version__ = "0.1.11"
 
 
 def fix_date(date):
@@ -83,6 +84,7 @@ def _print_amazon_instances():
             filters = args.filter_aws
         else:
             filters.extend(args.filter_aws)
+    # Compile filter using 'Name' & 'Values'
     filters = [
         {'Name': name, 'Values': [v for _, v in values]}
         for name, values in groupby(
@@ -127,22 +129,18 @@ def _print_azure_instances():
     """
     Print information about Azure Compute instances
     """
-    filter_instance_view = """
-        statuses[1].display_status == 'VM starting' ||
-        statuses[1].display_status == 'VM running' ||
-        statuses[1].display_status == 'VM stopping' ||
-        statuses[1].display_status == 'VM stopped' ||
-        statuses[1].display_status == 'VM deallocating' ||
-        statuses[1].display_status == 'VM deallocated'"""
+    filters = None
     if not args.all:
-        filter_instance_view = "statuses[1].display_status == 'VM running'"
-    else:
-        filter_instance_view = None
-    if filter_instance_view:
-        filter_instance_view = jmespath.compile(filter_instance_view)
+        filters = "instance_view.statuses[1].display_status == 'VM running'"
+    if args.filter_azure:
+        if "instance_view.statuses" in args.filter_azure:
+            filters = args.filter_azure
+        else:
+            filters += "&& (%s)" % args.filter_azure
+    if filters:
+        filters = jmespath.compile(filters)
     azure = Azure()
-    instances = azure.get_instances(
-        filter_instance_view=filter_instance_view)
+    instances = azure.get_instances(filters=filters)
     if args.sort:
         instances = [_ for _ in instances]
         keys = {
@@ -299,6 +297,7 @@ if __name__ == "__main__":
     argparser.add_argument('-t', '--time', default="%a %b %d %H:%M:%S %Z %Y")
     argparser.add_argument('-V', '--version', action='store_true')
     argparser.add_argument('--filter-aws', nargs=2, action='append')
+    argparser.add_argument('--filter-azure', type=str)
     args = argparser.parse_args()
 
     if args.help or args.version:

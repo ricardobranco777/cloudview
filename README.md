@@ -17,6 +17,7 @@ Options:
     -V, --version                       show version and exit
 Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
+    --filter-azure FILTER               Filter for Azure
 ```
 
 **NOTE**: Use `--output JSON` to dump _all_ available information received from each provider's SDK.

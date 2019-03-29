@@ -77,7 +77,7 @@ class Azure:
         """
         return instance.tags
 
-    def get_instances(self, filter_instance=None, filter_instance_view=None):
+    def get_instances(self, filters=None):
         """
         Get Azure Compute instances
         Reference:
@@ -90,11 +90,6 @@ class Azure:
                     instance.id, instance.name)
             setattr(instance, 'date', self._get_date(instance))
             setattr(instance, 'status', self._get_status(instance))
-            if (filter_instance is not None and not
-                    filter_instance.search(instance.as_dict())):
-                continue
-            if (filter_instance_view is not None and not
-                    filter_instance_view.search(
-                        instance.instance_view.as_dict())):
+            if filters is not None and not filters.search(instance.as_dict()):
                 continue
             yield instance
