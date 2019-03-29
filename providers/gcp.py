@@ -36,6 +36,10 @@ class GCP:
             self.project = project
         self.zones = self.get_zones(self.project)
 
+    def __del(self):
+        del self.client
+        del self.compute
+
     def get_projects(self):
         """
         Returns a list of projects

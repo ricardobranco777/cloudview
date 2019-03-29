@@ -17,6 +17,9 @@ class AWS:
     def __init__(self):
         self.client = boto3_client('ec2')
 
+    def __del__(self):
+        del self.client
+
     @staticmethod
     def get_tags(instance):
         """

@@ -35,6 +35,9 @@ class Azure:
         self.compute = ComputeManagementClient(
             credentials, subscription_id, api_version=api_version)
 
+    def __del__(self):
+        self.compute.close()
+
     def _get_instance_view(self, instance_id, instance_name):
         """
         Get instance view for more information
