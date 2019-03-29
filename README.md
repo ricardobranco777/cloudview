@@ -15,6 +15,8 @@ Options:
     -h, --help                          show this help message and exit
     -d, --debug                         debug mode
     -V, --version                       show version and exit
+Filter options:
+    --filter-aws NAME VALUE             may be specified multiple times
 ```
 
 **NOTE**: Use `--output JSON` to dump _all_ available information received from each provider's SDK.
