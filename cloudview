@@ -42,9 +42,10 @@ Options:
 Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
     --filter-azure FILTER               Filter for Azure
+    --filter-gcp FILTER                 Filter for GCP
 """
 
-__version__ = "0.1.11"
+__version__ = "0.1.12"
 
 
 def fix_date(date):
@@ -136,7 +137,7 @@ def _print_azure_instances():
         if "instance_view.statuses" in args.filter_azure:
             filters = args.filter_azure
         else:
-            filters += "&& (%s)" % args.filter_azure
+            filters += " && (%s)" % args.filter_azure
     if filters:
         filters = jmespath.compile(filters)
     azure = Azure()
@@ -179,20 +180,15 @@ def _print_google_instances():
     """
     Print information about Google Compute instances
     """
-    filters = """
-        status = provisioning OR
-        status = staging OR
-        status = running OR
-        status = stopping OR
-        status = stopped OR
-        status = suspending OR
-        status = suspended OR
-        status = terminated
-    """
     if not args.all:
-        filters = "status = running"
+        filters = "status: running"
     else:
         filters = None
+    if args.filter_gcp:
+        if "status" in args.filter_gcp:
+            filters = args.filter_gcp
+        else:
+            filters += " AND (%s)" % args.filter_gcp
     gcp = GCP()
     instances = gcp.get_instances(filters=filters)
     if args.sort:
@@ -298,6 +294,7 @@ if __name__ == "__main__":
     argparser.add_argument('-V', '--version', action='store_true')
     argparser.add_argument('--filter-aws', nargs=2, action='append')
     argparser.add_argument('--filter-azure', type=str)
+    argparser.add_argument('--filter-gcp', type=str)
     args = argparser.parse_args()
 
     if args.help or args.version:

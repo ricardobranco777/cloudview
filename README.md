@@ -18,6 +18,7 @@ Options:
 Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
     --filter-azure FILTER               Filter for Azure
+    --filter-gcp FILTER                 Filter for GCP
 ```
 
 **NOTE**: Use `--output JSON` to dump _all_ available information received from each provider's SDK.
@@ -69,4 +70,4 @@ docker-compose build --pull
   - Search by tag
   - Sort by instance type
   - Use apache-libcloud?
-  - Expose filtering functionality
+  - Simple --status option for all providers
