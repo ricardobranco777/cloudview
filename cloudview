@@ -43,7 +43,7 @@ Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
 """
 
-__version__ = "0.1.9"
+__version__ = "0.1.10"
 
 
 def fix_date(date):
@@ -88,6 +88,7 @@ def _print_amazon_instances():
         for name, values in groupby(
             sorted(filters, key=itemgetter(0)), itemgetter(0))
     ]
+    aws = AWS()
     instances = aws.get_instances(filters=filters)
     if args.sort:
         instances = [_ for _ in instances]
@@ -109,6 +110,7 @@ def _print_amazon_instances():
                 status=aws.get_status(instance),
                 created=instance['LaunchTime'],
                 location=instance['Placement']['AvailabilityZone'])
+    del aws
 
 
 def print_amazon_instances():
@@ -138,6 +140,7 @@ def _print_azure_instances():
         filter_instance_view = None
     if filter_instance_view:
         filter_instance_view = jmespath.compile(filter_instance_view)
+    azure = Azure()
     instances = azure.get_instances(
         filter_instance_view=filter_instance_view)
     if args.sort:
@@ -161,6 +164,7 @@ def _print_azure_instances():
                 status=instance.status,
                 created=instance.date,
                 location=instance.location)
+    del azure
 
 
 def print_azure_instances():
@@ -191,6 +195,7 @@ def _print_google_instances():
         filters = "status = running"
     else:
         filters = None
+    gcp = GCP()
     instances = gcp.get_instances(filters=filters)
     if args.sort:
         instances = [_ for _ in instances]
@@ -212,6 +217,7 @@ def _print_google_instances():
                 status=gcp.get_status(instance),
                 created=instance['creationTimestamp'],
                 location=instance['zone'].rsplit('/', 1)[-1])
+    del gcp
 
 
 def print_google_instances():
@@ -300,19 +306,6 @@ if __name__ == "__main__":
         sys.exit(0)
 
     setup_logging()
-
-    try:
-        aws = AWS()
-    except Exception as error:  # pylint: disable=broad-except
-        perror("AWS", error)
-    try:
-        azure = Azure()
-    except Exception as error:  # pylint: disable=broad-except
-        perror("Azure", error)
-    try:
-        gcp = GCP()
-    except Exception as error:  # pylint: disable=broad-except
-        perror("GCP", error)
 
     _keys = "cloud name type status created location"
     _fmt = '{d[cloud]}\t{d[name]:32}\t{d[type]:>23}\t{d[status]:>16}\t{d[created]:30}\t{d[location]}'
