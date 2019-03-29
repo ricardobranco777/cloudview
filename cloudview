@@ -30,14 +30,14 @@ from output import Output
 
 USAGE = "Usage: " + basename(sys.argv[0]) + """ [OPTIONS]
 Options:
-    -a, --all                           show all instances
+    -d, --debug                         debug mode
+    -h, --help                          show this help message and exit
     -o, --output text|html|json|JSON    output type
     -p, --port PORT                     run a web server on port PORT
     -r, --reverse                       reverse sort
     -s, --sort name|time|status         sort type
-    -t, --time TIME_FORMAT              time format as used by strftime(3)
-    -h, --help                          show this help message and exit
-    -d, --debug                         debug mode
+    -S, --status stopped|running|all    filter by instance status
+    -T, --time TIME_FORMAT              time format as used by strftime(3)
     -V, --version                       show version and exit
 Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
@@ -45,7 +45,7 @@ Filter options:
     --filter-gcp FILTER                 Filter for GCP
 """
 
-__version__ = "0.1.13"
+__version__ = "0.1.14"
 
 
 def fix_date(date):
@@ -78,8 +78,17 @@ def _print_amazon_instances():
     Print information about AWS EC2 instances
     """
     filters = []
-    if not args.all:
-        filters = [['instance-state-name', 'running']]
+    # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html
+    if args.status in ('running', 'stopped'):
+        # Consider an instance "running" if not stopped or terminated
+        # and "stopped" if not pending or running, hence the overlap
+        status_running = 'pending running stopping shutting-down'.split()
+        status_stopped = 'stopping stopped shutting-down terminated'.split()
+        if args.status == "running":
+            filters = [['instance-state-name', _] for _ in status_running]
+        else:
+            filters = [['instance-state-name', _] for _ in status_stopped]
+    # If instance-state-name was specified in the filter, use it instead
     if args.filter_aws:
         if 'instance-state-name' in set(_[0] for _ in args.filter_aws):
             filters = args.filter_aws
@@ -131,8 +140,18 @@ def _print_azure_instances():
     Print information about Azure Compute instances
     """
     filters = None
-    if not args.all:
-        filters = "instance_view.statuses[1].code == 'running'"
+    # https://docs.microsoft.com/en-us/azure/virtual-machines/windows/states-lifecycle
+    if args.status in ('running', 'stopped'):
+        # Consider an instance "running" if not stopped / deallocated
+        # and "stopped" if not starting or running, hence the overlap
+        if args.status == "running":
+            statuses = 'starting running stopping'
+        else:
+            statuses = 'stopping stopped deallocating deallocated'
+        filters = " || ".join(
+            "instance_view.statuses[1].code == %s" % status
+            for status in statuses.split())
+    # If instance_view.statuses[1].code was specified in the filter, use it instead
     if args.filter_azure:
         if "instance_view.statuses" in args.filter_azure:
             filters = args.filter_azure
@@ -180,10 +199,20 @@ def _print_google_instances():
     """
     Print information about Google Compute instances
     """
-    if not args.all:
-        filters = "status: running"
-    else:
-        filters = None
+    filters = None
+    # https://cloud.google.com/compute/docs/instances/instance-life-cycle
+    # NOTE: The above list is incomplete. The API returns more statuses
+    if args.status in ('running', 'stopped'):
+        # Consider an instance "running if not stopped / terminated
+        # and "stopped" if not starting, running, hence the overlap
+        if args.status == "running":
+            statuses = 'provisioning staging running stopping suspending suspended'
+        else:
+            statuses = 'stopping stopped terminated'
+        filters = " OR ".join(
+            "status: %s" % status
+            for status in statuses.split())
+    # If status was specified in the filter, use it instead
     if args.filter_gcp:
         if "status" in args.filter_gcp:
             filters = args.filter_gcp
@@ -282,7 +311,6 @@ def setup_logging():
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(usage=USAGE, add_help=False)
-    argparser.add_argument('-a', '--all', action='store_true')
     argparser.add_argument('-d', '--debug', action='store_true')
     argparser.add_argument('-h', '--help', action='store_true')
     argparser.add_argument('-o', '--output', default='text',
@@ -290,7 +318,9 @@ if __name__ == "__main__":
     argparser.add_argument('-p', '--port', type=int)
     argparser.add_argument('-r', '--reverse', action='store_true')
     argparser.add_argument('-s', '--sort', choices=['name', 'status', 'time'])
-    argparser.add_argument('-t', '--time', default="%a %b %d %H:%M:%S %Z %Y")
+    argparser.add_argument('-S', '--status', default='running',
+                           choices=['all', 'running', 'stopped'])
+    argparser.add_argument('-T', '--time', default="%a %b %d %H:%M:%S %Z %Y")
     argparser.add_argument('-V', '--version', action='store_true')
     argparser.add_argument('--filter-aws', nargs=2, action='append')
     argparser.add_argument('--filter-azure', type=str)
