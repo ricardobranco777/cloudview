@@ -132,7 +132,7 @@ def _print_azure_instances():
     """
     filters = None
     if not args.all:
-        filters = "instance_view.statuses[1].display_status == 'VM running'"
+        filters = "instance_view.statuses[1].code == 'running'"
     if args.filter_azure:
         if "instance_view.statuses" in args.filter_azure:
             filters = args.filter_azure

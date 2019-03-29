@@ -66,12 +66,10 @@ class Azure:
         """
         status = instance.instance_view.statuses
         if len(status) > 1:
-            status = status[1].display_status
+            status = status[1].code
         else:
-            status = status[0].display_status
-        if status.startswith("VM "):
-            return status[3:]
-        return status
+            status = status[0].code
+        return status.rsplit('/', 1)[1]
 
     @staticmethod
     def get_tags(instance):
@@ -83,8 +81,6 @@ class Azure:
     def get_instances(self, filters=None):
         """
         Get Azure Compute instances
-        Reference:
-        https://docs.microsoft.com/en-us/python/azure/python-sdk-azure-operation-config?view=azure-python
         """
         for instance in self.compute.virtual_machines.list_all():
             # https://github.com/Azure/azure-sdk-for-python/issues/573
