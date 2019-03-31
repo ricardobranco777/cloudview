@@ -45,7 +45,7 @@ Filter options:
     --filter-gcp FILTER                 Filter for GCP
 """
 
-__version__ = "0.1.14"
+__version__ = "0.1.15"
 
 
 def fix_date(date):
@@ -82,12 +82,11 @@ def _print_amazon_instances():
     if args.status in ('running', 'stopped'):
         # Consider an instance "running" if not stopped or terminated
         # and "stopped" if not pending or running, hence the overlap
-        status_running = 'pending running stopping shutting-down'.split()
-        status_stopped = 'stopping stopped shutting-down terminated'.split()
         if args.status == "running":
-            filters = [['instance-state-name', _] for _ in status_running]
+            statuses = 'pending running stopping shutting-down'.split()
         else:
-            filters = [['instance-state-name', _] for _ in status_stopped]
+            statuses = 'stopping stopped shutting-down terminated'.split()
+        filters = [['instance-state-name', _] for _ in statuses]
     # If instance-state-name was specified in the filter, use it instead
     if args.filter_aws:
         if 'instance-state-name' in set(_[0] for _ in args.filter_aws):
@@ -149,11 +148,11 @@ def _print_azure_instances():
         else:
             statuses = 'stopping stopped deallocating deallocated'
         filters = " || ".join(
-            "instance_view.statuses[1].code == %s" % status
+            "instance_view.statuses[1].code == 'PowerState/%s'" % status
             for status in statuses.split())
-    # If instance_view.statuses[1].code was specified in the filter, use it instead
+    # If status was specified in the filter, use it instead
     if args.filter_azure:
-        if "instance_view.statuses" in args.filter_azure:
+        if "status" in args.filter_azure:
             filters = args.filter_azure
         else:
             filters += " && (%s)" % args.filter_azure
@@ -270,7 +269,6 @@ def main():
         thread.join()
     output.footer()
     if args.port:
-        sys.stdout.flush()
         response = sys.stdout.getvalue()
         sys.stdout.close()
         return response
