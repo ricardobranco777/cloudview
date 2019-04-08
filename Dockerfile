@@ -6,7 +6,8 @@ RUN	pip install --no-cache-dir -r /tmp/requirements.txt
 COPY	. /app
 
 RUN	chmod +x /app/cloudview && \
-	python3 -OO -m compileall /app/cloudview
+	python3 -OO -m compileall && \
+	python3 -OO -m compileall /app/
 
 ENTRYPOINT ["/app/cloudview"]
 CMD []

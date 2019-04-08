@@ -14,12 +14,14 @@ services:
     volumes:
       - ~/.aws:/root/.aws:ro
       - ${GOOGLE_APPLICATION_CREDENTIALS}:${GOOGLE_APPLICATION_CREDENTIALS}:ro
+    read_only: true
   nginx:
     build: nginx
     environment:
       - APP_PORT=7777
       - NGINX_HOST=ricardox.suse.de
     ports:
-      - "7778:443"
+      - "8443:443"
     volumes:
       - ~/TLS:/etc/nginx/ssl:ro
+    read_only: true
