@@ -1,7 +1,7 @@
 version: '2.1'
 
 services:
-  cloudview:
+  app:
     build: .
     command: --status all --sort time --port 7777
     environment:
@@ -14,5 +14,12 @@ services:
     volumes:
       - ~/.aws:/root/.aws:ro
       - ${GOOGLE_APPLICATION_CREDENTIALS}:${GOOGLE_APPLICATION_CREDENTIALS}:ro
+  nginx:
+    build: nginx
+    environment:
+      - APP_PORT=7777
+      - NGINX_HOST=ricardox.suse.de
     ports:
-      - "7777:7777"
+      - "7778:443"
+    volumes:
+      - ~/TLS:/etc/nginx/ssl:ro

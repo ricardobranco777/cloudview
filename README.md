@@ -42,12 +42,7 @@ docker build -t cloud --pull .
 
 Run with:
 ```
-docker run --rm -v ~/.aws:/root/.aws:ro -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" -e AZURE_TENANT_ID -e AZURE_SUBSCRIPTION_ID -e AZURE_CLIENT_SECRET -e AZURE_CLIENT_ID -e GOOGLE_APPLICATION_CREDENTIALS=/root/$(basename $GOOGLE_APPLICATION_CREDENTIALS) cloudview --status all --port 7777
-```
-
-To set up a web server showing this information running on port 7777:
-```
-docker run --rm -d -p 7777:7777 -v ~/.aws:/root/.aws:ro -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" -e AZURE_TENANT_ID -e AZURE_SUBSCRIPTION_ID -e AZURE_CLIENT_SECRET -e AZURE_CLIENT_ID -e GOOGLE_APPLICATION_CREDENTIALS cloudview --status all --port 7777
+docker run --rm -v ~/.aws:/root/.aws:ro -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" -e AZURE_TENANT_ID -e AZURE_SUBSCRIPTION_ID -e AZURE_CLIENT_SECRET -e AZURE_CLIENT_ID -e GOOGLE_APPLICATION_CREDENTIALS=/root/$(basename $GOOGLE_APPLICATION_CREDENTIALS) cloudview --status all
 ```
 
 ## Run the web server with [Docker Compose](https://docs.docker.com/compose/install/):
