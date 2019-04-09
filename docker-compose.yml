@@ -1,4 +1,4 @@
-version: '2.1'
+version: '3.6'
 
 services:
   app:
@@ -14,6 +14,10 @@ services:
     volumes:
       - ~/.aws:/root/.aws:ro
       - ${GOOGLE_APPLICATION_CREDENTIALS}:${GOOGLE_APPLICATION_CREDENTIALS}:ro
+      - type: tmpfs
+        target: /tmp
+        tmpfs:
+          size: 65536
     read_only: true
     restart: always
   nginx:
@@ -24,6 +28,10 @@ services:
     ports:
       - "8443:443"
     volumes:
-      - ~/TLS:/etc/nginx/ssl:ro
+      # - ~/TLS:/etc/nginx/ssl:ro
+      - type: tmpfs
+        target: /tmp
+        tmpfs:
+          size: 65536
     read_only: true
     restart: always
