@@ -14,9 +14,13 @@ HTML_HEADER = '''<!DOCTYPE html>
 <html><head><meta charset="utf-8" http-equiv="refresh" content="600"/>
 <title>Instances</title></head>
 <style>
+body {
+  background-color: white;
+  color: black;
+}
 table, th, td {
   border: 1px solid black;
-  border-collapse: collapse
+  border-collapse: collapse;
 }
 th, td {
   padding: 10px;
@@ -28,7 +32,7 @@ table#instances tr:nth-child(even) {
   background-color: #eee;
 }
 table#instances tr:nth-child(odd) {
- background-color: #fff;
+  background-color: #fff;
 }
 </style>
 <body><table style="width:77%" id="instances">
@@ -37,7 +41,7 @@ table#instances tr:nth-child(odd) {
 # TODO: Parameterize date format
 HTML_FOOTER = '''</table><br>
 Last updated:
-<p id="date"></p>
+<p id="date" style="background-color:white;color:black;"></p>
 <script>
     var date = new Date();
     document.getElementById("date").innerHTML = date;
