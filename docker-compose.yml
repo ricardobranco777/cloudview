@@ -15,6 +15,7 @@ services:
       - ~/.aws:/root/.aws:ro
       - ${GOOGLE_APPLICATION_CREDENTIALS}:${GOOGLE_APPLICATION_CREDENTIALS}:ro
     read_only: true
+    restart: always
   nginx:
     build: nginx
     environment:
@@ -25,3 +26,4 @@ services:
     volumes:
       - ~/TLS:/etc/nginx/ssl:ro
     read_only: true
+    restart: always
