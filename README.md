@@ -21,9 +21,16 @@ Filter options:
     --filter-gcp FILTER                 Filter for GCP
 ```
 
-**NOTE**: Use `--output JSON` to dump _all_ available information received from each provider's SDK.
+**NOTES**:
+  - Use `--output JSON` to dump _all_ available information received from each provider's SDK.
+  - Remember to set these variables:
+    - `GOOGLE_APPLICATION_CREDENTIALS`
+    - `AZURE_TENANT_ID`
+    - `AZURE_SUBSCRIPTION_ID`
+    - `AZURE_CLIENT_SECRET`
+    - `AZURE_CLIENT_ID`
 
-This script is best run with Docker to have all dependencies in just one packages, but it may be run stand-alone on systems with Python 3.4+
+This script is best run with Docker to have all dependencies in just one package, but it may be run stand-alone on systems with Python 3.4+
 
 ## To run stand-alone:
 
@@ -47,9 +54,16 @@ docker run --rm -v ~/.aws:/root/.aws:ro -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOO
 
 ## Run the web server with [Docker Compose](https://docs.docker.com/compose/install/):
 
+If you have a TLS key pair, rename the certificate to `cert.pem`, the private key to `key.pem` and the file containing the password to the private key to `key.txt`.  Then edit the [docker-compose.yml](docker-compose.yml) file to mount them to `/etc/nginx/ssl` in read-only mode like this: `- "/path/to/tls:/etc/nginx/ssl:ro"`.
+
+If you don't have a TLS key pair, a self-signed certificate will be generated.  Be aware of the typical problems with time resolution related to TLS certificates.
+
+
 ```
 docker-compose up -d
 ```
+
+Now browse to [https://localhost:8443](https://localhost:8443)
 
 To stop the web server:
 ```
