@@ -1,5 +1,8 @@
 FROM	nginx
 
+RUN	apt-get update && \
+	apt-get install -y openssl
+
 COPY	site.conf.template /etc/nginx/conf.d/
 COPY	entrypoint.sh /run
 RUN	chmod +x /run/entrypoint.sh && \
@@ -7,6 +10,6 @@ RUN	chmod +x /run/entrypoint.sh && \
 
 EXPOSE	443
 
-VOLUME	["/var/cache/nginx", "/run"]
+VOLUME	["/var/cache/nginx", "/run", "/etc/nginx/ssl"]
 
 ENTRYPOINT ["/run/entrypoint.sh"]
