@@ -45,7 +45,7 @@ Filter options:
     --filter-gcp FILTER                 Filter for GCP
 """
 
-__version__ = "0.1.15"
+__version__ = "0.1.16"
 
 
 def fix_date(date):
@@ -167,7 +167,11 @@ def _print_azure_instances():
             'time': attrgetter('date', 'name'),
             'status': attrgetter('status', 'name')
         }
-        instances.sort(key=keys[args.sort], reverse=args.reverse)
+        # args.date may be None
+        try:
+            instances.sort(key=keys[args.sort], reverse=args.reverse)
+        except TypeError:
+            pass
     for instance in instances:
         instance.date = fix_date(instance.date)
         if args.output == "JSON":
