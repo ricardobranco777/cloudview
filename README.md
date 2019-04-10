@@ -22,8 +22,8 @@ Filter options:
 ```
 
 **NOTES**:
-  - Use `--output JSON` to dump _all_ available information received from each provider's SDK.
-  - Remember to set these variables:
+  - Use `--output JSON` to dump _all_ available information received from each provider.
+  - Remember to set these environment variables:
     - `GOOGLE_APPLICATION_CREDENTIALS`
     - `AZURE_TENANT_ID`
     - `AZURE_SUBSCRIPTION_ID`
@@ -37,8 +37,6 @@ This script is best run with Docker to have all dependencies in just one package
 ```
 pip install --user cloudview
 ```
-
-**NOTE**: You may need to upgrade `pip` before with `pip install --user --upgrade pip`.
 
 ## To run with Docker:
 
