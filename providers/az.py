@@ -10,6 +10,8 @@ https://docs.microsoft.com/en-us/python/api/azure-mgmt-compute/azure.mgmt.comput
 import re
 import os
 
+import concurrent.futures
+
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.compute import ComputeManagementClient
 
@@ -38,15 +40,32 @@ class Azure:
     def __del__(self):
         self.compute.close()
 
-    def _get_instance_view(self, instance_id, instance_name):
+    def _get_instance_view(self, instance):
         """
         Get instance view for more information
         """
         resource_group = re.search(
-            r"/resourceGroups/([^/]+)/", instance_id).group(1)
+            r"/resourceGroups/([^/]+)/", instance.id).group(1)
         # https://github.com/Azure/azure-sdk-for-python/issues/573
         return self.compute.virtual_machines.instance_view(
-            resource_group, instance_name)
+            resource_group, instance.name)
+
+    def _get_instance_views(self, instances):
+        """
+        Threaded version to get all instance views using a pool of workers
+        """
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            # Mark each future with its instance
+            future_to_instance = {
+                executor.submit(self._get_instance_view, instance):
+                instance for instance in instances
+            }
+            for future in concurrent.futures.as_completed(future_to_instance):
+                instance = future_to_instance[future]
+                try:
+                    instance.instance_view = future.result()
+                except Exception:  # pylint: disable=try-except-raise
+                    raise
 
     @staticmethod
     def _get_date(instance):
@@ -82,11 +101,12 @@ class Azure:
         """
         Get Azure Compute instances
         """
+        instances = []
         for instance in self.compute.virtual_machines.list_all():
-            # https://github.com/Azure/azure-sdk-for-python/issues/573
-            if instance.instance_view is None:
-                instance.instance_view = self._get_instance_view(
-                    instance.id, instance.name)
+            instances.append(instance)
+        # https://github.com/Azure/azure-sdk-for-python/issues/573
+        self._get_instance_views(instances)
+        for instance in instances:
             setattr(instance, 'date', self._get_date(instance))
             setattr(instance, 'status', self._get_status(instance))
             if filters is not None and not filters.search(instance.as_dict()):
