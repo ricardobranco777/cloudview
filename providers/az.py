@@ -95,7 +95,7 @@ class Azure:
         """
         Returns a dictionary of tags
         """
-        return instance.tags
+        return instance['tags']
 
     def get_instances(self, filters=None):
         """
@@ -107,8 +107,11 @@ class Azure:
         # https://github.com/Azure/azure-sdk-for-python/issues/573
         self._get_instance_views(instances)
         for instance in instances:
-            setattr(instance, 'date', self._get_date(instance))
-            setattr(instance, 'status', self._get_status(instance))
-            if filters is not None and not filters.search(instance.as_dict()):
+            date = self._get_date(instance)
+            status = self._get_status(instance)
+            instance = instance.as_dict()
+            instance['date'] = date
+            instance['status'] = status
+            if filters is not None and not filters.search(instance):
                 continue
             yield instance
