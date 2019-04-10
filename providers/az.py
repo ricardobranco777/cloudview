@@ -54,7 +54,7 @@ class Azure:
         """
         Threaded version to get all instance views using a pool of workers
         """
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        with concurrent.futures.ThreadPoolExecutor() as executor:
             # Mark each future with its instance
             future_to_instance = {
                 executor.submit(self._get_instance_view, instance):
