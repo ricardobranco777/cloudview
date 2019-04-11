@@ -34,7 +34,6 @@ class GCP:
             self.project = get_project()
         else:
             self.project = project
-        self.zones = self.get_zones(self.project)
 
     def __del(self):
         del self.client
@@ -46,10 +45,13 @@ class GCP:
         """
         return [_.project_id for _ in self.client.list_projects()]
 
-    def get_zones(self, project, filters="status: UP"):
+    # MAYBE use TTLCache
+    def get_zones(self, project=None, filters="status: UP"):
         """
         Returns a list of available zones
         """
+        if project is None:
+            project = self.project
         items = []
         request = self.compute.zones().list(project=project, filter=filters)
         while request is not None:
@@ -81,7 +83,7 @@ class GCP:
                     retry_zones.append(request_id)
                     responses[request_id] = response
 
-        retry_zones = self.zones
+        retry_zones = self.get_zones()
         # To support pagination on batch HTTP requests
         # we save the request & response of each zone
         while retry_zones:
