@@ -101,9 +101,7 @@ class Azure:
         """
         Get Azure Compute instances
         """
-        instances = []
-        for instance in self.compute.virtual_machines.list_all():
-            instances.append(instance)
+        instances = list(self.compute.virtual_machines.list_all())
         # https://github.com/Azure/azure-sdk-for-python/issues/573
         self._get_instance_views(instances)
         for instance in instances:

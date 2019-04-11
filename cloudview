@@ -108,7 +108,7 @@ def _print_amazon_instances():
     aws = AWS()
     instances = aws.get_instances(filters=filters)
     if args.sort:
-        instances = [_ for _ in instances]
+        instances = list(instances)
         keys = {
             'name': itemgetter('InstanceId'),
             'time': itemgetter('LaunchTime', 'InstanceId'),
@@ -164,9 +164,8 @@ def _print_azure_instances():
     if filters:
         filters = jmespath.compile(filters)
     azure = Azure()
-    instances = azure.get_instances(filters=filters)
+    instances = list(azure.get_instances(filters=filters))
     if args.sort:
-        instances = [_ for _ in instances]
         keys = {
             'name': itemgetter('name'),
             'time': itemgetter('date', 'name'),
@@ -227,7 +226,7 @@ def _print_google_instances():
     gcp = GCP()
     instances = gcp.get_instances(filters=filters)
     if args.sort:
-        instances = [_ for _ in instances]
+        instances = list(instances)
         keys = {
             'name': itemgetter('name'),
             'time': itemgetter('creationTimestamp', 'name'),
