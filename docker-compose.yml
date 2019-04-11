@@ -3,7 +3,7 @@ version: '3.6'
 services:
   app:
     build: .
-    command: --status all --sort time --port 7777
+    command: --status all --sort time --port 7777 --verbose
     environment:
       - AZURE_CLIENT_ID
       - AZURE_CLIENT_SECRET

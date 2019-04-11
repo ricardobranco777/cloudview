@@ -19,8 +19,10 @@ from threading import Thread
 from dateutil import parser
 
 import jmespath
+import timeago
 
 from cachetools import cached, TTLCache
+from pytz import utc
 
 from providers.amazon import AWS
 from providers.az import Azure
@@ -39,13 +41,14 @@ Options:
     -S, --status stopped|running|all    filter by instance status
     -T, --time TIME_FORMAT              time format as used by strftime(3)
     -V, --version                       show version and exit
+    -v, --verbose                       be verbose
 Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
     --filter-azure FILTER               Filter for Azure
     --filter-gcp FILTER                 Filter for GCP
 """
 
-__version__ = "0.1.17"
+__version__ = "0.1.18"
 
 
 def fix_date(date):
@@ -53,14 +56,17 @@ def fix_date(date):
     Converts datetime object or string to local time or the
     timezone specified by the TZ environment variable
     """
-    # NOTE: From Python 3.3 we can omit tz in datetime.astimezone()
-    if isinstance(date, datetime.datetime):
-        return date.astimezone().strftime(args.time)
     if isinstance(date, str):
-        return parser.parse(timestr=date).astimezone().strftime(args.time)
-    if date is None:
-        return ""
-    return "%s" % date
+        # The parser returns datetime objects
+        date = parser.parse(date)
+    if isinstance(date, datetime.datetime):
+        # GCP doesn't return UTC dates
+        date = utc.normalize(date)
+        if args.verbose:
+            # From Python 3.3 we can omit tz in datetime.astimezone()
+            return date.astimezone().strftime(args.time)
+        return timeago.format(date, datetime.datetime.now(tz=utc))
+    return ""
 
 
 def perror(msg, err):
@@ -110,7 +116,6 @@ def _print_amazon_instances():
         }
         instances.sort(key=keys[args.sort], reverse=args.reverse)
     for instance in instances:
-        instance['LaunchTime'] = fix_date(instance['LaunchTime'])
         if args.output == "JSON":
             output.info(item=instance)
         else:
@@ -119,7 +124,7 @@ def _print_amazon_instances():
                 name=instance['InstanceId'],
                 type=instance['InstanceType'],
                 status=aws.get_status(instance),
-                created=instance['LaunchTime'],
+                created=fix_date(instance['LaunchTime']),
                 location=instance['Placement']['AvailabilityZone'])
     del aws
 
@@ -173,7 +178,6 @@ def _print_azure_instances():
         except TypeError:
             pass
     for instance in instances:
-        instance['date'] = fix_date(instance['date'])
         if args.output == "JSON":
             output.info(item=instance)
         else:
@@ -182,7 +186,7 @@ def _print_azure_instances():
                 name=instance['name'],
                 type=instance['hardware_profile']['vm_size'],
                 status=instance['status'],
-                created=instance['date'],
+                created=fix_date(instance['date']),
                 location=instance['location'])
     del azure
 
@@ -231,7 +235,6 @@ def _print_google_instances():
         }
         instances.sort(key=keys[args.sort], reverse=args.reverse)
     for instance in instances:
-        instance['creationTimestamp'] = fix_date(instance['creationTimestamp'])
         if args.output == "JSON":
             output.info(item=instance)
         else:
@@ -240,7 +243,7 @@ def _print_google_instances():
                 name=instance['name'],
                 type=instance['machineType'].rsplit('/', 1)[-1],
                 status=gcp.get_status(instance),
-                created=instance['creationTimestamp'],
+                created=fix_date(instance['creationTimestamp']),
                 location=instance['zone'].rsplit('/', 1)[-1])
     del gcp
 
@@ -322,6 +325,7 @@ if __name__ == "__main__":
     argparser.add_argument('-S', '--status', default='running',
                            choices=['all', 'running', 'stopped'])
     argparser.add_argument('-T', '--time', default="%a %b %d %H:%M:%S %Z %Y")
+    argparser.add_argument('-v', '--verbose', action='count')
     argparser.add_argument('-V', '--version', action='store_true')
     argparser.add_argument('--filter-aws', nargs=2, action='append')
     argparser.add_argument('--filter-azure', type=str)

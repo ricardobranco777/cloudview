@@ -14,6 +14,7 @@ Options:
     -s, --sort name|time|status         sort type
     -S, --status stopped|running|all    filter by instance status
     -T, --time TIME_FORMAT              time format as used by strftime(3)
+    -v, --verbose                       be verbose
     -V, --version                       show version and exit
 Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
