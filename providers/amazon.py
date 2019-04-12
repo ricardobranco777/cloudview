@@ -33,11 +33,12 @@ class AWS:
         """
         if filters is None:
             filters = []
-        paginator = self.client.get_paginator('describe_instances')
-        for page in paginator.paginate(Filters=filters):
+        pages = self.client.get_paginator('describe_instances').paginate(
+            Filters=filters)
+        # We can use JMESPath for client-side filtering using pages.search()
+        for page in pages:
             for item in page['Reservations']:
-                for instance in item['Instances']:
-                    yield instance
+                yield from item['Instances']
 
     @staticmethod
     def get_status(instance):

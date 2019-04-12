@@ -97,8 +97,7 @@ class GCP:
                 batch.add(requests[zone], callback=callback, request_id=zone)
             retry_zones.clear()
             batch.execute()
-            for instance in instances:
-                yield instance
+            yield from instances
             instances.clear()
             for zone in retry_zones:
                 requests[zone] = self.compute.instances().list_next(
