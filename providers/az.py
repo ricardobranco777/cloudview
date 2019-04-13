@@ -72,7 +72,7 @@ class Azure:
         """
         Guess date for instance based on the OS disk
         """
-        for _, disk in enumerate(instance.instance_view.disks):
+        for disk in instance.instance_view.disks:
             if disk.name == instance.storage_profile.os_disk.name:
                 return disk.statuses[0].time
         return None
