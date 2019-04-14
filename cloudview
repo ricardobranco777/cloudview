@@ -19,6 +19,8 @@ from threading import Thread
 from dateutil import parser
 
 import jmespath
+from jmespath.exceptions import JMESPathError
+
 import timeago
 
 from cachetools import cached, TTLCache
@@ -27,6 +29,7 @@ from pytz import utc
 from providers.amazon import AWS
 from providers.az import Azure
 from providers.gcp import GCP
+from providers.exceptions import FatalError
 from output import Output
 
 
@@ -79,7 +82,7 @@ def perror(msg, err):
     sys.exit(1)
 
 
-def _print_amazon_instances():
+def print_amazon_instances():
     """
     Print information about AWS EC2 instances
     """
@@ -129,17 +132,7 @@ def _print_amazon_instances():
     del aws
 
 
-def print_amazon_instances():
-    "Handle exceptions"
-    try:
-        _print_amazon_instances()
-    except KeyboardInterrupt:
-        sys.exit(1)
-    except Exception as error:  # pylint: disable=broad-except
-        perror("AWS", error)
-
-
-def _print_azure_instances():
+def print_azure_instances():  # pylint: disable=too-many-branches
     """
     Print information about Azure Compute instances
     """
@@ -162,7 +155,10 @@ def _print_azure_instances():
         else:
             filters += " && (%s)" % args.filter_azure
     if filters:
-        filters = jmespath.compile(filters)
+        try:
+            filters = jmespath.compile(filters)
+        except JMESPathError as exc:
+            FatalError("Azure", exc)
     azure = Azure()
     instances = list(azure.get_instances(filters=filters))
     if args.sort:
@@ -171,10 +167,10 @@ def _print_azure_instances():
             'time': itemgetter('date', 'name'),
             'status': itemgetter('status', 'name')
         }
-        # args['date'] may be None
         try:
             instances.sort(key=keys[args.sort], reverse=args.reverse)
         except TypeError:
+            # args['date'] may be None
             pass
     for instance in instances:
         if args.output == "JSON":
@@ -190,17 +186,7 @@ def _print_azure_instances():
     del azure
 
 
-def print_azure_instances():
-    "Handle exceptions"
-    try:
-        _print_azure_instances()
-    except KeyboardInterrupt:
-        sys.exit(1)
-    except Exception as error:  # pylint: disable=broad-except
-        perror("Azure", error)
-
-
-def _print_google_instances():
+def print_google_instances():
     """
     Print information about Google Compute instances
     """
@@ -245,14 +231,6 @@ def _print_google_instances():
                 created=fix_date(instance['creationTimestamp']),
                 location=instance['zone'].rsplit('/', 1)[-1])
     del gcp
-
-
-def print_google_instances():
-    "Handle exceptions"
-    try:
-        _print_google_instances()
-    except Exception as error:  # pylint: disable=broad-except
-        perror("GCP", error)
 
 
 @cached(cache=TTLCache(maxsize=2, ttl=120))

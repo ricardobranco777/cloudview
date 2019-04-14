@@ -11,16 +11,24 @@ import json
 import os
 
 from googleapiclient.discovery import build
+from googleapiclient.errors import Error as GoogleError
 from google.cloud import resource_manager
+from google.api_core.exceptions import GoogleAPIError
+from google.auth.exceptions import GoogleAuthError
+
+from .exceptions import FatalError
 
 
 def get_project():
     """
     Get the project from the GCP credentials JSON file
     """
-    with open(os.environ['GOOGLE_APPLICATION_CREDENTIALS']) as file:
-        data = json.loads(file.read())
-    return data['project_id']
+    try:
+        with open(os.environ['GOOGLE_APPLICATION_CREDENTIALS']) as file:
+            data = json.loads(file.read())
+        return data['project_id']
+    except (KeyError, OSError) as exc:
+        FatalError("GCP", exc)
 
 
 class GCP:
@@ -28,22 +36,27 @@ class GCP:
     Class for handling GCP stuff
     """
     def __init__(self, project=None):
-        self.client = resource_manager.Client()
-        self.compute = build('compute', 'v1')
+        try:
+            self.client = resource_manager.Client()
+        except (GoogleAuthError, GoogleAPIError) as exc:
+            FatalError("GCP", exc)
+        try:
+            self.compute = build('compute', 'v1')
+        except (GoogleAuthError, GoogleError) as exc:
+            FatalError("GCP", exc)
         if project is None:
             self.project = get_project()
         else:
             self.project = project
 
-    def __del(self):
-        del self.client
-        del self.compute
-
     def get_projects(self):
         """
         Returns a list of projects
         """
-        return [_.project_id for _ in self.client.list_projects()]
+        try:
+            return [_.project_id for _ in self.client.list_projects()]
+        except (GoogleAuthError, GoogleAPIError) as exc:
+            FatalError("GCP", exc)
 
     # MAYBE use TTLCache
     def get_zones(self, project=None, filters="status: UP"):
@@ -55,7 +68,10 @@ class GCP:
         items = []
         request = self.compute.zones().list(project=project, filter=filters)
         while request is not None:
-            response = request.execute()
+            try:
+                response = request.execute()
+            except (GoogleAuthError, GoogleError) as exc:
+                FatalError("GCP", exc)
             if 'items' in response:
                 items.extend(_['name'] for _ in response['items'])
             request = self.compute.zones().list_next(request, response)
@@ -68,7 +84,9 @@ class GCP:
         Specifying both a list filter and sort order is not currently supported
         """
         if filters is not None and orderBy is not None:
-            raise ValueError("Specifying both a list filter and sort order is not currently supported")
+            raise FatalError(
+                "Specifying both a list filter and sort order is not currently supported",
+                ValueError)
 
         instances = []
         requests = {}
@@ -76,7 +94,7 @@ class GCP:
 
         def callback(request_id, response, exception):
             if exception is not None:
-                raise exception
+                FatalError("GCP", exception)
             if 'items' in response:
                 instances.extend(response['items'])
                 if 'nextPageToken' in response:
@@ -96,7 +114,10 @@ class GCP:
                         filter=filters, orderBy=orderBy)  # , maxResults=1)
                 batch.add(requests[zone], callback=callback, request_id=zone)
             retry_zones.clear()
-            batch.execute()
+            try:
+                batch.execute()
+            except (GoogleAuthError, GoogleError) as exc:
+                FatalError("GCP", exc)
             yield from instances
             instances.clear()
             for zone in retry_zones:

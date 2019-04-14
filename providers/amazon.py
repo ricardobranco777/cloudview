@@ -8,6 +8,9 @@ https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.h
 """
 
 from boto3 import client as boto3_client
+from botocore.exceptions import BotoCoreError, ClientError
+
+from .exceptions import FatalError
 
 
 class AWS:
@@ -15,10 +18,10 @@ class AWS:
     Class for handling AWS stuff
     """
     def __init__(self):
-        self.client = boto3_client('ec2')
-
-    def __del__(self):
-        del self.client
+        try:
+            self.client = boto3_client('ec2')
+        except (BotoCoreError, ClientError) as exc:
+            raise FatalError("AWS", exc)
 
     @staticmethod
     def get_tags(instance):
@@ -33,12 +36,15 @@ class AWS:
         """
         if filters is None:
             filters = []
-        pages = self.client.get_paginator('describe_instances').paginate(
-            Filters=filters)
-        # We can use JMESPath for client-side filtering using pages.search()
-        for page in pages:
-            for item in page['Reservations']:
-                yield from item['Instances']
+        try:
+            pages = self.client.get_paginator('describe_instances').paginate(
+                Filters=filters)
+            # TODO: Use JMESPath for client-side filtering using pages.search()
+            for page in pages:
+                for item in page['Reservations']:
+                    yield from item['Instances']
+        except (BotoCoreError, ClientError) as exc:
+            raise FatalError("AWS", exc)
 
     @staticmethod
     def get_status(instance):

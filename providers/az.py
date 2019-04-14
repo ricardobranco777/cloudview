@@ -14,18 +14,24 @@ import concurrent.futures
 
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.compute import ComputeManagementClient
+from msrestazure.azure_exceptions import CloudError
+from requests.exceptions import RequestException
+from .exceptions import FatalError
 
 
 def get_credentials():
     """
     Get credentials for Azure
     """
-    subscription_id = os.environ['AZURE_SUBSCRIPTION_ID']
-    credentials = ServicePrincipalCredentials(
-        client_id=os.environ['AZURE_CLIENT_ID'],
-        secret=os.environ['AZURE_CLIENT_SECRET'],
-        tenant=os.environ['AZURE_TENANT_ID'])
-    return credentials, subscription_id
+    try:
+        subscription_id = os.environ['AZURE_SUBSCRIPTION_ID']
+        credentials = ServicePrincipalCredentials(
+            client_id=os.environ['AZURE_CLIENT_ID'],
+            secret=os.environ['AZURE_CLIENT_SECRET'],
+            tenant=os.environ['AZURE_TENANT_ID'])
+        return credentials, subscription_id
+    except (KeyError, CloudError, RequestException) as exc:
+        FatalError("Azure", exc)
 
 
 class Azure:
@@ -34,11 +40,16 @@ class Azure:
     """
     def __init__(self, api_version='2018-10-01'):
         credentials, subscription_id = get_credentials()
-        self.compute = ComputeManagementClient(
-            credentials, subscription_id, api_version=api_version)
+        try:
+            self.compute = ComputeManagementClient(
+                credentials, subscription_id, api_version=api_version)
+        except (CloudError, RequestException) as exc:
+            FatalError("Azure", exc)
 
     def __del__(self):
-        self.compute.close()
+        if hasattr(self, 'compute'):
+            return  # XXX: We need know when ThreadPool is finished
+            self.compute.close()
 
     def _get_instance_view(self, instance):
         """
@@ -47,8 +58,11 @@ class Azure:
         resource_group = re.search(
             r"/resourceGroups/([^/]+)/", instance.id).group(1)
         # https://github.com/Azure/azure-sdk-for-python/issues/573
-        return self.compute.virtual_machines.instance_view(
-            resource_group, instance.name)
+        try:
+            return self.compute.virtual_machines.instance_view(
+                resource_group, instance.name)
+        except (CloudError, RequestException) as exc:
+            FatalError("Azure", exc)
 
     def _get_instance_views(self, instances):
         """
@@ -64,8 +78,8 @@ class Azure:
                 instance = future_to_instance[future]
                 try:
                     instance.instance_view = future.result()
-                except Exception:  # pylint: disable=try-except-raise
-                    raise
+                except (CloudError, RequestException) as exc:
+                    FatalError("Azure", exc)
 
     @staticmethod
     def _get_date(instance):
@@ -101,7 +115,10 @@ class Azure:
         """
         Get Azure Compute instances
         """
-        instances = list(self.compute.virtual_machines.list_all())
+        try:
+            instances = list(self.compute.virtual_machines.list_all())
+        except (CloudError, RequestException) as exc:
+            FatalError("Azure", exc)
         # https://github.com/Azure/azure-sdk-for-python/issues/573
         self._get_instance_views(instances)
         for instance in instances:
