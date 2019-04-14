@@ -6,8 +6,8 @@ View instance information on all supported cloud providers
 ```
 Usage: cloudview [OPTIONS]
 Options:
-    -d, --debug                         debug mode
     -h, --help                          show this help message and exit
+    -l, --log debug|info|warning|error|critical
     -o, --output text|html|json|JSON    output type
     -p, --port PORT                     run a web server on port PORT
     -r, --reverse                       reverse sort
