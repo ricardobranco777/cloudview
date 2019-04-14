@@ -17,6 +17,7 @@ from azure.mgmt.compute import ComputeManagementClient
 from msrestazure.azure_exceptions import CloudError
 from requests.exceptions import RequestException
 from .exceptions import FatalError
+from .singleton import Singleton
 
 
 def get_credentials():
@@ -34,6 +35,7 @@ def get_credentials():
         FatalError("Azure", exc)
 
 
+@Singleton
 class Azure:
     """
     Class for handling Azure stuff
@@ -45,11 +47,6 @@ class Azure:
                 credentials, subscription_id, api_version=api_version)
         except (CloudError, RequestException) as exc:
             FatalError("Azure", exc)
-
-    def __del__(self):
-        if hasattr(self, 'compute'):
-            return  # XXX: We need know when ThreadPool is finished
-            self.compute.close()
 
     def _get_instance_view(self, instance):
         """

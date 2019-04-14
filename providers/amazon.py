@@ -11,8 +11,10 @@ from boto3 import client as boto3_client
 from botocore.exceptions import BotoCoreError, ClientError
 
 from .exceptions import FatalError
+from .singleton import Singleton
 
 
+@Singleton
 class AWS:
     """
     Class for handling AWS stuff

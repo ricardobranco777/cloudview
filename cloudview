@@ -129,7 +129,6 @@ def print_amazon_instances():
                 status=aws.get_status(instance),
                 created=fix_date(instance['LaunchTime']),
                 location=instance['Placement']['AvailabilityZone'])
-    del aws
 
 
 def print_azure_instances():  # pylint: disable=too-many-branches
@@ -183,7 +182,6 @@ def print_azure_instances():  # pylint: disable=too-many-branches
                 status=instance['status'],
                 created=fix_date(instance['date']),
                 location=instance['location'])
-    del azure
 
 
 def print_google_instances():
@@ -230,7 +228,6 @@ def print_google_instances():
                 status=gcp.get_status(instance),
                 created=fix_date(instance['creationTimestamp']),
                 location=instance['zone'].rsplit('/', 1)[-1])
-    del gcp
 
 
 @cached(cache=TTLCache(maxsize=2, ttl=120))

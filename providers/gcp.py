@@ -17,6 +17,7 @@ from google.api_core.exceptions import GoogleAPIError
 from google.auth.exceptions import GoogleAuthError
 
 from .exceptions import FatalError
+from .singleton import Singleton
 
 
 def get_project():
@@ -31,6 +32,7 @@ def get_project():
         FatalError("GCP", exc)
 
 
+@Singleton
 class GCP:
     """
     Class for handling GCP stuff
