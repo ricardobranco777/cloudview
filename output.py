@@ -101,6 +101,13 @@ class Output:
                     "<td>%s</td>" % kwargs[_] for _ in self.keys]) +
                 "</tr>")
 
+    def all(self, iterable):
+        """
+        Dump all items in iterable
+        """
+        for item in iterable:
+            self.info(item=item)
+
     def footer(self):
         """
         Print the footer for output

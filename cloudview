@@ -108,20 +108,20 @@ def print_amazon_instances():
         }
         key = keys[args.sort]
         instances = sorted(instances, key=key, reverse=args.reverse)
+    if args.output == "JSON":
+        output.all(instances)
+        return
     for instance in instances:
-        if args.output == "JSON":
-            output.info(item=instance)
-        else:
-            output.info(
-                cloud="AWS",
-                name=instance['InstanceId'],
-                type=instance['InstanceType'],
-                status=aws.get_status(instance),
-                created=fix_date(instance['LaunchTime']),
-                location=instance['Placement']['AvailabilityZone'])
+        output.info(
+            cloud="AWS",
+            name=instance['InstanceId'],
+            type=instance['InstanceType'],
+            status=aws.get_status(instance),
+            created=fix_date(instance['LaunchTime']),
+            location=instance['Placement']['AvailabilityZone'])
 
 
-def print_azure_instances():  # pylint: disable=too-many-branches
+def print_azure_instances():
     """
     Print information about Azure Compute instances
     """
@@ -162,17 +162,17 @@ def print_azure_instances():  # pylint: disable=too-many-branches
         except TypeError:
             # args['date'] may be None
             pass
+    if args.output == "JSON":
+        output.all(instances)
+        return
     for instance in instances:
-        if args.output == "JSON":
-            output.info(item=instance)
-        else:
-            output.info(
-                cloud="Azure",
-                name=instance['name'],
-                type=instance['hardware_profile']['vm_size'],
-                status=instance['status'],
-                created=fix_date(instance['date']),
-                location=instance['location'])
+        output.info(
+            cloud="Azure",
+            name=instance['name'],
+            type=instance['hardware_profile']['vm_size'],
+            status=instance['status'],
+            created=fix_date(instance['date']),
+            location=instance['location'])
 
 
 def print_google_instances():
@@ -209,17 +209,17 @@ def print_google_instances():
         }
         key = keys[args.sort]
         instances = sorted(instances, key=key, reverse=args.reverse)
+    if args.output == "JSON":
+        output.all(instances)
+        return
     for instance in instances:
-        if args.output == "JSON":
-            output.info(item=instance)
-        else:
-            output.info(
-                cloud="GCP",
-                name=instance['name'],
-                type=instance['machineType'].rsplit('/', 1)[-1],
-                status=gcp.get_status(instance),
-                created=fix_date(instance['creationTimestamp']),
-                location=instance['zone'].rsplit('/', 1)[-1])
+        output.info(
+            cloud="GCP",
+            name=instance['name'],
+            type=instance['machineType'].rsplit('/', 1)[-1],
+            status=gcp.get_status(instance),
+            created=fix_date(instance['creationTimestamp']),
+            location=instance['zone'].rsplit('/', 1)[-1])
 
 
 @cached(cache=TTLCache(maxsize=2, ttl=120))
