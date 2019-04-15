@@ -139,7 +139,7 @@ def print_azure_instances():
             for status in statuses.split())
     # If status was specified in the filter, use it instead
     if args.filter_azure:
-        if "status" in args.filter_azure:
+        if "instance_view.statuses" in args.filter_azure:
             filters = args.filter_azure
         else:
             filters += " && (%s)" % args.filter_azure

@@ -56,29 +56,28 @@ class Azure:
             r"/resourceGroups/([^/]+)/", instance.id).group(1)
         # https://github.com/Azure/azure-sdk-for-python/issues/573
         try:
-            return self.compute.virtual_machines.instance_view(
+            instance_view = self.compute.virtual_machines.instance_view(
                 resource_group, instance.name)
         except (CloudError, RequestException) as exc:
             FatalError("Azure", exc)
+        instance.instance_view = instance_view
+        return instance.as_dict()
 
     def _get_instance_views(self, instances):
         """
         Threaded version to get all instance views using a pool of workers
         """
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            for instance, instance_view in zip(
-                    instances,
-                    executor.map(self._get_instance_view, instances)):
-                instance.instance_view = instance_view
+            yield from executor.map(self._get_instance_view, instances)
 
     @staticmethod
     def _get_date(instance):
         """
         Guess date for instance based on the OS disk
         """
-        for disk in instance.instance_view.disks:
-            if disk.name == instance.storage_profile.os_disk.name:
-                return disk.statuses[0].time
+        for disk in instance['instance_view']['disks']:
+            if disk['name'] == instance['storage_profile']['os_disk']['name']:
+                return disk['statuses'][0]['time']
         return None
 
     @staticmethod
@@ -87,11 +86,11 @@ class Azure:
         Returns the status of the VM:
         starting | running | stopping | stopped | deallocating | deallocated
         """
-        status = instance.instance_view.statuses
+        status = instance['instance_view']['statuses']
         if len(status) > 1:
-            status = status[1].code
+            status = status[1]['code']
         else:
-            status = status[0].code
+            status = status[0]['code']
         return status.rsplit('/', 1)[1]
 
     @staticmethod
@@ -106,17 +105,14 @@ class Azure:
         Get Azure Compute instances
         """
         try:
-            instances = list(self.compute.virtual_machines.list_all())
+            instances = self.compute.virtual_machines.list_all()
         except (CloudError, RequestException) as exc:
             FatalError("Azure", exc)
         # https://github.com/Azure/azure-sdk-for-python/issues/573
-        self._get_instance_views(instances)
+        instances = self._get_instance_views(instances)
+        if filters is not None:
+            instances = filter(filters.search, instances)
         for instance in instances:
-            date = self._get_date(instance)
-            status = self._get_status(instance)
-            instance = instance.as_dict()
-            instance['date'] = date
-            instance['status'] = status
-            if filters is not None and not filters.search(instance):
-                continue
+            instance['date'] = self._get_date(instance)
+            instance['status'] = self._get_status(instance)
             yield instance
