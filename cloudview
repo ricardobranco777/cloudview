@@ -111,13 +111,12 @@ def print_amazon_instances():
     aws = AWS()
     instances = aws.get_instances(filters=filters)
     if args.sort:
-        instances = list(instances)
         keys = {
             'name': itemgetter('InstanceId'),
             'time': itemgetter('LaunchTime', 'InstanceId'),
             'status': lambda k: (aws.get_status(k), k['InstanceId'])
         }
-        instances.sort(key=keys[args.sort], reverse=args.reverse)
+        instances = sorted(instances, key=keys[args.sort], reverse=args.reverse)
     for instance in instances:
         if args.output == "JSON":
             output.info(item=instance)
@@ -159,7 +158,7 @@ def print_azure_instances():  # pylint: disable=too-many-branches
         except JMESPathError as exc:
             FatalError("Azure", exc)
     azure = Azure()
-    instances = list(azure.get_instances(filters=filters))
+    instances = azure.get_instances(filters=filters)
     if args.sort:
         keys = {
             'name': itemgetter('name'),
@@ -167,7 +166,7 @@ def print_azure_instances():  # pylint: disable=too-many-branches
             'status': itemgetter('status', 'name')
         }
         try:
-            instances.sort(key=keys[args.sort], reverse=args.reverse)
+            instances = sorted(instances, key=keys[args.sort], reverse=args.reverse)
         except TypeError:
             # args['date'] may be None
             pass
@@ -210,13 +209,12 @@ def print_google_instances():
     gcp = GCP()
     instances = gcp.get_instances(filters=filters)
     if args.sort:
-        instances = list(instances)
         keys = {
             'name': itemgetter('name'),
             'time': itemgetter('creationTimestamp', 'name'),
             'status': itemgetter('status', 'name'),
         }
-        instances.sort(key=keys[args.sort], reverse=args.reverse)
+        instances = sorted(instances, key=keys[args.sort], reverse=args.reverse)
     for instance in instances:
         if args.output == "JSON":
             output.info(item=instance)
