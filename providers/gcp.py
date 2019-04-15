@@ -11,12 +11,12 @@ import json
 import os
 
 from googleapiclient.discovery import build
-from googleapiclient.errors import Error as GoogleError
+from googleapiclient.errors import Error as GoogleError, HttpError
 from google.cloud import resource_manager
 from google.api_core.exceptions import GoogleAPIError
 from google.auth.exceptions import GoogleAuthError
 
-from .exceptions import FatalError
+from .exceptions import FatalError, WarningError
 from .singleton import Singleton
 
 
@@ -96,6 +96,12 @@ class GCP:
 
         def callback(request_id, response, exception):
             if exception is not None:
+                # Handle some GCP errors with problematic zones
+                if isinstance(exception, HttpError):
+                    reason = exception._get_reason()
+                    if reason.startswith("Invalid value for field 'zone'"):
+                        WarningError("GCP", exception)
+                        return
                 FatalError("GCP", exception)
             if 'items' in response:
                 instances.extend(response['items'])
