@@ -7,15 +7,31 @@ import sys
 import traceback
 
 
-class FatalError(Exception):
+class MyException(Exception):
     """
     Class for handling exceptions
     """
     def __init__(self, msg, err):
         super().__init__(err)
-        logger = logging.getLogger(__name__)
         if isinstance(err, Exception):
             err = "%s: %s" % (err.__class__.__name__, err)
-            logger.debug("%s", traceback.format_exc())
-        logger.error("%s: %s", msg, err)
+            logging.debug("%s", traceback.format_exc())
+
+
+class WarningError(MyException):
+    """
+    Class for handling warning exceptions
+    """
+    def __init__(self, msg, err):
+        super().__init__(msg, err)
+        logging.warning("%s: %s", msg, err)
+
+
+class FatalError(MyException):
+    """
+    Class for handling fatal exceptions
+    """
+    def __init__(self, msg, err):
+        super().__init__(msg, err)
+        logging.error("%s: %s", msg, err)
         sys.exit(1)
