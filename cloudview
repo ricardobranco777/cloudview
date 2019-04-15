@@ -51,7 +51,7 @@ Filter options:
     --filter-gcp FILTER                 Filter for GCP
 """
 
-__version__ = "0.1.20"
+__version__ = "0.1.21"
 
 
 def fix_date(date):
