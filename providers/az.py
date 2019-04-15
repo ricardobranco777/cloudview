@@ -66,17 +66,10 @@ class Azure:
         Threaded version to get all instance views using a pool of workers
         """
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            # Mark each future with its instance
-            future_to_instance = {
-                executor.submit(self._get_instance_view, instance):
-                instance for instance in instances
-            }
-            for future in concurrent.futures.as_completed(future_to_instance):
-                instance = future_to_instance[future]
-                try:
-                    instance.instance_view = future.result()
-                except (CloudError, RequestException) as exc:
-                    FatalError("Azure", exc)
+            for instance, instance_view in zip(
+                    instances,
+                    executor.map(self._get_instance_view, instances)):
+                instance.instance_view = instance_view
 
     @staticmethod
     def _get_date(instance):
