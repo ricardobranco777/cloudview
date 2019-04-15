@@ -7,16 +7,15 @@
 Show all instances created on cloud providers
 """
 
-import argparse
-import datetime
 import logging
 import sys
 
+from argparse import ArgumentParser
+from datetime import datetime
 from itertools import groupby
-from os.path import basename
 from operator import itemgetter
+from os.path import basename
 from threading import Thread
-from dateutil import parser
 
 import jmespath
 from jmespath.exceptions import JMESPathError
@@ -24,6 +23,7 @@ from jmespath.exceptions import JMESPathError
 import timeago
 
 from cachetools import cached, TTLCache
+from dateutil import parser
 from pytz import utc
 
 from providers.amazon import AWS
@@ -62,24 +62,14 @@ def fix_date(date):
     if isinstance(date, str):
         # The parser returns datetime objects
         date = parser.parse(date)
-    if isinstance(date, datetime.datetime):
+    if isinstance(date, datetime):
         # GCP doesn't return UTC dates
         date = utc.normalize(date)
         if args.verbose:
             # From Python 3.3 we can omit tz in datetime.astimezone()
             return date.astimezone().strftime(args.time)
-        return timeago.format(date, datetime.datetime.now(tz=utc))
+        return timeago.format(date, datetime.now(tz=utc))
     return ""
-
-
-def perror(msg, err):
-    """
-    Print an error message and exit
-    """
-    if isinstance(err, Exception):
-        err = "%s: %s" % (err.__class__.__name__, err)
-    logging.error("%s: %s", msg, err)
-    sys.exit(1)
 
 
 def print_amazon_instances():
@@ -116,7 +106,8 @@ def print_amazon_instances():
             'time': itemgetter('LaunchTime', 'InstanceId'),
             'status': lambda k: (aws.get_status(k), k['InstanceId'])
         }
-        instances = sorted(instances, key=keys[args.sort], reverse=args.reverse)
+        key = keys[args.sort]
+        instances = sorted(instances, key=key, reverse=args.reverse)
     for instance in instances:
         if args.output == "JSON":
             output.info(item=instance)
@@ -165,8 +156,9 @@ def print_azure_instances():  # pylint: disable=too-many-branches
             'time': itemgetter('date', 'name'),
             'status': itemgetter('status', 'name')
         }
+        key = keys[args.sort]
         try:
-            instances = sorted(instances, key=keys[args.sort], reverse=args.reverse)
+            instances = sorted(instances, key=key, reverse=args.reverse)
         except TypeError:
             # args['date'] may be None
             pass
@@ -194,7 +186,8 @@ def print_google_instances():
         # Consider an instance "running if not stopped / terminated
         # and "stopped" if not starting, running, hence the overlap
         if args.status == "running":
-            statuses = 'provisioning staging running stopping suspending suspended'
+            statuses = ('provisioning staging running'
+                        ' stopping suspending suspended')
         else:
             statuses = 'stopping stopped terminated'
         filters = " OR ".join(
@@ -214,7 +207,8 @@ def print_google_instances():
             'time': itemgetter('creationTimestamp', 'name'),
             'status': itemgetter('status', 'name'),
         }
-        instances = sorted(instances, key=keys[args.sort], reverse=args.reverse)
+        key = keys[args.sort]
+        instances = sorted(instances, key=key, reverse=args.reverse)
     for instance in instances:
         if args.output == "JSON":
             output.info(item=instance)
@@ -278,14 +272,12 @@ def setup_logging():
     """
     Setup logging
     """
-    logging.basicConfig(
-        format="%(asctime)s %(levelname)-8s %(message)s" if args.port else None,
-        stream=sys.stderr,
-        level=args.log.upper())
+    fmt = "%(asctime)s %(levelname)-8s %(message)s" if args.port else None
+    logging.basicConfig(format=fmt, stream=sys.stderr, level=args.log.upper())
 
 
-if __name__ == "__main__":
-    argparser = argparse.ArgumentParser(usage=USAGE, add_help=False)
+def parse_args():
+    argparser = ArgumentParser(usage=USAGE, add_help=False)
     argparser.add_argument('-h', '--help', action='store_true')
     argparser.add_argument('-l', '--log', default='error',
                            choices='debug info warning error critical'.split())
@@ -302,7 +294,11 @@ if __name__ == "__main__":
     argparser.add_argument('--filter-aws', nargs=2, action='append')
     argparser.add_argument('--filter-azure', type=str)
     argparser.add_argument('--filter-gcp', type=str)
-    args = argparser.parse_args()
+    return argparser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_args()
 
     if args.help or args.version:
         print(USAGE if args.help else __version__)
@@ -310,12 +306,13 @@ if __name__ == "__main__":
 
     setup_logging()
 
-    _keys = "cloud name type status created location"
-    _fmt = '{d[cloud]}\t{d[name]:32}\t{d[type]:>23}\t{d[status]:>16}\t{d[created]:30}\t{d[location]}'
+    keys_ = "cloud name type status created location"
+    fmt_ = ('{d[cloud]}\t{d[name]:32}\t{d[type]:>23}\t'
+            '{d[status]:>16}\t{d[created]:30}\t{d[location]}')
 
     if args.port:
         args.output = "html"
-    output = Output(type=args.output.lower(), keys=_keys, fmt=_fmt)
+    output = Output(type=args.output.lower(), keys=keys_, fmt=fmt_)
 
     if args.port:
         from io import StringIO

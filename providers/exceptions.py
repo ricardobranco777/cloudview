@@ -11,7 +11,7 @@ class MyException(Exception):
     """
     Class for handling exceptions
     """
-    def __init__(self, msg, err):
+    def __init__(self, err):
         super().__init__(err)
         if isinstance(err, Exception):
             err = "%s: %s" % (err.__class__.__name__, err)
@@ -23,7 +23,7 @@ class WarningError(MyException):
     Class for handling warning exceptions
     """
     def __init__(self, msg, err):
-        super().__init__(msg, err)
+        super().__init__(err)
         logging.warning("%s: %s", msg, err)
 
 
@@ -32,6 +32,6 @@ class FatalError(MyException):
     Class for handling fatal exceptions
     """
     def __init__(self, msg, err):
-        super().__init__(msg, err)
+        super().__init__(err)
         logging.error("%s: %s", msg, err)
         sys.exit(1)
