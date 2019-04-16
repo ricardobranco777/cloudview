@@ -18,6 +18,12 @@ body {
   background-color: white;
   color: black;
 }
+a {
+  text-decoration:none;
+}
+a:link, a:visited {
+  color: blue;
+}
 table, th, td {
   border: 1px solid black;
   border-collapse: collapse;
@@ -77,7 +83,7 @@ class Output:
             print("[")
         elif self.type == "html":
             table_header = "\n".join([
-                "<th>%s</th>" % _.upper() for _ in self.keys])
+                "<th>%s</th>" % _.upper().replace('_', ' ') for _ in self.keys])
             print(HTML_HEADER + table_header)
 
     def info(self, item=None, **kwargs):
@@ -95,6 +101,8 @@ class Output:
                 default=str, indent=2, sort_keys=True
             ).encode(item)
         elif self.type == "html":
+            kwargs['name'] = '<a href="instance/%s/%s">%s</a>' % (
+                kwargs['provider'].lower(), kwargs['instance_id'], kwargs['name'])
             print(
                 "<tr>\n" +
                 "\n".join([

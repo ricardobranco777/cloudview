@@ -7,6 +7,7 @@
 Show all instances created on cloud providers
 """
 
+import re
 import logging
 import sys
 
@@ -25,6 +26,7 @@ import timeago
 from cachetools import cached, TTLCache
 from dateutil import parser
 from pytz import utc
+from pyramid.view import view_config
 
 from providers.amazon import AWS
 from providers.az import Azure
@@ -100,21 +102,20 @@ def print_amazon_instances():
     ]
     aws = AWS()
     instances = aws.get_instances(filters=filters)
-    if args.sort:
-        keys = {
-            'name': itemgetter('InstanceId'),
-            'time': itemgetter('LaunchTime', 'InstanceId'),
-            'status': lambda k: (aws.get_status(k), k['InstanceId'])
-        }
-        key = keys[args.sort]
-        instances = sorted(instances, key=key, reverse=args.reverse)
+    keys = {
+        'name': itemgetter('InstanceId'),
+        'time': itemgetter('LaunchTime', 'InstanceId'),
+        'status': lambda k: (aws.get_status(k), k['InstanceId'])
+    }
+    instances.sort(key=keys[args.sort], reverse=args.reverse)
     if args.output == "JSON":
         output.all(instances)
         return
     for instance in instances:
         output.info(
-            cloud="AWS",
+            provider="AWS",
             name=instance['InstanceId'],
+            instance_id=instance['InstanceId'],
             type=instance['InstanceType'],
             status=aws.get_status(instance),
             created=fix_date(instance['LaunchTime']),
@@ -150,25 +151,24 @@ def print_azure_instances():
             FatalError("Azure", exc)
     azure = Azure()
     instances = azure.get_instances(filters=filters)
-    if args.sort:
-        keys = {
-            'name': itemgetter('name'),
-            'time': itemgetter('date', 'name'),
-            'status': itemgetter('status', 'name')
-        }
-        key = keys[args.sort]
-        try:
-            instances = sorted(instances, key=key, reverse=args.reverse)
-        except TypeError:
-            # args['date'] may be None
-            pass
+    keys = {
+        'name': itemgetter('name'),
+        'time': itemgetter('date', 'name'),
+        'status': itemgetter('status', 'name')
+    }
+    try:
+        instances.sort(key=keys[args.sort], reverse=args.reverse)
+    except TypeError:
+        # args['date'] may be None
+        pass
     if args.output == "JSON":
         output.all(instances)
         return
     for instance in instances:
         output.info(
-            cloud="Azure",
+            provider="Azure",
             name=instance['name'],
+            instance_id=instance['vm_id'],
             type=instance['hardware_profile']['vm_size'],
             status=instance['status'],
             created=fix_date(instance['date']),
@@ -201,21 +201,20 @@ def print_google_instances():
             filters += " AND (%s)" % args.filter_gcp
     gcp = GCP()
     instances = gcp.get_instances(filters=filters)
-    if args.sort:
-        keys = {
-            'name': itemgetter('name'),
-            'time': itemgetter('creationTimestamp', 'name'),
-            'status': itemgetter('status', 'name'),
-        }
-        key = keys[args.sort]
-        instances = sorted(instances, key=key, reverse=args.reverse)
+    keys = {
+        'name': itemgetter('name'),
+        'time': itemgetter('creationTimestamp', 'name'),
+        'status': itemgetter('status', 'name'),
+    }
+    instances.sort(key=keys[args.sort], reverse=args.reverse)
     if args.output == "JSON":
         output.all(instances)
         return
     for instance in instances:
         output.info(
-            cloud="GCP",
+            provider="GCP",
             name=instance['name'],
+            instance_id=instance['id'],
             type=instance['machineType'].rsplit('/', 1)[-1],
             status=gcp.get_status(instance),
             created=fix_date(instance['creationTimestamp']),
@@ -256,6 +255,34 @@ def handle_requests(request):
     return Response(response)
 
 
+@view_config(route_name='instance')
+def handle_instance(request):
+    """
+    Handle HTTP requests for instances
+    """
+    import html
+    from json import JSONEncoder
+
+    logging.info(request)
+    provider = request.matchdict['provider']
+    instance = request.matchdict['id']
+    response = None
+    if re.match("(i-)?[0-9a-f-]+$", instance):
+        if provider == "aws":
+            response = AWS().get_instance(instance)
+        elif provider == "azure":
+            response = Azure().get_instance(instance)
+        elif provider == "gcp":
+            response = GCP().get_instance(instance)
+    if response is None:
+        response = Response('Not found!')
+        response.status_int = 404
+        return response
+    response = html.escape(
+        JSONEncoder(default=str, indent=4, sort_keys=True).encode(response))
+    return Response('<pre>%s</pre>' % response)
+
+
 def web_server():
     """
     Setup the WSGI server
@@ -263,6 +290,8 @@ def web_server():
     with Configurator() as config:
         config.add_route('handle_requests', '/')
         config.add_view(handle_requests, route_name='handle_requests')
+        config.add_route('instance', 'instance/{provider}/{id}')
+        config.scan()
         app = config.make_wsgi_app()
         server = make_server('0.0.0.0', args.port, app)
         server.serve_forever()
@@ -285,7 +314,8 @@ def parse_args():
                            choices=['text', 'html', 'json', 'JSON'])
     argparser.add_argument('-p', '--port', type=int)
     argparser.add_argument('-r', '--reverse', action='store_true')
-    argparser.add_argument('-s', '--sort', choices=['name', 'status', 'time'])
+    argparser.add_argument('-s', '--sort', default='name',
+                           choices=['name', 'status', 'time'])
     argparser.add_argument('-S', '--status', default='running',
                            choices=['all', 'running', 'stopped'])
     argparser.add_argument('-T', '--time', default="%a %b %d %H:%M:%S %Z %Y")
@@ -306,9 +336,12 @@ if __name__ == "__main__":
 
     setup_logging()
 
-    keys_ = "cloud name type status created location"
-    fmt_ = ('{d[cloud]}\t{d[name]:32}\t{d[type]:>23}\t'
+    keys_ = "provider name type status created location"
+    fmt_ = ('{d[provider]:10}\t{d[name]:32}\t{d[type]:>23}\t'
             '{d[status]:>16}\t{d[created]:30}\t{d[location]}')
+    if args.verbose:
+        keys_ += " instance_id"
+        fmt_ += "\t{d[instance_id]}"
 
     if args.port:
         args.output = "html"

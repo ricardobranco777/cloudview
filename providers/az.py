@@ -47,6 +47,7 @@ class Azure:
                 credentials, subscription_id, api_version=api_version)
         except (CloudError, RequestException) as exc:
             FatalError("Azure", exc)
+        self._cache = None
 
     def _get_instance_view(self, instance):
         """
@@ -112,7 +113,20 @@ class Azure:
         instances = self._get_instance_views(instances)
         if filters is not None:
             instances = filter(filters.search, instances)
+        instances = list(instances)
         for instance in instances:
             instance['date'] = self._get_date(instance)
             instance['status'] = self._get_status(instance)
-            yield instance
+        self._cache = instances
+        return instances
+
+    def get_instance(self, instance_id):
+        """
+        Return specific instance
+        """
+        if self._cache is None:
+            self.get_instances()
+        for instance in self._cache:
+            if instance['vm_id'] == instance_id:
+                return instance
+        return None

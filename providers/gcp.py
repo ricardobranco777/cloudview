@@ -50,6 +50,7 @@ class GCP:
             self.project = get_project()
         else:
             self.project = project
+        self._cache = None
 
     def get_projects(self):
         """
@@ -127,11 +128,22 @@ class GCP:
                 batch.execute()
             except (GoogleAuthError, GoogleError) as exc:
                 FatalError("GCP", exc)
-            yield from instances
-            instances.clear()
             for zone in retry_zones:
                 requests[zone] = self.compute.instances().list_next(
                     requests[zone], responses[zone])
+        self._cache = instances
+        return instances
+
+    def get_instance(self, instance_id):
+        """
+        Get specific instance
+        """
+        if self._cache is None:
+            self.get_instances()
+        for instance in self._cache:
+            if instance['id'] == instance_id:
+                return instance
+        return None
 
     @staticmethod
     def get_tags(instance):

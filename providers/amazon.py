@@ -10,7 +10,7 @@ https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.h
 from boto3 import client as boto3_client
 from botocore.exceptions import BotoCoreError, ClientError
 
-from .exceptions import FatalError
+from .exceptions import FatalError, WarningError
 from .singleton import Singleton
 
 
@@ -24,6 +24,7 @@ class AWS:
             self.client = boto3_client('ec2')
         except (BotoCoreError, ClientError) as exc:
             raise FatalError("AWS", exc)
+        self._cache = None
 
     @staticmethod
     def get_tags(instance):
@@ -38,15 +39,33 @@ class AWS:
         """
         if filters is None:
             filters = []
+        instances = []
         try:
             pages = self.client.get_paginator('describe_instances').paginate(
                 Filters=filters)
             # TODO: Use JMESPath for client-side filtering using pages.search()
-            for page in pages:
-                for item in page['Reservations']:
-                    yield from item['Instances']
         except (BotoCoreError, ClientError) as exc:
             raise FatalError("AWS", exc)
+        for page in pages:
+            for item in page['Reservations']:
+                instances.extend(item['Instances'])
+        self._cache = instances
+        return instances
+
+    def get_instance(self, instance_id):
+        """
+        Return specific instance
+        """
+        if self._cache is None:
+            try:
+                return self.client.describe_instances(InstanceIds=[instance_id])
+            except (BotoCoreError, ClientError) as exc:
+                raise WarningError("AWS", exc)
+        else:
+            for instance in self._cache:
+                if instance['InstanceId'] == instance_id:
+                    return instance
+        return None
 
     @staticmethod
     def get_status(instance):
