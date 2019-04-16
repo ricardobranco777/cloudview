@@ -79,7 +79,7 @@ class GCP:
             request = self.compute.zones().list_next(request, response)
         return items
 
-    def get_instances(self, filters, orderBy=None):
+    def get_instances(self, filters=None, orderBy=None):
         """
         Get GCP instances
         Only sorting by "name" or "creationTimestamp desc" is supported
@@ -98,6 +98,7 @@ class GCP:
             if exception is not None:
                 # Handle some GCP errors with problematic zones
                 if isinstance(exception, HttpError):
+                    # pylint: disable=protected-access
                     reason = exception._get_reason()
                     if reason.startswith("Invalid value for field 'zone'"):
                         WarningError("GCP", exception)
