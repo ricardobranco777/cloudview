@@ -14,7 +14,7 @@ HTML_HEADER = '''<!DOCTYPE html>
 <html><head><meta charset="utf-8" http-equiv="refresh" content="600"/>
 <title>Instances</title></head>
 <style>
-body {
+body, p {
   background-color: white;
   color: black;
 }
@@ -38,7 +38,7 @@ table#instances tr:nth-child(even) {
   background-color: #eee;
 }
 table#instances tr:nth-child(odd) {
-  background-color: #fff;
+  background-color: white;
 }
 </style>
 <body><table style="width:77%" id="instances">
@@ -46,11 +46,23 @@ table#instances tr:nth-child(odd) {
 
 # TODO: Parameterize date format
 HTML_FOOTER = '''</table><br>
-Last updated:
-<p id="date" style="background-color:white;color:black;"></p>
-<script>
-    var date = new Date();
-    document.getElementById("date").innerHTML = date;
+<p>Last updated: <span id="date"></span></p>
+<script type="text/javascript">
+var date = new Date();
+document.getElementById("date").innerHTML = date;
+</script>
+
+<p id="refresh"></p>
+<script type="text/javascript">
+var seconds = 600;
+var timer = setInterval(function(){
+seconds--;
+document.getElementById("refresh").textContent = "Next refresh in " + seconds + " seconds";
+  if (seconds <= 0) {
+    clearInterval(timer);
+    document.getElementById("refresh").textContent = "Refreshing...";
+  }
+}, 1000);
 </script>
 </body></html>'''
 
