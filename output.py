@@ -77,6 +77,8 @@ class Output:
         fmt is the format string used for text
         keys are the items in the dictionary
         """
+        if type not in ('text', 'json', 'html'):
+            raise ValueError("Invalid type: %s" % type)
         self.type = type
         self.keys = keys.split()
         self.fmt = fmt
