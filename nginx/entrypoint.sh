@@ -13,7 +13,7 @@ openssl_config() {
 	authorityKeyIdentifier  = keyid,issuer:always
 	keyUsage                = critical,digitalSignature,keyEncipherment
 	extendedKeyUsage        = serverAuth
-	subjectAltName		= DNS:{$NGINX_HOST:-localhost}
+	subjectAltName		= DNS:${NGINX_HOST:-localhost}
 	EOF
 }
 
