@@ -1,5 +1,4 @@
 .git
 **/__pycache__
 **/*.pyc
-docker-compose.yml
 nginx

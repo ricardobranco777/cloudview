@@ -1,7 +1,8 @@
 FROM	python:3.7-slim
 
 COPY	requirements.txt /tmp
-RUN	pip install --no-cache-dir -r /tmp/requirements.txt
+RUN	pip install --no-cache-dir -r /tmp/requirements.txt && \
+	ln -s /usr/local/bin/python3 /usr/bin/python3
 
 COPY	. /app
 
