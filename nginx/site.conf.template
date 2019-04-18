@@ -18,12 +18,14 @@ server {
   ssl_protocols		TLSv1.2 TLSv1.3;
   ssl_prefer_server_ciphers on;
   ssl_session_cache	shared:SSL:20m;
-  ssl_session_timeout	20m;
+  ssl_session_timeout	8h;
   ssl_session_tickets	off;
   #ssl_stapling		on;
   #ssl_stapling_verify	on;
 
   location / {
+    auth_basic on;
+    auth_basic_user_file /etc/nginx/ssl/auth.htpasswd;
     proxy_pass http://app:${APP_PORT};
     proxy_set_header Proxy "";
     proxy_set_header Accept-Encoding "";
