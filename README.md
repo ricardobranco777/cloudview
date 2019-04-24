@@ -36,7 +36,7 @@ This script is best run with Docker to have all dependencies in just one package
 ## To run stand-alone:
 
 ```
-pip install --user cloudview
+pip3 install --user cloudview
 ```
 
 ## To run with Docker:
