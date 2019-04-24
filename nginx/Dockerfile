@@ -1,7 +1,6 @@
-FROM	nginx
+FROM	nginx:alpine
 
-RUN	apt-get update && \
-	apt-get install -y openssl
+RUN	apk --no-cache add bash openssl
 
 COPY	site.conf.template /etc/nginx/conf.d/
 COPY	entrypoint.sh /run
