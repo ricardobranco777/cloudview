@@ -7,6 +7,7 @@ Handle tabular output in these formats: text, json & html
 """
 
 from json import JSONEncoder
+from .providers.singleton import Singleton
 
 
 # TODO: Parameterize refresh time
@@ -67,6 +68,7 @@ document.getElementById("refresh").textContent = "Next refresh in " + seconds + 
 </body></html>'''
 
 
+@Singleton
 class Output:
     """
     Helper class to handle tabular output in text, json or html

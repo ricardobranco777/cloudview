@@ -3,7 +3,7 @@
 Setup script
 """
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 
 def read(path):
@@ -18,7 +18,7 @@ def grep_version():
     """
     Get __version__
     """
-    with open("cloudview") as file:
+    with open("cloudview.py") as file:
         data = file.read().splitlines()
     for line in data:
         if "__version__" in line:
@@ -35,7 +35,8 @@ setup(
     author="Ricardo Branco",
     author_email='rbranco@suse.de',
     url='https://github.com/ricardobranco777/cloudview',
-    packages=find_packages(),
+    packages=['cloudview', 'providers'],
+    package_dir={'cloudview': '.'},
     include_package_data=True,
     python_requires='>=3.5',
     install_requires=read('requirements.txt'),
