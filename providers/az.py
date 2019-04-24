@@ -78,7 +78,7 @@ class Azure:
         """
         for disk in instance['instance_view']['disks']:
             if disk['name'] == instance['storage_profile']['os_disk']['name']:
-                return disk['statuses'][0]['time']
+                return disk['statuses'][0].get('time')
         return None
 
     @staticmethod
