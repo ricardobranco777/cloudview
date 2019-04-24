@@ -1,6 +1,8 @@
 # cloudview
 View instance information on all supported cloud providers
 
+[![Build Status](https://travis-ci.org/ricardobranco777/cloudview.svg?branch=master)](https://travis-ci.org/ricardobranco777/cloudview)
+
 ## Usage
 
 ```

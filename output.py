@@ -94,7 +94,7 @@ class Output:
             print(self.fmt.format(d={
                 _: _.upper()
                 for _ in self.keys
-                }))
+            }))
         elif self.type == "json":
             print("[")
         elif self.type == "html":
