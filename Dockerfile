@@ -1,8 +1,21 @@
-FROM	python:3.7-slim
+FROM	python:3.7-alpine
 
 COPY	requirements.txt /tmp
-RUN	pip install --no-cache-dir -r /tmp/requirements.txt && \
-	ln -s /usr/local/bin/python3 /usr/bin/python3
+
+RUN	apk --no-cache add \
+		gcc \
+		libc-dev \
+		libffi-dev \
+		make \
+		openssl-dev && \
+	pip install --no-cache-dir -r /tmp/requirements.txt && \
+	ln -s /usr/local/bin/python3 /usr/bin/python3 && \
+	apk del \
+		gcc \
+		libc-dev \
+		libffi-dev \
+		make \
+		openssl-dev
 
 COPY	cloudview /cloudview
 COPY	scripts/cloudview /usr/local/bin/
