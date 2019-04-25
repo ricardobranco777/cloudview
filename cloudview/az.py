@@ -16,8 +16,9 @@ from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.compute import ComputeManagementClient
 from msrestazure.azure_exceptions import CloudError
 from requests.exceptions import RequestException
-from .exceptions import FatalError
-from .singleton import Singleton
+
+from cloudview.exceptions import FatalError
+from cloudview.singleton import Singleton
 
 
 def get_credentials():

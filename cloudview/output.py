@@ -7,7 +7,7 @@ Handle tabular output in these formats: text, json & html
 """
 
 from json import JSONEncoder
-from .providers.singleton import Singleton
+from cloudview.singleton import Singleton
 
 
 # TODO: Parameterize refresh time

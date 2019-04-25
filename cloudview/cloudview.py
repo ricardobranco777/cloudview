@@ -32,11 +32,12 @@ from pyramid.view import view_config
 from pyramid.config import Configurator
 from pyramid.response import Response
 
-from .providers.amazon import AWS
-from .providers.az import Azure
-from .providers.gcp import GCP
-from .providers.exceptions import FatalError
-from .output import Output
+from cloudview.amazon import AWS
+from cloudview.az import Azure
+from cloudview.gcp import GCP
+from cloudview.exceptions import FatalError
+from cloudview.output import Output
+from cloudview import __version__
 
 
 USAGE = "Usage: " + basename(sys.argv[0]) + """ [OPTIONS]
@@ -58,7 +59,6 @@ Filter options:
 """
 
 args = None
-__version__ = "0.1.37"
 
 
 def fix_date(date):

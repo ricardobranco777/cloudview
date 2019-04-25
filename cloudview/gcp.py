@@ -16,8 +16,8 @@ from google.cloud import resource_manager
 from google.api_core.exceptions import GoogleAPIError
 from google.auth.exceptions import GoogleAuthError
 
-from .exceptions import FatalError, WarningError
-from .singleton import Singleton
+from cloudview.exceptions import FatalError, WarningError
+from cloudview.singleton import Singleton
 
 
 def get_project():
