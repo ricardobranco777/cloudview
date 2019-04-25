@@ -24,7 +24,8 @@ services:
     build: nginx
     environment:
       - APP_PORT=7777
-      - NGINX_HOST=ricardox.suse.de
+      - NGINX_HOST=${NGINX_HOST:-localhost}
+      - PASS=${PASS:-}
     ports:
       - "8443:443"
     volumes:

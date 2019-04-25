@@ -260,6 +260,16 @@ def handle_requests(request):
     return Response(response)
 
 
+def test(request=None):
+    """
+    Used for testing
+    """
+    if request:
+        logging.info(request)
+        response = "OK"
+        return Response(response)
+
+
 @view_config(route_name='instance')
 def handle_instance(request):
     """
@@ -295,6 +305,8 @@ def web_server():
     with Configurator() as config:
         config.add_route('handle_requests', '/')
         config.add_view(handle_requests, route_name='handle_requests')
+        config.add_route('test', '/test')
+        config.add_view(test, route_name='test')
         config.add_route('instance', 'instance/{provider}/{id}')
         config.scan()
         app = config.make_wsgi_app()
