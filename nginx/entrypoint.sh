@@ -38,9 +38,8 @@ if [ ! -f $SSL/key.pem ] ; then
 		PASS=$(openssl rand -base64 48)
 		echo "Password for HTTP Basic Authentication is $PASS"
 	fi
-	# Hash password with 100000 rounds of salted SHA-512
-	#PASS=$(mkpasswd -m sha-512 -S "$SALT" -R 100000 "$PASS")
-	PASS=$(perl -e "print crypt('$PASS', '\$6\$rounds=100000\$$PASS')")
+	# Hash password with salted SHA-512
+	PASS=$(mkpasswd -S "$SALT" "$PASS")
 	echo "test:$PASS" >> $SSL/auth.htpasswd
 	unset PASS
 	chmod 644 $SSL/auth.htpasswd
