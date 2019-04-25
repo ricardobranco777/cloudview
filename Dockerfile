@@ -4,11 +4,14 @@ COPY	requirements.txt /tmp
 RUN	pip install --no-cache-dir -r /tmp/requirements.txt && \
 	ln -s /usr/local/bin/python3 /usr/bin/python3
 
-COPY	. /app
+COPY	cloudview /cloudview
+COPY	scripts/cloudview /usr/local/bin/
 
-RUN	chmod +x /app/cloudview && \
-	python3 -OO -m compileall && \
-	python3 -OO -m compileall /app/
+RUN	python3 -OO -m compileall && \
+	python3 -OO -m compileall /cloudview/
 
-ENTRYPOINT ["/app/cloudview"]
+ENV	PYTHONPATH	.
+
+ENTRYPOINT ["/usr/local/bin/cloudview"]
+
 CMD []
