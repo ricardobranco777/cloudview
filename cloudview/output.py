@@ -13,6 +13,7 @@ from cloudview.singleton import Singleton
 # TODO: Parameterize refresh time
 HTML_HEADER = '''<!DOCTYPE html>
 <html><head><meta charset="utf-8" http-equiv="refresh" content="600"/>
+<link rel="shortcut icon" href="/favicon.ico">
 <title>Instances</title></head>
 <style>
 body, p {

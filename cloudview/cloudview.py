@@ -295,7 +295,10 @@ def handle_instance(request):
         return response
     response = html.escape(
         JSONEncoder(default=str, indent=4, sort_keys=True).encode(response))
-    return Response('<pre>%s</pre>' % response)
+    header = '''<!DOCTYPE html><html><head><meta charset="utf-8">
+    <link rel="shortcut icon" href="/favicon.ico"></head><body>'''
+    footer = '</body></html>'
+    return Response('%s<pre>%s</pre>%s' % (header, response, footer))
 
 
 def web_server():

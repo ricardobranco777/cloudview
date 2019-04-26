@@ -7,6 +7,8 @@ COPY	entrypoint.sh /run
 RUN	chmod +x /run/entrypoint.sh && \
 	ln -sf /run/site.conf /etc/nginx/conf.d/default.conf
 
+COPY	favicon.ico	/usr/share/nginx/html/
+
 EXPOSE	443
 
 VOLUME	["/var/cache/nginx", "/run", "/etc/nginx/ssl"]

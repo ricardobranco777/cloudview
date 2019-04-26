@@ -23,6 +23,10 @@ server {
   #ssl_stapling		on;
   #ssl_stapling_verify	on;
 
+  location /favicon.ico {
+    root /usr/share/nginx/html;
+  }
+
   location / {
     auth_basic on;
     auth_basic_user_file /etc/nginx/ssl/auth.htpasswd;
