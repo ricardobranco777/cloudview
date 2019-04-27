@@ -28,6 +28,9 @@ server {
   }
 
   location / {
+      limit_except GET {
+      deny all;
+    }
     auth_basic on;
     auth_basic_user_file /etc/nginx/ssl/auth.htpasswd;
     proxy_pass http://app:${APP_PORT};
