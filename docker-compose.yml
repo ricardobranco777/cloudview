@@ -10,6 +10,11 @@ services:
       - AZURE_SUBSCRIPTION_ID
       - AZURE_TENANT_ID
       - GOOGLE_APPLICATION_CREDENTIALS
+      - OS_USERNAME
+      - OS_PASSWORD
+      - OS_PROJECT_ID
+      - OS_AUTH_URL
+      - OS_USER_DOMAIN_NAME
       - TZ=Europe/Berlin
     volumes:
       - ~/.aws:/root/.aws:ro
