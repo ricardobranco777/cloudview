@@ -74,7 +74,7 @@ class Nova:
         """
         instance = instance.to_dict()
         try:
-            instance['type'] = self.client.flavors.get(instance['flavor']['id']).name
+            instance['_type'] = self.client.flavors.get(instance['flavor']['id']).name
         except (Exception,) as exc:
             raise FatalError("Nova", exc)
         return instance

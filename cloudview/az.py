@@ -116,8 +116,8 @@ class Azure:
             instances = filter(filters.search, instances)
         instances = list(instances)
         for instance in instances:
-            instance['date'] = self._get_date(instance)
-            instance['status'] = self._get_status(instance)
+            instance['_date'] = self._get_date(instance)
+            instance['_status'] = self._get_status(instance)
         self._cache = instances
         return instances
 

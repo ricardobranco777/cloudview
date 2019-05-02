@@ -159,13 +159,13 @@ def print_azure_instances():
     instances = azure.get_instances(filters=filters)
     keys = {
         'name': itemgetter('name'),
-        'time': itemgetter('date', 'name'),
-        'status': itemgetter('status', 'name')
+        'time': itemgetter('_date', 'name'),
+        'status': itemgetter('_status', 'name')
     }
     try:
         instances.sort(key=keys[args.sort], reverse=args.reverse)
     except TypeError:
-        # args['date'] may be None
+        # instance['_date'] may be None
         pass
     if args.output == "JSON":
         Output().all(instances)
@@ -176,8 +176,8 @@ def print_azure_instances():
             name=instance['name'],
             instance_id=instance['vm_id'],
             type=instance['hardware_profile']['vm_size'],
-            status=instance['status'],
-            created=fix_date(instance['date']),
+            status=instance['_status'],
+            created=fix_date(instance['_date']),
             location=instance['location'])
 
 
@@ -242,7 +242,7 @@ def print_nova_instances():
     keys = {
         'name': itemgetter('name'),
         'time': itemgetter('created', 'name'),
-        'status': itemgetter('status', 'name')
+        'status': itemgetter('_status', 'name')
     }
     instances.sort(key=keys[args.sort], reverse=args.reverse)
     if args.output == "JSON":
@@ -253,7 +253,7 @@ def print_nova_instances():
             provider="Openstack",
             name=instance['name'],
             instance_id=instance['id'],
-            type=instance['type'],
+            type=instance['_type'],
             status=nova.get_status(instance),
             created=fix_date(instance['created']),
             location=instance['OS-EXT-AZ:availability_zone'])
