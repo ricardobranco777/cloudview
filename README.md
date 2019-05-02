@@ -1,5 +1,5 @@
 # cloudview
-View instance information on all supported cloud providers
+View instance information on all supported cloud providers: Amazon Web Services, Azure, Google Compute Platform & OpenStack.
 
 [![Build Status](https://travis-ci.org/ricardobranco777/cloudview.svg?branch=master)](https://travis-ci.org/ricardobranco777/cloudview)
 
@@ -48,9 +48,10 @@ Build image with:
 docker build -t cloud --pull .
 ```
 
-Run with:
+Export the variables listed in the [.dockerenv](.dockerenv) file and run with:
+
 ```
-docker run --rm -v ~/.aws:/root/.aws:ro -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" -e AZURE_TENANT_ID -e AZURE_SUBSCRIPTION_ID -e AZURE_CLIENT_SECRET -e AZURE_CLIENT_ID -e GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS" cloudview --status all
+docker run --rm -v ~/.aws:/root/.aws:ro -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" --env-file .dockerenv cloudview --status all
 ```
 
 ## Run the web server with [Docker Compose](https://docs.docker.com/compose/install/):

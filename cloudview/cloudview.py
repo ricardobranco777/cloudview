@@ -35,6 +35,7 @@ from pyramid.response import Response
 from cloudview.amazon import AWS
 from cloudview.az import Azure
 from cloudview.gcp import GCP
+from cloudview.nova import Nova
 from cloudview.exceptions import FatalError
 from cloudview.output import Output
 from cloudview import __version__
@@ -226,6 +227,38 @@ def print_google_instances():
             location=instance['zone'].rsplit('/', 1)[-1])
 
 
+def print_nova_instances():
+    """
+    Print information about Openstack instances
+    """
+    filters = {}
+    if args.status == 'running':
+        filters = {'status': 'ACTIVE'}
+    elif args.status == 'stopped':
+        filters = {'status': 'STOPPED'}
+    # https://docs.openstack.org/nova/latest/reference/vm-states.html
+    nova = Nova()
+    instances = nova.get_instances(filters=filters)
+    keys = {
+        'name': itemgetter('name'),
+        'time': itemgetter('created', 'name'),
+        'status': itemgetter('status', 'name')
+    }
+    instances.sort(key=keys[args.sort], reverse=args.reverse)
+    if args.output == "JSON":
+        Output().all(instances)
+        return
+    for instance in instances:
+        Output().info(
+            provider="Openstack",
+            name=instance['name'],
+            instance_id=instance['id'],
+            type=nova.get_instance_type(instance),
+            status=nova.get_status(instance),
+            created=fix_date(instance['created']),
+            location=instance['OS-EXT-AZ:availability_zone'])
+
+
 @cached(cache=TTLCache(maxsize=2, ttl=120))
 def print_info():
     """
@@ -237,7 +270,8 @@ def print_info():
     threads = [
         Thread(target=print_amazon_instances),
         Thread(target=print_azure_instances),
-        Thread(target=print_google_instances)
+        Thread(target=print_google_instances),
+        Thread(target=print_nova_instances)
     ]
     for thread in threads:
         thread.start()
@@ -268,6 +302,7 @@ def test(request=None):
         logging.info(request)
         response = "OK"
         return Response(response)
+    return None
 
 
 @view_config(route_name='instance')
@@ -289,6 +324,8 @@ def handle_instance(request):
             response = Azure().get_instance(instance)
         elif provider == "gcp":
             response = GCP().get_instance(instance)
+        elif provider == "openstack":
+            response = Nova().get_instance(instance)
     if response is None:
         response = Response('Not found!')
         response.status_int = 404
@@ -365,7 +402,7 @@ def main():
 
     keys_ = "provider name type status created location"
     fmt_ = ('{d[provider]:10}\t{d[name]:32}\t{d[type]:>23}\t'
-            '{d[status]:>16}\t{d[created]:30}\t{d[location]}')
+            '{d[status]:>16}\t{d[created]:30}\t{d[location]:10}')
     if args.verbose:
         keys_ += " instance_id"
         fmt_ += "\t{d[instance_id]}"
