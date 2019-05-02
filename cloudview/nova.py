@@ -9,6 +9,8 @@ https://developer.openstack.org/api-ref/compute/
 
 import os
 
+import concurrent.futures
+
 from novaclient import client
 
 from cloudview.exceptions import FatalError
@@ -47,10 +49,11 @@ class Nova:
         instances = []
         try:
             # https://developer.openstack.org/api-ref/compute/#list-servers
-            for instance in self.client.servers.list(search_opts=filters):
-                instances.append(instance.to_dict())
+            instances = self.client.servers.list(search_opts=filters)
         except (Exception,) as exc:
             raise FatalError("Nova", exc)
+        instances = self._get_instance_types(instances)
+        instances = list(instances)
         self._cache = instances
         return instances
 
@@ -65,11 +68,20 @@ class Nova:
                 return instance
         return None
 
-    def get_instance_type(self, instance):
+    def _get_instance_type(self, instance):
         """
         Return instance type
         """
-        return self.client.flavors.get(instance['flavor']['id']).name
+        instance = instance.to_dict()
+        instance['type'] = self.client.flavors.get(instance['flavor']['id']).name
+        return instance
+
+    def _get_instance_types(self, instances):
+        """
+        Threaded version to get all instance types using a pool of workers
+        """
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            yield from executor.map(self._get_instance_type, instances)
 
     @staticmethod
     def get_status(instance):

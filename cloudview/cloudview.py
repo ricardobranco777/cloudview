@@ -253,7 +253,7 @@ def print_nova_instances():
             provider="Openstack",
             name=instance['name'],
             instance_id=instance['id'],
-            type=nova.get_instance_type(instance),
+            type=instance['type'],
             status=nova.get_status(instance),
             created=fix_date(instance['created']),
             location=instance['OS-EXT-AZ:availability_zone'])
