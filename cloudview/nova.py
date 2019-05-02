@@ -36,7 +36,7 @@ class Nova:
                 auth_url=os.environ['OS_AUTH_URL'],
                 user_domain_name=os.environ['OS_USER_DOMAIN_NAME'],
                 insecure=insecure)
-        except (KeyError,) as exc:
+        except (Exception,) as exc:
             raise FatalError("Nova", exc)
         self._cache = None
 
@@ -73,7 +73,10 @@ class Nova:
         Return instance type
         """
         instance = instance.to_dict()
-        instance['type'] = self.client.flavors.get(instance['flavor']['id']).name
+        try:
+            instance['type'] = self.client.flavors.get(instance['flavor']['id']).name
+        except (Exception,) as exc:
+            raise FatalError("Nova", exc)
         return instance
 
     def _get_instance_types(self, instances):
