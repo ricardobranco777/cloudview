@@ -57,6 +57,7 @@ Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
     --filter-azure FILTER               Filter for Azure
     --filter-gcp FILTER                 Filter for GCP
+    --filter-nova NAME VALUE            may be specified multiple times
 """
 
 args = None
@@ -96,7 +97,7 @@ def print_amazon_instances():
         filters = [['instance-state-name', _] for _ in statuses]
     # If instance-state-name was specified in the filter, use it instead
     if args.filter_aws:
-        if 'instance-state-name' in set(_[0] for _ in args.filter_aws):
+        if 'instance-state-name' in {_[0] for _ in args.filter_aws}:
             filters = args.filter_aws
         else:
             filters.extend(args.filter_aws)
@@ -236,6 +237,11 @@ def print_nova_instances():
         filters = {'status': 'ACTIVE'}
     elif args.status == 'stopped':
         filters = {'status': 'STOPPED'}
+    # If instance-state-name was specified in the filter, use it instead
+    if args.filter_nova:
+        if 'status' in {_[0] for _ in args.filter_nova}:
+            filters = {}
+        filters.update({_[0]: _[1] for _ in args.filter_nova})
     # https://docs.openstack.org/nova/latest/reference/vm-states.html
     nova = Nova()
     instances = nova.get_instances(filters=filters)
@@ -423,6 +429,7 @@ def parse_args():
     argparser.add_argument('--filter-aws', nargs=2, action='append')
     argparser.add_argument('--filter-azure', type=str)
     argparser.add_argument('--filter-gcp', type=str)
+    argparser.add_argument('--filter-nova', nargs=2, action='append')
     return argparser.parse_args()
 
 

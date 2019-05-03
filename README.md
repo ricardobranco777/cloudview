@@ -22,6 +22,7 @@ Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
     --filter-azure FILTER               Filter for Azure
     --filter-gcp FILTER                 Filter for GCP
+    --filter-nova NAME VALUE            may be specified multiple times
 ```
 
 **NOTES**:
@@ -32,6 +33,11 @@ Filter options:
     - `AZURE_SUBSCRIPTION_ID`
     - `AZURE_CLIENT_SECRET`
     - `AZURE_CLIENT_ID`
+    - `OS_USERNAME`
+    - `OS_PASSWORD`
+    - `OS_PROJECT_ID`
+    - `OS_AUTH_URL`
+    - `OS_USER_DOMAIN_NAME`
 
 This script is best run with Docker to have all dependencies in just one package, but it may be run stand-alone on systems with Python 3.5+
 
