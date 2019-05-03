@@ -270,7 +270,8 @@ def check_aws():
     """
     Returns True if AWS credentials exist
     """
-    return ('AWS_ACCESS_KEY_ID' in os.environ or
+    return (bool(args.filter_aws) or
+            'AWS_ACCESS_KEY_ID' in os.environ or
             os.path.exists(
                 os.environ.get(
                     'AWS_SHARED_CREDENTIALS_FILE',
@@ -282,7 +283,8 @@ def check_azure():
     """
     Returns True if Azure credentials exist
     """
-    return any(v.startswith("AZURE_") for v in os.environ)
+    return (bool(args.filter_azure) or
+            any(v.startswith("AZURE_") for v in os.environ))
 
 
 @cached(cache={})
@@ -290,7 +292,8 @@ def check_gcp():
     """
     Returns True if GCP credentials exist
     """
-    return 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ
+    return (bool(args.filter_gcp) or
+            'GOOGLE_APPLICATION_CREDENTIALS' in os.environ)
 
 
 @cached(cache={})
@@ -298,7 +301,8 @@ def check_nova():
     """
     Returns True if OpenStack credentials exist
     """
-    return 'OS_USERNAME' in os.environ
+    return (bool(args.filter_nova) or
+            any(v.startswith("OS_") for v in os.environ))
 
 
 @cached(cache=TTLCache(maxsize=2, ttl=120))
