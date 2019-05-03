@@ -14,7 +14,6 @@ class MyException(Exception):
     def __init__(self, err):
         super().__init__(err)
         if isinstance(err, Exception):
-            err = "%s: %s" % (err.__class__.__name__, err)
             logging.debug("%s", traceback.format_exc())
 
 
@@ -24,6 +23,8 @@ class WarningError(MyException):
     """
     def __init__(self, msg, err):
         super().__init__(err)
+        if isinstance(err, Exception):
+            err = "%s: %s" % (err.__class__.__name__, err)
         logging.warning("%s: %s", msg, err)
 
 
@@ -33,5 +34,7 @@ class FatalError(MyException):
     """
     def __init__(self, msg, err):
         super().__init__(err)
+        if isinstance(err, Exception):
+            err = "%s: %s" % (err.__class__.__name__, err)
         logging.error("%s: %s", msg, err)
         sys.exit(1)
