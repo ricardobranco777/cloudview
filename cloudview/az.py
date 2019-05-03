@@ -49,6 +49,9 @@ class Azure:
         except (CloudError, RequestException) as exc:
             FatalError("Azure", exc)
         self._cache = None
+        # Remove these variables from the environment
+        for var in [_ for _ in os.environ if _.startswith('AZURE_')]:
+            os.environ.unsetenv(var)
 
     def _get_instance_view(self, instance):
         """

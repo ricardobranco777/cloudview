@@ -39,6 +39,9 @@ class Nova:
         except (Exception,) as exc:
             raise FatalError("Nova", exc)
         self._cache = None
+        # Remove these variables from the environment
+        for var in [_ for _ in os.environ if _.startswith('OS_')]:
+            os.environ.unsetenv(var)
 
     def get_instances(self, filters=None):
         """
