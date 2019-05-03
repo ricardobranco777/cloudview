@@ -7,6 +7,7 @@
 Show all instances created on cloud providers
 """
 
+import os
 import re
 import logging
 import sys
@@ -16,7 +17,6 @@ from datetime import datetime
 from io import StringIO
 from itertools import groupby
 from operator import itemgetter
-from os.path import basename
 from threading import Thread
 from wsgiref.simple_server import make_server
 
@@ -41,7 +41,7 @@ from cloudview.output import Output
 from cloudview import __version__
 
 
-USAGE = "Usage: " + basename(sys.argv[0]) + """ [OPTIONS]
+USAGE = "Usage: " + os.path.basename(sys.argv[0]) + """ [OPTIONS]
 Options:
     -h, --help                          show this help message and exit
     -l, --log debug|info|warning|error|critical
@@ -259,6 +259,42 @@ def print_nova_instances():
             location=instance['OS-EXT-AZ:availability_zone'])
 
 
+@cached(cache={})
+def check_aws():
+    """
+    Returns True if AWS credentials exist
+    """
+    return ('AWS_ACCESS_KEY_ID' in os.environ or
+            os.path.exists(
+                os.environ.get(
+                    'AWS_SHARED_CREDENTIALS_FILE',
+                    os.path.expanduser("~/.aws/credentials"))))
+
+
+@cached(cache={})
+def check_azure():
+    """
+    Returns True if Azure credentials exist
+    """
+    return any(v.startswith("AZURE_") for v in os.environ)
+
+
+@cached(cache={})
+def check_gcp():
+    """
+    Returns True if GCP credentials exist
+    """
+    return 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ
+
+
+@cached(cache={})
+def check_nova():
+    """
+    Returns True if OpenStack credentials exist
+    """
+    return 'OS_USERNAME' in os.environ
+
+
 @cached(cache=TTLCache(maxsize=2, ttl=120))
 def print_info():
     """
@@ -267,12 +303,15 @@ def print_info():
     if args.port:
         sys.stdout = StringIO()
     Output().header()
-    threads = [
-        Thread(target=print_amazon_instances),
-        Thread(target=print_azure_instances),
-        Thread(target=print_google_instances),
-        Thread(target=print_nova_instances)
-    ]
+    threads = []
+    if check_aws():
+        threads.append(Thread(target=print_amazon_instances))
+    if check_azure():
+        threads.append(Thread(target=print_azure_instances))
+    if check_gcp():
+        threads.append(Thread(target=print_google_instances))
+    if check_nova():
+        threads.append(Thread(target=print_nova_instances))
     for thread in threads:
         thread.start()
     for thread in threads:
