@@ -22,7 +22,7 @@ class Nova:
     """
     Class for handling AWS stuff
     """
-    def __init__(self, api_version=2.8, insecure=True):
+    def __init__(self, api_version=2.8, insecure=False):
         if insecure:
             # https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
             import logging
@@ -42,6 +42,7 @@ class Nova:
                 region_name=os.environ.get('OS_REGION_NAME'),
                 auth_url=os.environ['OS_AUTH_URL'],
                 user_domain_name=os.environ.get('OS_USER_DOMAIN_NAME', 'Default'),
+                cacert=os.environ.get('OS_CACERT'),
                 insecure=insecure)
         except (Exception,) as exc:
             raise FatalError("Nova", exc)

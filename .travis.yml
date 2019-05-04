@@ -21,5 +21,5 @@ install:
 
 script:
   - make test
-  - sudo PASS=testing GOOGLE_APPLICATION_CREDENTIALS=$HOME/emtpy.json docker-compose up -d
+  - sudo PASS=testing GOOGLE_APPLICATION_CREDENTIALS=/dummy OS_CACERT=/dummy docker-compose up -d
   - sh -c 'sleep 7; test "$(curl -4k -u test:testing https://localhost:8443/test)" = "OK"'

@@ -15,10 +15,12 @@ services:
       - OS_PROJECT_ID
       - OS_AUTH_URL
       - OS_USER_DOMAIN_NAME
+      - OS_CACERT
       - TZ=Europe/Berlin
     volumes:
       - ~/.aws:/root/.aws:ro
       - ${GOOGLE_APPLICATION_CREDENTIALS}:${GOOGLE_APPLICATION_CREDENTIALS}:ro
+      - ${OS_CACERT}:${OS_CACERT}:ro
       - type: tmpfs
         target: /tmp
         tmpfs:

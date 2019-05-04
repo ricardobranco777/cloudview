@@ -38,6 +38,7 @@ Filter options:
     - `OS_PROJECT_ID`
     - `OS_AUTH_URL`
     - `OS_USER_DOMAIN_NAME`
+    - `OS_CACERT`
 
 This script is best run with Docker to have all dependencies in just one package, but it may be run stand-alone on systems with Python 3.5+
 
@@ -57,7 +58,7 @@ docker build -t cloud --pull .
 Export the variables listed in the [.dockerenv](.dockerenv) file and run with:
 
 ```
-docker run --rm -v ~/.aws:/root/.aws:ro -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" --env-file .dockerenv cloudview --status all
+docker run --rm -v ~/.aws:/root/.aws:ro -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" -v "$OS_CACERT:$OS_CACERT:ro" --env-file .dockerenv cloudview --status all
 ```
 
 ## Run the web server with [Docker Compose](https://docs.docker.com/compose/install/):
@@ -87,3 +88,4 @@ docker-compose build --pull
   - Search by tag
   - Sort by instance type
   - Use apache-libcloud?
+  - Improve documentation with use cases
