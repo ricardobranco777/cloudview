@@ -29,6 +29,9 @@ Filter options:
   - Use `--output JSON` to dump _all_ available information received from each provider.
   - Remember to set these environment variables:
     - `GOOGLE_APPLICATION_CREDENTIALS`
+    - `AWS_ACCESS_KEY_ID`
+    - `AWS_DEFAULT_REGION`
+    - `AWS_SECRET_ACCESS_KEY`
     - `AZURE_TENANT_ID`
     - `AZURE_SUBSCRIPTION_ID`
     - `AZURE_CLIENT_SECRET`
@@ -58,7 +61,7 @@ docker build -t cloud --pull .
 Export the variables listed in the [.dockerenv](.dockerenv) file and run with:
 
 ```
-docker run --rm -v ~/.aws:/root/.aws:ro -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" -v "$OS_CACERT:$OS_CACERT:ro" --env-file .dockerenv cloudview --status all
+docker run --rm -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" -v "$OS_CACERT:$OS_CACERT:ro" --env-file .dockerenv cloudview --status all
 ```
 
 ## Run the web server with [Docker Compose](https://docs.docker.com/compose/install/):

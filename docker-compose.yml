@@ -9,6 +9,9 @@ services:
       - AZURE_CLIENT_SECRET
       - AZURE_SUBSCRIPTION_ID
       - AZURE_TENANT_ID
+      - AWS_ACCESS_KEY_ID
+      - AWS_DEFAULT_REGION
+      - AWS_SECRET_ACCESS_KEY
       - GOOGLE_APPLICATION_CREDENTIALS
       - OS_USERNAME
       - OS_PASSWORD
@@ -18,7 +21,6 @@ services:
       - OS_CACERT
       - TZ=Europe/Berlin
     volumes:
-      - ~/.aws:/root/.aws:ro
       - ${GOOGLE_APPLICATION_CREDENTIALS}:${GOOGLE_APPLICATION_CREDENTIALS}:ro
       - ${OS_CACERT}:${OS_CACERT}:ro
       - type: tmpfs
