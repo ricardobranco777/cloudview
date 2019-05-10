@@ -87,8 +87,63 @@ To rebuild with latest version:
 docker-compose build --pull
 ```
 
+### Filter options (AWS)
+
+Usage: `--filter-aws NAME VALUE`
+
+May be specified multiple times.
+
+Complete list of filters:
+
+[https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html)
+
+Example: `--filter-aws tag-key production`
+
+Note: If `instance-state-name` is present in the filter name, the `--status` option is ignored.
+
+### Filter options (Azure)
+
+Usage: `--filter-azure FILTER`
+
+Note: This filtering is done in the client SDK using [JMESPath](http://jmespath.org/) to filter the JSON response.  You can view the JSON output using `--output JSON` or following the instance link in the HTML table.
+
+Complete list of filters:
+https://github.com/MicrosoftDocs/azure-docs-cli/blob/master/docs-ref-conceptual/query-azure-cli.md#filter-arrays
+
+Example: `--filter-azure "location == 'westeurope' && !(name == 'admin')"`
+
+Note: If `instance_view.statuses` is present in the filter, the `--status` option is ignored.
+
+### Filter options (GCP)
+
+Usage: `--filter-gcp FILTER`
+
+Note: You may filter the resources listed in the API response.
+
+Complete list of resources:
+
+[https://cloud.google.com/compute/docs/reference/rest/v1/instances/list](https://cloud.google.com/compute/docs/reference/rest/v1/instances/list)
+
+Example: `--filter-gcp 'name: instance-1 AND canIpForward: false'`
+
+Note: If `status` is present in the filter, the `--status` option is ignored.
+
+### Filter options (Nova)
+
+Usage: `--filter-nova NAME VALUE`
+
+May be specified multiple times.
+
+Complete list of filters:
+
+https://developer.openstack.org/api-ref/compute/?expanded=list-servers-detail#listServers
+
+Example: `--filter-nova name admin`1
+
+Note: If `status` is present in the filter, the `--status` option is ignored.
+
 ## TODO
-  - Search by tag
+  - Search by tag (this can be done currently with the filter-\* options)
   - Sort by instance type
   - Use apache-libcloud?
   - Improve documentation with use cases
