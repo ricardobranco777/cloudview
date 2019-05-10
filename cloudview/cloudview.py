@@ -133,7 +133,7 @@ def print_azure_instances():
     """
     Print information about Azure Compute instances
     """
-    filters = None
+    filters = ""
     # https://docs.microsoft.com/en-us/azure/virtual-machines/windows/states-lifecycle
     if args.status in ('running', 'stopped'):
         # Consider an instance "running" if not stopped / deallocated
@@ -147,7 +147,7 @@ def print_azure_instances():
             for status in statuses.split())
     # If status was specified in the filter, use it instead
     if args.filter_azure:
-        if "instance_view.statuses" in args.filter_azure:
+        if "instance_view.statuses" in args.filter_azure or not filters:
             filters = args.filter_azure
         else:
             filters += " && (%s)" % args.filter_azure
@@ -157,7 +157,7 @@ def print_azure_instances():
         except JMESPathError as exc:
             FatalError("Azure", exc)
     azure = Azure()
-    instances = azure.get_instances(filters=filters)
+    instances = azure.get_instances(filters=filters if filters else None)
     keys = {
         'name': itemgetter('name'),
         'time': itemgetter('_date', 'name'),
@@ -186,7 +186,7 @@ def print_google_instances():
     """
     Print information about Google Compute instances
     """
-    filters = None
+    filters = ""
     # https://cloud.google.com/compute/docs/instances/instance-life-cycle
     # NOTE: The above list is incomplete. The API returns more statuses
     if args.status in ('running', 'stopped'):
@@ -202,12 +202,12 @@ def print_google_instances():
             for status in statuses.split())
     # If status was specified in the filter, use it instead
     if args.filter_gcp:
-        if "status" in args.filter_gcp:
+        if "status" in args.filter_gcp or not filters:
             filters = args.filter_gcp
         else:
             filters += " AND (%s)" % args.filter_gcp
     gcp = GCP()
-    instances = gcp.get_instances(filters=filters)
+    instances = gcp.get_instances(filters=filters if filters else None)
     keys = {
         'name': itemgetter('name'),
         'time': itemgetter('creationTimestamp', 'name'),
