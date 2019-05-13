@@ -160,8 +160,8 @@ def print_azure_instances():
     instances = azure.get_instances(filters=filters if filters else None)
     keys = {
         'name': itemgetter('name'),
-        'time': itemgetter('_date', 'name'),
-        'status': itemgetter('_status', 'name')
+        'time': lambda k: (azure.get_date(k), k['name']),
+        'status': lambda k: (azure.get_status(k), k['name'])
     }
     try:
         instances.sort(key=keys[args.sort], reverse=args.reverse)
@@ -177,8 +177,8 @@ def print_azure_instances():
             name=instance['name'],
             instance_id=instance['vm_id'],
             type=instance['hardware_profile']['vm_size'],
-            status=instance['_status'],
-            created=fix_date(instance['_date']),
+            status=azure.get_status(instance),
+            created=fix_date(azure.get_date(instance)),
             location=instance['location'])
 
 
@@ -248,7 +248,7 @@ def print_nova_instances():
     keys = {
         'name': itemgetter('name'),
         'time': itemgetter('created', 'name'),
-        'status': itemgetter('_status', 'name')
+        'status': lambda k: (nova.get_status(k), k['name'])
     }
     instances.sort(key=keys[args.sort], reverse=args.reverse)
     if args.output == "JSON":

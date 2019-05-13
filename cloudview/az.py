@@ -76,7 +76,7 @@ class Azure:
             yield from executor.map(self._get_instance_view, instances)
 
     @staticmethod
-    def _get_date(instance):
+    def get_date(instance):
         """
         Guess date for instance based on the OS disk
         """
@@ -86,7 +86,7 @@ class Azure:
         return None
 
     @staticmethod
-    def _get_status(instance):
+    def get_status(instance):
         """
         Returns the status of the VM:
         starting | running | stopping | stopped | deallocating | deallocated
@@ -118,9 +118,6 @@ class Azure:
         if filters is not None:
             instances = filter(filters.search, instances)
         instances = list(instances)
-        for instance in instances:
-            instance['_date'] = self._get_date(instance)
-            instance['_status'] = self._get_status(instance)
         self._cache = instances
         return instances
 
