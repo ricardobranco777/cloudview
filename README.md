@@ -27,8 +27,11 @@ Filter options:
 
 **NOTES**:
   - Use `--output JSON` to dump _all_ available information received from each provider.
-  - Remember to set these environment variables:
-    - `GOOGLE_APPLICATION_CREDENTIALS`
+
+This script is best run with Docker to have all dependencies in just one package, but it may be run stand-alone on systems with Python 3.5+
+
+## Environment variables
+
     - `AWS_ACCESS_KEY_ID`
     - `AWS_DEFAULT_REGION`
     - `AWS_SECRET_ACCESS_KEY`
@@ -36,6 +39,7 @@ Filter options:
     - `AZURE_SUBSCRIPTION_ID`
     - `AZURE_CLIENT_SECRET`
     - `AZURE_CLIENT_ID`
+    - `GOOGLE_APPLICATION_CREDENTIALS`
     - `OS_USERNAME`
     - `OS_PASSWORD`
     - `OS_PROJECT_ID`
@@ -43,7 +47,11 @@ Filter options:
     - `OS_USER_DOMAIN_NAME`
     - `OS_CACERT`
 
-This script is best run with Docker to have all dependencies in just one package, but it may be run stand-alone on systems with Python 3.5+
+**NOTES**:
+  - The `AWS_*` environment variables are optional.  If not set, the AWS SDK will grab the information from `~/.aws/credentials` and `~/.aws/config`.  For Docker it's safer to set these variables so we can unset them after initialization and avoid mounting `~/aws/`.  So, if you don't set them, you must add `-v ~/.aws:/root/aws:ro` to `docker run` and edit [docker-compose.yml](docker-compose.yml) accordingly.
+  - The `GOOGLE_APPLICATION_CREDENTIALS` environment variable must contain the path to the JSON file downloaded from the GCP web console after creating a personal key for the service account of your project.
+  - The `AZURE_*` environment variables are mandatory if you want Azure output.  For `AZURE_TENANT_ID` & `AZURE_SUBSCRIPTION_ID` check the output of `az account show --query "{subscriptionId:id, tenantId:tenantId}"`.  For the client id and secret, an Azure AD Service Principal is required and can be created, with the proper permissions, with this command: `az ad sp create-for-rbac --name MY-AD-SP --role=Contributor --scopes=/subscriptions/<SUBSCRIPTION ID>`.  These variables are the same as the `ARM_*` variables used by the Terraform Azure provider.  More information in the [official Microsoft documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/terraform-install-configure)
+  - The `OS_*` variables are set by the OpenStack RC v2.0 or v3 scripts that you may download from the web UI in "Access & Security / API Access".  Just run `source /path/to/xxx-openrc.sh`.
 
 ## To run stand-alone:
 
