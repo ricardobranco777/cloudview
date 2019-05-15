@@ -146,12 +146,11 @@ Complete list of filters:
 
 https://developer.openstack.org/api-ref/compute/?expanded=list-servers-detail#listServers
 
-Example: `--filter-nova name admin`1
+Example: `--filter-nova name admin`
 
 Note: If `status` is present in the filter, the `--status` option is ignored.
 
 ## TODO
-  - Search by tag (this can be done currently with the filter-\* options)
-  - Sort by instance type
-  - Use apache-libcloud?
-  - Improve documentation with use cases
+  - Search by tag (this can be done with the `filter-*` options)
+  - Sort by instance type (very tricky to get right ATM for all providers).
+  - Use apache-libcloud? (slow for some providers)
