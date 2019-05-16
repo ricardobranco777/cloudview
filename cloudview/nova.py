@@ -59,11 +59,12 @@ class Nova:
         """
         if filters is None:
             filters = {}
-        instances = []
         try:
             # https://developer.openstack.org/api-ref/compute/#list-servers
-            for instance in self.client.servers.list(search_opts=filters):
-                instances.append(instance.to_dict())
+            instances = [
+                instance.to_dict()
+                for instance in self.client.servers.list(search_opts=filters)
+            ]
         except (Exception,) as exc:
             raise FatalError("Nova", exc)
         self._get_instance_types(instances)
