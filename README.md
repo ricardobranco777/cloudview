@@ -119,6 +119,7 @@ Usage: `--filter-azure FILTER`
 Note: This filtering is done in the client SDK using [JMESPath](http://jmespath.org/) to filter the JSON response.  You can view the JSON output using `--output JSON` or following the instance link in the HTML table.
 
 Complete list of filters:
+
 https://github.com/MicrosoftDocs/azure-docs-cli/blob/master/docs-ref-conceptual/query-azure-cli.md#filter-arrays
 
 Example: `--filter-azure "location == 'westeurope' && !(name == 'admin')"`
