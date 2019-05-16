@@ -78,6 +78,9 @@ If you have a TLS key pair, rename the certificate to `cert.pem`, the private ke
 
 If you don't have a TLS key pair, a self-signed certificate will be generated.  Be aware of the typical problems with time resolution related to TLS certificates.
 
+For HTTP Basic Authentication, create a file named `auth.htpasswd` in the same directory with the TLS certs.  Use the `htpasswd` utility for this.  This file is generated if a self-signed certificate is generated too.  In this case you must look up the generated password with `docker-compose logs`.  The user is `test`.
+
+This command creates 2 read-only containers for security, one with the Python app and another using Nginx as reverse-proxy:
 
 ```
 docker-compose up -d
@@ -90,7 +93,7 @@ To stop the web server:
 docker-compose down
 ```
 
-To rebuild with latest version:
+To rebuild the images:
 ```
 docker-compose build --pull
 ```
