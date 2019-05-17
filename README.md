@@ -74,7 +74,7 @@ docker run --rm -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTI
 
 ## Run the web server with [Docker Compose](https://docs.docker.com/compose/install/):
 
-If you have a TLS key pair, rename the certificate to `cert.pem`, the private key to `key.pem` and the file containing the password to the private key to `key.txt`.  Then edit the [docker-compose.yml](docker-compose.yml) file to mount them to `/etc/nginx/ssl` in read-only mode like this: `- "/path/to/tls:/etc/nginx/ssl:ro"`.
+If you have a TLS key pair, rename the certificate to `cert.pem`, the private key to `key.pem` and the file containing the passphrase to the private key to `key.txt`.  Then edit the [docker-compose.yml](docker-compose.yml) file to mount them to `/etc/nginx/ssl` in read-only mode like this: `- "/path/to/tls:/etc/nginx/ssl:ro"`.  Set and export the `NGINX_HOST` environment variable with the DNS of your host.
 
 If you don't have a TLS key pair, a self-signed certificate will be generated.  Be aware of the typical problems with time resolution related to TLS certificates.
 
