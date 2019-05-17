@@ -1,5 +1,5 @@
 test:
-	@flake8 --ignore=E501,W504 && \
+	@flake8 && \
 	pylint --errors-only $$(find * -name \*.py)
 
 upload-pypi:
