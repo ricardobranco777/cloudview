@@ -40,10 +40,12 @@ class Nova:
                 project_name=os.environ.get(
                     'OS_PROJECT_NAME',
                     os.environ.get('OS_TENANT_NAME')),
-                project_domain_id=os.environ.get('OS_PROJECT_DOMAIN_ID', 'default'),
+                project_domain_id=os.environ.get(
+                    'OS_PROJECT_DOMAIN_ID', 'default'),
                 region_name=os.environ.get('OS_REGION_NAME'),
                 auth_url=os.environ['OS_AUTH_URL'],
-                user_domain_name=os.environ.get('OS_USER_DOMAIN_NAME', 'Default'),
+                user_domain_name=os.environ.get(
+                    'OS_USER_DOMAIN_NAME', 'Default'),
                 cacert=os.environ.get('OS_CACERT'),
                 insecure=insecure)
         except (Exception,) as exc:
@@ -104,7 +106,7 @@ class Nova:
     @staticmethod
     def get_status(instance):
         """
-        Returns the status of the Nova instance: XXX
+        Returns the status of the Nova instance
         """
         return instance['OS-EXT-STS:vm_state']
 

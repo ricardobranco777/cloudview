@@ -100,7 +100,8 @@ class Output:
             print("[")
         elif self.type == "html":
             table_header = "\n".join([
-                "<th>%s</th>" % _.upper().replace('_', ' ') for _ in self.keys])
+                "<th>{}</th>".format(_.upper().replace('_', ' '))
+                for _ in self.keys])
             print(HTML_HEADER + table_header)
 
     def info(self, item=None, **kwargs):
@@ -119,7 +120,9 @@ class Output:
             ).encode(item)
         elif self.type == "html":
             kwargs['name'] = '<a href="instance/%s/%s">%s</a>' % (
-                kwargs['provider'].lower(), kwargs['instance_id'], kwargs['name'])
+                kwargs['provider'].lower(),
+                kwargs['instance_id'],
+                kwargs['name'])
             print(
                 "<tr>\n" +
                 "\n".join([

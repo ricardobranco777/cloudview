@@ -63,7 +63,8 @@ class AWS:
         """
         if self._cache is None:
             try:
-                return self.client.describe_instances(InstanceIds=[instance_id])
+                return self.client.describe_instances(
+                    InstanceIds=[instance_id])
             except (BotoCoreError, ClientError) as exc:
                 raise WarningError("AWS", exc)
         else:

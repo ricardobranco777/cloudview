@@ -88,7 +88,8 @@ class GCP:
         """
         if filters is not None and orderBy is not None:
             raise FatalError(
-                "Specifying both a list filter and sort order is not currently supported",
+                ("Specifying both a list filter and"
+                 "sort order is not currently supported"),
                 ValueError)
 
         instances = []
