@@ -1,6 +1,6 @@
 test:
 	@flake8 && \
-	pylint --errors-only $$(find * -name \*.py)
+	pylint --disable=C0103,C0111,R0801 $$(find * -name \*.py)
 
 upload-pypi:
 	@python3 setup.py sdist bdist_wheel && \
