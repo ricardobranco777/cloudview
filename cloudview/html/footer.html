@@ -7,14 +7,14 @@ document.getElementById("date").innerHTML = date;
 
 <p id="refresh"></p>
 <script type="text/javascript">
-var seconds = 600;
-var timer = setInterval(function(){
-seconds--;
-document.getElementById("refresh").textContent = "Next refresh in " + seconds + " seconds";
-  if (seconds <= 0) {
-    clearInterval(timer);
-    document.getElementById("refresh").textContent = "Refreshing...";
-  }
-}, 1000);
+	var seconds = {{ seconds }};
+	var timer = setInterval(function() {
+		seconds--;
+		document.getElementById("refresh").textContent = "Next refresh in " + seconds + " seconds";
+		if (seconds <= 0) {
+			clearInterval(timer);
+			document.getElementById("refresh").textContent = "Refreshing...";
+		}
+	}, 1000);
 </script>
 </body></html>

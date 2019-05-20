@@ -6,17 +6,33 @@
 Handle tabular output in these formats: text, json & html
 """
 
+from functools import lru_cache
 from os.path import dirname
 from json import JSONEncoder
+
+from jinja2 import Template
 
 from cloudview.singleton import Singleton
 
 
-with open(dirname(__file__) + "/html/header.html") as file:
-    HTML_HEADER = file.read()
+@lru_cache(maxsize=1)
+def get_html_header(**kwargs):
+    """
+    Return the HTML header rendered from a Jinja2 template
+    """
+    with open(dirname(__file__) + "/html/header.html") as file:
+        template = Template(file.read())
+        return template.render(**kwargs)
 
-with open(dirname(__file__) + "/html/footer.html") as file:
-    HTML_FOOTER = file.read()
+
+@lru_cache(maxsize=1)
+def get_html_footer(**kwargs):
+    """
+    Return the HTML footer rendered from a Jinja2 template
+    """
+    with open(dirname(__file__) + "/html/footer.html") as file:
+        template = Template(file.read())
+        return template.render(**kwargs)
 
 
 @Singleton
@@ -37,7 +53,7 @@ class Output:
         self.fmt = fmt
         self.last_item = None
 
-    def header(self):
+    def header(self, **kwargs):
         """
         Print the header for output
         """
@@ -52,7 +68,7 @@ class Output:
             table_header = "\n".join([
                 "<th>{}</th>".format(_.upper().replace('_', ' '))
                 for _ in self.keys])
-            print(HTML_HEADER + table_header)
+            print(get_html_header(**kwargs) + table_header)
 
     def info(self, item=None, **kwargs):
         """
@@ -86,7 +102,7 @@ class Output:
         for item in iterable:
             self.info(item=item)
 
-    def footer(self):
+    def footer(self, **kwargs):
         """
         Print the footer for output
         """
@@ -95,4 +111,4 @@ class Output:
                 self.last_item = ""
             print("%s\n]" % self.last_item)
         elif self.type == "html":
-            print(HTML_FOOTER)
+            print(get_html_footer(**kwargs))

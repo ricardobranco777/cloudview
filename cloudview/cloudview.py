@@ -306,13 +306,13 @@ def check_nova():
 
 
 @cached(cache=TTLCache(maxsize=2, ttl=120))
-def print_info():
+def print_info(html_refresh=600):
     """
     Print information about instances
     """
     if args.port:
         sys.stdout = StringIO()
-    Output().header()
+    Output().header(seconds=html_refresh)
     threads = []
     if check_aws():
         threads.append(Thread(target=print_amazon_instances))
@@ -326,7 +326,7 @@ def print_info():
         thread.start()
     for thread in threads:
         thread.join()
-    Output().footer()
+    Output().footer(seconds=html_refresh)
     if args.port:
         response = sys.stdout.getvalue()
         sys.stdout.close()
