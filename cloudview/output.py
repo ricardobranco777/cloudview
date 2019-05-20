@@ -40,16 +40,16 @@ class Output:
     """
     Helper class to handle tabular output in text, json or html
     """
-    def __init__(self, type=None, fmt=None, keys=None, seconds=600):
+    def __init__(self, output_format=None, fmt=None, keys=None, seconds=600):
         """
         type must be either text, json or html
         fmt is the format string used for text
         keys are the items in the dictionary
         seconds is the refresh time for HTML output
         """
-        if type not in ('text', 'json', 'html'):
-            raise ValueError("Invalid type: %s" % type)
-        self.type = type
+        if output_format not in ('text', 'json', 'html'):
+            raise ValueError("Invalid type: %s" % output_format)
+        self.output_format = output_format
         self.keys = keys.split()
         self.fmt = fmt
         self.last_item = None
@@ -59,14 +59,14 @@ class Output:
         """
         Print the header for output
         """
-        if self.type == "text":
+        if self.output_format == "text":
             print(self.fmt.format(d={
                 _: _.upper()
                 for _ in self.keys
             }))
-        elif self.type == "json":
+        elif self.output_format == "json":
             print("[")
-        elif self.type == "html":
+        elif self.output_format == "html":
             table_header = "\n".join([
                 "<th>{}</th>".format(_.upper().replace('_', ' '))
                 for _ in self.keys])
@@ -78,15 +78,15 @@ class Output:
         """
         if item is None:
             item = dict(kwargs)
-        if self.type == "text":
+        if self.output_format == "text":
             print(self.fmt.format(d=item))
-        elif self.type == "json":
+        elif self.output_format == "json":
             if self.last_item is not None:
                 print("%s," % self.last_item)
             self.last_item = JSONEncoder(
                 default=str, indent=2, sort_keys=True
             ).encode(item)
-        elif self.type == "html":
+        elif self.output_format == "html":
             kwargs['name'] = '<a href="instance/%s/%s">%s</a>' % (
                 kwargs['provider'].lower(),
                 kwargs['instance_id'],
@@ -108,9 +108,9 @@ class Output:
         """
         Print the footer for output
         """
-        if self.type == "json":
+        if self.output_format == "json":
             if self.last_item is None:
                 self.last_item = ""
             print("%s\n]" % self.last_item)
-        elif self.type == "html":
+        elif self.output_format == "html":
             print(get_html_footer(seconds=self.seconds))

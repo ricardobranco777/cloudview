@@ -123,7 +123,7 @@ def print_amazon_instances():
             provider="AWS",
             name=instance['InstanceId'],
             instance_id=instance['InstanceId'],
-            type=instance['InstanceType'],
+            size=instance['InstanceType'],
             status=aws.get_status(instance),
             created=fix_date(instance['LaunchTime']),
             location=instance['Placement']['AvailabilityZone'])
@@ -176,7 +176,7 @@ def print_azure_instances():
             provider="Azure",
             name=instance['name'],
             instance_id=instance['vm_id'],
-            type=instance['hardware_profile']['vm_size'],
+            size=instance['hardware_profile']['vm_size'],
             status=azure.get_status(instance),
             created=fix_date(azure.get_date(instance)),
             location=instance['location'])
@@ -222,7 +222,7 @@ def print_google_instances():
             provider="GCP",
             name=instance['name'],
             instance_id=instance['id'],
-            type=instance['machineType'].rsplit('/', 1)[-1],
+            size=instance['machineType'].rsplit('/', 1)[-1],
             status=gcp.get_status(instance),
             created=fix_date(instance['creationTimestamp']),
             location=instance['zone'].rsplit('/', 1)[-1])
@@ -259,7 +259,7 @@ def print_nova_instances():
             provider="Openstack",
             name=instance['name'],
             instance_id=instance['id'],
-            type=nova.get_instance_type(instance['flavor']['id']),
+            size=nova.get_instance_type(instance['flavor']['id']),
             status=nova.get_status(instance),
             created=fix_date(instance['created']),
             location=instance['OS-EXT-AZ:availability_zone'])
@@ -450,8 +450,8 @@ def main():
 
     setup_logging()
 
-    keys = "provider name type status created location"
-    fmt = ('{d[provider]:10}\t{d[name]:32}\t{d[type]:>23}\t'
+    keys = "provider name size status created location"
+    fmt = ('{d[provider]:10}\t{d[size]:32}\t{d[type]:>23}\t'
            '{d[status]:>16}\t{d[created]:30}\t{d[location]:10}')
     if args.verbose:
         keys += " instance_id"
@@ -459,7 +459,7 @@ def main():
 
     if args.port:
         args.output = "html"
-    _ = Output(type=args.output.lower(), keys=keys, fmt=fmt)
+    _ = Output(output_format=args.output.lower(), keys=keys, fmt=fmt)
 
     if args.port:
         web_server()
