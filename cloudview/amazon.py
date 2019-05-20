@@ -38,7 +38,7 @@ class AWS:
         """
         return {_['Key']: _['Value'] for _ in instance.get('Tags', {})}
 
-    def get_instances(self, filters=None):
+    def get_instances(self, filters=None, jmespath_filter=None):
         """
         Get EC2 instances
         """
@@ -48,9 +48,10 @@ class AWS:
         try:
             pages = self.client.get_paginator('describe_instances').paginate(
                 Filters=filters)
-            # TODO: Use JMESPath for client-side filtering using pages.search()
         except (BotoCoreError, ClientError) as exc:
             raise FatalError("AWS", exc)
+        if jmespath_filter is not None:
+            pages = pages.search(jmespath_filter)
         for page in pages:
             for item in page['Reservations']:
                 instances.extend(item['Instances'])
