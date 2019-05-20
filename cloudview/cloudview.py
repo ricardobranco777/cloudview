@@ -306,13 +306,13 @@ def check_nova():
 
 
 @cached(cache=TTLCache(maxsize=2, ttl=120))
-def print_info(html_refresh=600):
+def print_info():
     """
     Print information about instances
     """
     if args.port:
         sys.stdout = StringIO()
-    Output().header(seconds=html_refresh)
+    Output().header()
     threads = []
     if check_aws():
         threads.append(Thread(target=print_amazon_instances))
@@ -326,7 +326,7 @@ def print_info(html_refresh=600):
         thread.start()
     for thread in threads:
         thread.join()
-    Output().footer(seconds=html_refresh)
+    Output().footer()
     if args.port:
         response = sys.stdout.getvalue()
         sys.stdout.close()
@@ -450,16 +450,16 @@ def main():
 
     setup_logging()
 
-    keys_ = "provider name type status created location"
-    fmt_ = ('{d[provider]:10}\t{d[name]:32}\t{d[type]:>23}\t'
-            '{d[status]:>16}\t{d[created]:30}\t{d[location]:10}')
+    keys = "provider name type status created location"
+    fmt = ('{d[provider]:10}\t{d[name]:32}\t{d[type]:>23}\t'
+           '{d[status]:>16}\t{d[created]:30}\t{d[location]:10}')
     if args.verbose:
-        keys_ += " instance_id"
-        fmt_ += "\t{d[instance_id]}"
+        keys += " instance_id"
+        fmt += "\t{d[instance_id]}"
 
     if args.port:
         args.output = "html"
-    _ = Output(type=args.output.lower(), keys=keys_, fmt=fmt_)
+    _ = Output(type=args.output.lower(), keys=keys, fmt=fmt)
 
     if args.port:
         web_server()

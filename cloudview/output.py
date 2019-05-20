@@ -22,7 +22,7 @@ def get_html_header(**kwargs):
     """
     with open(dirname(__file__) + "/html/header.html") as file:
         template = Template(file.read())
-        return template.render(**kwargs)
+    return template.render(**kwargs)
 
 
 @lru_cache(maxsize=1)
@@ -32,7 +32,7 @@ def get_html_footer(**kwargs):
     """
     with open(dirname(__file__) + "/html/footer.html") as file:
         template = Template(file.read())
-        return template.render(**kwargs)
+    return template.render(**kwargs)
 
 
 @Singleton
@@ -40,11 +40,12 @@ class Output:
     """
     Helper class to handle tabular output in text, json or html
     """
-    def __init__(self, type=None, fmt=None, keys=None):
+    def __init__(self, type=None, fmt=None, keys=None, seconds=600):
         """
         type must be either text, json or html
         fmt is the format string used for text
         keys are the items in the dictionary
+        seconds is the refresh time for HTML output
         """
         if type not in ('text', 'json', 'html'):
             raise ValueError("Invalid type: %s" % type)
@@ -52,8 +53,9 @@ class Output:
         self.keys = keys.split()
         self.fmt = fmt
         self.last_item = None
+        self.seconds = seconds
 
-    def header(self, **kwargs):
+    def header(self):
         """
         Print the header for output
         """
@@ -68,7 +70,7 @@ class Output:
             table_header = "\n".join([
                 "<th>{}</th>".format(_.upper().replace('_', ' '))
                 for _ in self.keys])
-            print(get_html_header(**kwargs) + table_header)
+            print(get_html_header(seconds=self.seconds) + table_header)
 
     def info(self, item=None, **kwargs):
         """
@@ -102,7 +104,7 @@ class Output:
         for item in iterable:
             self.info(item=item)
 
-    def footer(self, **kwargs):
+    def footer(self):
         """
         Print the footer for output
         """
@@ -111,4 +113,4 @@ class Output:
                 self.last_item = ""
             print("%s\n]" % self.last_item)
         elif self.type == "html":
-            print(get_html_footer(**kwargs))
+            print(get_html_footer(seconds=self.seconds))
