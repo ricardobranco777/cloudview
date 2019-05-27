@@ -451,7 +451,7 @@ def main():
     setup_logging()
 
     keys = "provider name size status created location"
-    fmt = ('{d[provider]:10}\t{d[size]:32}\t{d[type]:>23}\t'
+    fmt = ('{d[provider]:10}\t{d[name]:32}\t{d[size]:>23}\t'
            '{d[status]:>16}\t{d[created]:30}\t{d[location]:10}')
     if args.verbose:
         keys += " instance_id"
