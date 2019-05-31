@@ -1,5 +1,6 @@
 test:
-	@flake8 && \
+	@find -type f -name \*.sh -exec bash -n {} \; && \
+	flake8 && \
 	pylint --disable=C0103,C0111,R0801 $$(find * -name \*.py)
 
 upload-pypi:
