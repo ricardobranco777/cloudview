@@ -1,5 +1,6 @@
 test:
 	@find -type f -name \*.sh -exec bash -n {} \; && \
+	docker-compose config -q && \
 	flake8 && \
 	pylint --disable=C0103,C0111,R0801 $$(find * -name \*.py)
 
