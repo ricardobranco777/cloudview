@@ -143,14 +143,14 @@ def print_azure_instances():
         else:
             statuses = 'stopping stopped deallocating deallocated'
         filters = " || ".join(
-            "instance_view.statuses[1].code == 'PowerState/%s'" % status
+            "instance_view.statuses[1].code == 'PowerState/{}'".format(status)
             for status in statuses.split())
     # If status was specified in the filter, use it instead
     if args.filter_azure:
         if "instance_view.statuses" in args.filter_azure or not filters:
             filters = args.filter_azure
         else:
-            filters += " && (%s)" % args.filter_azure
+            filters += " && ({})".format(args.filter_azure)
     if filters:
         try:
             filters = jmespath.compile(filters)
@@ -198,14 +198,14 @@ def print_google_instances():
         else:
             statuses = 'stopping stopped terminated'
         filters = " OR ".join(
-            "status: %s" % status
+            "status: {}".format(status)
             for status in statuses.split())
     # If status was specified in the filter, use it instead
     if args.filter_gcp:
         if "status" in args.filter_gcp or not filters:
             filters = args.filter_gcp
         else:
-            filters += " AND (%s)" % args.filter_gcp
+            filters += " AND ({})".format(args.filter_gcp)
     gcp = GCP()
     instances = gcp.get_instances(filters=filters if filters else None)
     keys = {
@@ -384,7 +384,7 @@ def handle_instance(request):
     header = '''<!DOCTYPE html><html><head><meta charset="utf-8">
     <link rel="shortcut icon" href="/favicon.ico"></head><body>'''
     footer = '</body></html>'
-    return Response('%s<pre>%s</pre>%s' % (header, response, footer))
+    return Response('{}<pre>{}</pre>{}'.format(header, response, footer))
 
 
 def web_server():

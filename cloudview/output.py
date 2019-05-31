@@ -48,7 +48,7 @@ class Output:
         seconds is the refresh time for HTML output
         """
         if output_format not in ('text', 'json', 'html'):
-            raise ValueError("Invalid type: %s" % output_format)
+            raise ValueError("Invalid type: {}".format(output_format))
         self.output_format = output_format
         self.keys = keys.split()
         self.fmt = fmt
@@ -82,20 +82,18 @@ class Output:
             print(self.fmt.format(d=item))
         elif self.output_format == "json":
             if self.last_item is not None:
-                print("%s," % self.last_item)
+                print("{},".format(self.last_item))
             self.last_item = JSONEncoder(
                 default=str, indent=2, sort_keys=True
             ).encode(item)
         elif self.output_format == "html":
-            kwargs['name'] = '<a href="instance/%s/%s">%s</a>' % (
+            kwargs['name'] = '<a href="instance/{}/{}">{}</a>'.format(
                 kwargs['provider'].lower(),
                 kwargs['instance_id'],
                 kwargs['name'])
-            print(
-                "<tr>\n" +
+            print("<tr>\n{}\n</tr>".format(
                 "\n".join([
-                    "<td>%s</td>" % kwargs[_] for _ in self.keys]) +
-                "</tr>")
+                    " <td>{}</td>".format(kwargs[_]) for _ in self.keys])))
 
     def all(self, iterable):
         """
@@ -111,6 +109,6 @@ class Output:
         if self.output_format == "json":
             if self.last_item is None:
                 self.last_item = ""
-            print("%s\n]" % self.last_item)
+            print("{}\n]".format(self.last_item))
         elif self.output_format == "html":
             print(get_html_footer(seconds=self.seconds))
