@@ -30,7 +30,7 @@ class Nova:
             import logging
             logging.captureWarnings(True)
         try:
-            self.client = client.Client(
+            self._client = client.Client(
                 version=api_version,
                 username=os.environ['OS_USERNAME'],
                 password=os.environ['OS_PASSWORD'],
@@ -65,7 +65,7 @@ class Nova:
             # https://developer.openstack.org/api-ref/compute/#list-servers
             instances = [
                 instance.to_dict()
-                for instance in self.client.servers.list(search_opts=filters)
+                for instance in self._client.servers.list(search_opts=filters)
             ]
         except (Exception,) as exc:
             raise FatalError("Nova", exc)
@@ -90,7 +90,7 @@ class Nova:
         Return instance type
         """
         try:
-            return self.client.flavors.get(flavor_id).name
+            return self._client.flavors.get(flavor_id).name
         except (Exception,) as exc:
             raise FatalError("Nova", exc)
 

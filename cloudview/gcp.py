@@ -39,17 +39,17 @@ class GCP:
     """
     def __init__(self, project=None):
         try:
-            self.client = resource_manager.Client()
+            self._client = resource_manager.Client()
         except (GoogleAuthError, GoogleAPIError) as exc:
             FatalError("GCP", exc)
         try:
-            self.compute = build('compute', 'v1')
+            self._compute = build('compute', 'v1')
         except (GoogleAuthError, GoogleError) as exc:
             FatalError("GCP", exc)
         if project is None:
-            self.project = get_project()
+            self._project = get_project()
         else:
-            self.project = project
+            self._project = project
         self._cache = None
 
     def get_projects(self):
@@ -57,7 +57,7 @@ class GCP:
         Returns a list of projects
         """
         try:
-            return [_.project_id for _ in self.client.list_projects()]
+            return [_.project_id for _ in self._client.list_projects()]
         except (GoogleAuthError, GoogleAPIError) as exc:
             FatalError("GCP", exc)
 
@@ -67,9 +67,9 @@ class GCP:
         Returns a list of available zones
         """
         if project is None:
-            project = self.project
+            project = self._project
         items = []
-        request = self.compute.zones().list(project=project, filter=filters)
+        request = self._compute.zones().list(project=project, filter=filters)
         while request is not None:
             try:
                 response = request.execute()
@@ -77,7 +77,7 @@ class GCP:
                 FatalError("GCP", exc)
             if 'items' in response:
                 items.extend(_['name'] for _ in response['items'])
-            request = self.compute.zones().list_next(request, response)
+            request = self._compute.zones().list_next(request, response)
         return items
 
     def get_instances(self, filters=None, orderBy=None):
@@ -116,12 +116,12 @@ class GCP:
         # To support pagination on batch HTTP requests
         # we save the request & response of each zone
         while retry_zones:
-            batch = self.compute.new_batch_http_request()
+            batch = self._compute.new_batch_http_request()
             for zone in retry_zones:
                 if zone not in requests:
                     # Uncomment maxResults=1 to test pagination
-                    requests[zone] = self.compute.instances().list(
-                        project=self.project, zone=zone,
+                    requests[zone] = self._compute.instances().list(
+                        project=self._project, zone=zone,
                         filter=filters, orderBy=orderBy)  # , maxResults=1)
                 batch.add(requests[zone], callback=callback, request_id=zone)
             retry_zones.clear()
@@ -130,7 +130,7 @@ class GCP:
             except (GoogleAuthError, GoogleError) as exc:
                 FatalError("GCP", exc)
             for zone in retry_zones:
-                requests[zone] = self.compute.instances().list_next(
+                requests[zone] = self._compute.instances().list_next(
                     requests[zone], responses[zone])
         self._cache = instances
         return instances

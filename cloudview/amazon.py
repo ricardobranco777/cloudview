@@ -23,7 +23,7 @@ class AWS:
     """
     def __init__(self):
         try:
-            self.client = boto3_client('ec2')
+            self._client = boto3_client('ec2')
         except (BotoCoreError, ClientError) as exc:
             raise FatalError("AWS", exc)
         self._cache = None
@@ -46,7 +46,7 @@ class AWS:
             filters = []
         instances = []
         try:
-            pages = self.client.get_paginator('describe_instances').paginate(
+            pages = self._client.get_paginator('describe_instances').paginate(
                 Filters=filters)
         except (BotoCoreError, ClientError) as exc:
             raise FatalError("AWS", exc)
@@ -64,7 +64,7 @@ class AWS:
         """
         if self._cache is None:
             try:
-                return self.client.describe_instances(
+                return self._client.describe_instances(
                     InstanceIds=[instance_id])
             except (BotoCoreError, ClientError) as exc:
                 raise WarningError("AWS", exc)

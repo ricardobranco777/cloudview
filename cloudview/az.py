@@ -52,7 +52,7 @@ class Azure:
     def __init__(self, api_version='2018-10-01'):
         credentials, subscription_id = get_credentials()
         try:
-            self.compute = ComputeManagementClient(
+            self._client = ComputeManagementClient(
                 credentials, subscription_id, api_version=api_version)
         except (CloudError, RequestException) as exc:
             FatalError("Azure", exc)
@@ -69,7 +69,7 @@ class Azure:
             r"/resourceGroups/([^/]+)/", instance.id).group(1)
         # https://github.com/Azure/azure-sdk-for-python/issues/573
         try:
-            instance_view = self.compute.virtual_machines.instance_view(
+            instance_view = self._client.virtual_machines.instance_view(
                 resource_group, instance.name)
         except (CloudError, RequestException) as exc:
             FatalError("Azure", exc)
@@ -118,7 +118,7 @@ class Azure:
         Get Azure Compute instances
         """
         try:
-            instances = self.compute.virtual_machines.list_all()
+            instances = self._client.virtual_machines.list_all()
         except (CloudError, RequestException) as exc:
             FatalError("Azure", exc)
         # https://github.com/Azure/azure-sdk-for-python/issues/573
