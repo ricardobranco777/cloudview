@@ -110,7 +110,7 @@ def print_amazon_instances():
     aws = AWS()
     instances = aws.get_instances(filters=filters)
     keys = {
-        'name': itemgetter('InstanceId'),
+        'name': lambda k: aws.get_tags(k).get('Name', k['InstanceId']),
         'time': itemgetter('LaunchTime', 'InstanceId'),
         'status': lambda k: (aws.get_status(k), k['InstanceId'])
     }
@@ -121,7 +121,7 @@ def print_amazon_instances():
     for instance in instances:
         Output().info(
             provider="AWS",
-            name=instance['InstanceId'],
+            name=aws.get_tags(instance).get('Name', instance['InstanceId']),
             instance_id=instance['InstanceId'],
             size=instance['InstanceType'],
             status=aws.get_status(instance),
