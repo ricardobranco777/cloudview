@@ -49,7 +49,7 @@ class Azure:
     """
     Class for handling Azure stuff
     """
-    def __init__(self, api_version='2018-10-01'):
+    def __init__(self, api_version=None):
         credentials, subscription_id = get_credentials()
         try:
             self._client = ComputeManagementClient(
