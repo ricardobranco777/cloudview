@@ -59,7 +59,12 @@ This script is best run with Docker to have all dependencies in just one package
 pip3 install --user cloudview
 ```
 
-## To run with Docker:
+## To run with Docker (or Podman):
+
+If you want to use Podman instead of Docker:
+```
+alias docker=podman
+```
 
 Build image with:
 ```
@@ -71,6 +76,9 @@ Export the variables listed in the [.dockerenv](.dockerenv) file and run with:
 ```
 docker run --rm -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" -v "$OS_CACERT:$OS_CACERT:ro" --env-file .dockerenv cloudview --status all
 ```
+
+NOTES:
+  - To use `podman` in rootless mode, make sure to add your user to the /etc/subuid & /etc/subgid files as described in the [manual page](https://github.com/containers/libpod/blob/master/docs/podman.1.md#rootless-mode)
 
 ## Run the web server with [Docker Compose](https://docs.docker.com/compose/install/):
 
