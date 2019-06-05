@@ -6,7 +6,7 @@ google-cloud-resource-manager
 Jinja2
 jmespath
 oauth2client
+openstacksdk
 pyramid
-python-novaclient
 pytz
 timeago

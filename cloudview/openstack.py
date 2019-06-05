@@ -13,43 +13,27 @@ import concurrent.futures
 
 from functools import lru_cache
 
-from novaclient import client
+import openstack.cloud
 
 from cloudview.exceptions import FatalError
 from cloudview.singleton import Singleton
 
 
 @Singleton
-class Nova:
+class Openstack:
     """
     Class for handling AWS stuff
     """
-    def __init__(self, api_version=2.8, insecure=False):
+    def __init__(self, cloud=None, insecure=False):
         if insecure:
             # https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
             import logging
             logging.captureWarnings(True)
         try:
-            self._client = client.Client(
-                version=api_version,
-                username=os.environ['OS_USERNAME'],
-                password=os.environ['OS_PASSWORD'],
-                project_id=os.getenv(
-                    'OS_PROJECT_ID',
-                    os.getenv('OS_TENANT_ID')),
-                project_name=os.getenv(
-                    'OS_PROJECT_NAME',
-                    os.getenv('OS_TENANT_NAME')),
-                project_domain_id=os.getenv(
-                    'OS_PROJECT_DOMAIN_ID', 'default'),
-                region_name=os.getenv('OS_REGION_NAME'),
-                auth_url=os.environ['OS_AUTH_URL'],
-                user_domain_name=os.getenv(
-                    'OS_USER_DOMAIN_NAME', 'Default'),
-                cacert=os.getenv('OS_CACERT'),
-                insecure=insecure)
+            self._client = openstack.connect(
+                cloud=cloud, insecure=insecure)
         except (Exception,) as exc:
-            raise FatalError("Nova", exc)
+            raise FatalError("Openstack", exc)
         self._cache = None
         # Remove these variables from the environment
         for var in [_ for _ in os.environ if _.startswith('OS_')]:
@@ -57,18 +41,15 @@ class Nova:
 
     def get_instances(self, filters=None):
         """
-        Get Nova instances
+        Get Openstack instances
         """
         if filters is None:
             filters = {}
         try:
             # https://developer.openstack.org/api-ref/compute/#list-servers
-            instances = [
-                instance.to_dict()
-                for instance in self._client.servers.list(search_opts=filters)
-            ]
+            instances = [_ for _ in self._client.list_servers(filters=filters)]
         except (Exception,) as exc:
-            raise FatalError("Nova", exc)
+            raise FatalError("Openstack", exc)
         self._get_instance_types(instances)
         self._cache = instances
         return instances
@@ -90,9 +71,9 @@ class Nova:
         Return instance type
         """
         try:
-            return self._client.flavors.get(flavor_id).name
+            return self._client.get_flavor_by_id(flavor_id).name
         except (Exception,) as exc:
-            raise FatalError("Nova", exc)
+            raise FatalError("Openstack", exc)
 
     def _get_instance_types(self, instances):
         """
@@ -106,7 +87,7 @@ class Nova:
     @staticmethod
     def get_status(instance):
         """
-        Returns the status of the Nova instance
+        Returns the status of the Openstack instance
         """
         return instance['OS-EXT-STS:vm_state']
 

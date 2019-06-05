@@ -35,7 +35,7 @@ from pyramid.response import Response
 from cloudview.amazon import AWS
 from cloudview.az import Azure
 from cloudview.gcp import GCP
-from cloudview.nova import Nova
+from cloudview.openstack import Openstack
 from cloudview.exceptions import FatalError
 from cloudview.output import Output
 from cloudview import __version__
@@ -57,7 +57,7 @@ Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
     --filter-azure FILTER               Filter for Azure
     --filter-gcp FILTER                 Filter for GCP
-    --filter-nova NAME VALUE            may be specified multiple times
+    --filter-openstack NAME VALUE       may be specified multiple times
 """
 
 args = None
@@ -228,7 +228,7 @@ def print_google_instances():
             location=instance['zone'].rsplit('/', 1)[-1])
 
 
-def print_nova_instances():
+def print_openstack_instances():
     """
     Print information about Openstack instances
     """
@@ -238,17 +238,17 @@ def print_nova_instances():
     elif args.status == 'stopped':
         filters = {'status': 'STOPPED'}
     # If instance-state-name was specified in the filter, use it instead
-    if args.filter_nova:
-        if 'status' in {_[0] for _ in args.filter_nova}:
+    if args.filter_openstack:
+        if 'status' in {_[0] for _ in args.filter_openstack}:
             filters = {}
-        filters.update({_[0]: _[1] for _ in args.filter_nova})
-    # https://docs.openstack.org/nova/latest/reference/vm-states.html
-    nova = Nova()
-    instances = nova.get_instances(filters=filters)
+        filters.update({_[0]: _[1] for _ in args.filter_openstack})
+    # https://docs.openstack.org/openstack/latest/reference/vm-states.html
+    openstack = Openstack()
+    instances = openstack.get_instances(filters=filters)
     keys = {
         'name': itemgetter('name'),
         'time': itemgetter('created', 'name'),
-        'status': lambda k: (nova.get_status(k), k['name'])
+        'status': lambda k: (openstack.get_status(k), k['name'])
     }
     instances.sort(key=keys[args.sort], reverse=args.reverse)
     if args.output == "JSON":
@@ -259,8 +259,8 @@ def print_nova_instances():
             provider="Openstack",
             name=instance['name'],
             instance_id=instance['id'],
-            size=nova.get_instance_type(instance['flavor']['id']),
-            status=nova.get_status(instance),
+            size=openstack.get_instance_type(instance['flavor']['id']),
+            status=openstack.get_status(instance),
             created=fix_date(instance['created']),
             location=instance['OS-EXT-AZ:availability_zone'])
 
@@ -297,11 +297,11 @@ def check_gcp():
 
 
 @cached(cache={})
-def check_nova():
+def check_openstack():
     """
     Returns True if OpenStack credentials exist
     """
-    return (bool(args.filter_nova) or
+    return (bool(args.filter_openstack) or
             any(v.startswith("OS_") for v in os.environ))
 
 
@@ -320,8 +320,8 @@ def print_info():
         threads.append(Thread(target=print_azure_instances))
     if check_gcp():
         threads.append(Thread(target=print_google_instances))
-    if check_nova():
-        threads.append(Thread(target=print_nova_instances))
+    if check_openstack():
+        threads.append(Thread(target=print_openstack_instances))
     for thread in threads:
         thread.start()
     for thread in threads:
@@ -374,7 +374,7 @@ def handle_instance(request):
         elif provider == "gcp":
             response = GCP().get_instance(instance)
         elif provider == "openstack":
-            response = Nova().get_instance(instance)
+            response = Openstack().get_instance(instance)
     if response is None:
         response = Response('Not found!')
         response.status_int = 404
@@ -433,7 +433,7 @@ def parse_args():
     argparser.add_argument('--filter-aws', nargs=2, action='append')
     argparser.add_argument('--filter-azure', type=str)
     argparser.add_argument('--filter-gcp', type=str)
-    argparser.add_argument('--filter-nova', nargs=2, action='append')
+    argparser.add_argument('--filter-openstack', nargs=2, action='append')
     return argparser.parse_args()
 
 

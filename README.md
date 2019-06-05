@@ -22,7 +22,7 @@ Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
     --filter-azure FILTER               Filter for Azure
     --filter-gcp FILTER                 Filter for GCP
-    --filter-nova NAME VALUE            may be specified multiple times
+    --filter-openstack NAME VALUE       may be specified multiple times
 ```
 
 **NOTES**:
@@ -148,9 +148,9 @@ Example: `--filter-gcp 'name: instance-1 AND canIpForward: false'`
 
 Note: If `status` is present in the filter, the `--status` option is ignored.
 
-### Filter options (Nova)
+### Filter options (Openstack)
 
-Usage: `--filter-nova NAME VALUE`
+Usage: `--filter-openstack NAME VALUE`
 
 May be specified multiple times.
 
@@ -158,7 +158,7 @@ Complete list of filters:
 
 https://developer.openstack.org/api-ref/compute/?expanded=list-servers-detail#listServers
 
-Example: `--filter-nova name admin`
+Example: `--filter-openstack name admin`
 
 Note: If `status` is present in the filter, the `--status` option is ignored.
 
