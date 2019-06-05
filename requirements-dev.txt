@@ -3,6 +3,7 @@ boto3
 cachetools
 google-api-python-client
 google-cloud-resource-manager
+Jinja2
 jmespath
 oauth2client
 pyramid
