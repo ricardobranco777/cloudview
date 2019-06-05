@@ -273,7 +273,7 @@ def check_aws():
     return (bool(args.filter_aws) or
             'AWS_ACCESS_KEY_ID' in os.environ or
             os.path.exists(
-                os.environ.get(
+                os.getenv(
                     'AWS_SHARED_CREDENTIALS_FILE',
                     os.path.expanduser("~/.aws/credentials"))))
 

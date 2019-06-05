@@ -34,19 +34,19 @@ class Nova:
                 version=api_version,
                 username=os.environ['OS_USERNAME'],
                 password=os.environ['OS_PASSWORD'],
-                project_id=os.environ.get(
+                project_id=os.getenv(
                     'OS_PROJECT_ID',
-                    os.environ.get('OS_TENANT_ID')),
-                project_name=os.environ.get(
+                    os.getenv('OS_TENANT_ID')),
+                project_name=os.getenv(
                     'OS_PROJECT_NAME',
-                    os.environ.get('OS_TENANT_NAME')),
-                project_domain_id=os.environ.get(
+                    os.getenv('OS_TENANT_NAME')),
+                project_domain_id=os.getenv(
                     'OS_PROJECT_DOMAIN_ID', 'default'),
-                region_name=os.environ.get('OS_REGION_NAME'),
+                region_name=os.getenv('OS_REGION_NAME'),
                 auth_url=os.environ['OS_AUTH_URL'],
-                user_domain_name=os.environ.get(
+                user_domain_name=os.getenv(
                     'OS_USER_DOMAIN_NAME', 'Default'),
-                cacert=os.environ.get('OS_CACERT'),
+                cacert=os.getenv('OS_CACERT'),
                 insecure=insecure)
         except (Exception,) as exc:
             raise FatalError("Nova", exc)
