@@ -60,10 +60,14 @@ class Openstack:
         Return specific instance
         """
         if self._cache is None:
-            self.get_instances()
-        for instance in self._cache:
-            if instance['id'] == instance_id:
-                return instance
+            try:
+                return self._client.get_server_by_id(instance_id)
+            except OpenStackCloudException as exc:
+                raise FatalError("Openstack", exc)
+        else:
+            for instance in self._cache:
+                if instance['id'] == instance_id:
+                    return instance
         return None
 
     @lru_cache(maxsize=None)
