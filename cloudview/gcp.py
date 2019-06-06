@@ -61,7 +61,6 @@ class GCP:
         except (GoogleAuthError, GoogleAPIError) as exc:
             FatalError("GCP", exc)
 
-    # MAYBE use TTLCache
     def get_zones(self, project=None, filters="status: UP"):
         """
         Returns a list of available zones
@@ -135,12 +134,20 @@ class GCP:
         self._cache = instances
         return instances
 
-    def get_instance(self, instance_id):
+    def get_instance(self, instance_id, name=None, zone=None):
         """
         Get specific instance
         """
         if self._cache is None:
-            self.get_instances()
+            if name is None or zone is None:
+                self.get_instances()
+            else:
+                try:
+                    request = self._compute.instances().get(
+                        project=self._project, zone=zone, instance=name)
+                    return request.execute()
+                except (GoogleAuthError, GoogleError) as exc:
+                    FatalError("GCP", exc)
         for instance in self._cache:
             if instance['id'] == instance_id:
                 return instance
