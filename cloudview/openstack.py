@@ -14,6 +14,7 @@ import concurrent.futures
 from functools import lru_cache
 
 import openstack.cloud
+from openstack.exceptions import OpenStackCloudException
 
 from cloudview.exceptions import FatalError
 from cloudview.singleton import Singleton
@@ -32,7 +33,7 @@ class Openstack:
         try:
             self._client = openstack.connect(
                 cloud=cloud, insecure=insecure)
-        except (Exception,) as exc:
+        except OpenStackCloudException as exc:
             raise FatalError("Openstack", exc)
         self._cache = None
         # Remove these variables from the environment
@@ -48,7 +49,7 @@ class Openstack:
         try:
             # https://developer.openstack.org/api-ref/compute/#list-servers
             instances = [_ for _ in self._client.list_servers(filters=filters)]
-        except (Exception,) as exc:
+        except OpenStackCloudException as exc:
             raise FatalError("Openstack", exc)
         self._get_instance_types(instances)
         self._cache = instances
@@ -72,7 +73,7 @@ class Openstack:
         """
         try:
             return self._client.get_flavor_by_id(flavor_id).name
-        except (Exception,) as exc:
+        except OpenStackCloudException as exc:
             raise FatalError("Openstack", exc)
 
     def _get_instance_types(self, instances):
