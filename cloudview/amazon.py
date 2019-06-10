@@ -9,7 +9,7 @@ https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.h
 
 import os
 
-from boto3 import client as boto3_client
+from boto3 import client
 from botocore.exceptions import BotoCoreError, ClientError
 
 from cloudview.exceptions import FatalError, WarningError
@@ -23,7 +23,7 @@ class AWS:
     """
     def __init__(self):
         try:
-            self._client = boto3_client('ec2')
+            self._client = client('ec2')
         except (BotoCoreError, ClientError) as exc:
             raise FatalError("AWS", exc)
         self._cache = None

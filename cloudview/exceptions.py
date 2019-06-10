@@ -1,3 +1,7 @@
+#
+# Copyright 2019 Ricardo Branco <rbranco@suse.de>
+# MIT License
+#
 """
 Class for handling exceptions
 """

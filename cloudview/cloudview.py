@@ -76,7 +76,6 @@ def fix_date(date):
         # GCP doesn't return UTC dates
         date = utc.normalize(date)
         if args.verbose:
-            # From Python 3.3 we can omit tz in datetime.astimezone()
             return date.astimezone().strftime(args.time)
         return timeago.format(date, datetime.now(tz=utc))
     return ""
