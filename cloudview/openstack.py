@@ -17,10 +17,10 @@ import openstack.cloud
 from openstack.exceptions import OpenStackCloudException
 
 from cloudview.exceptions import FatalError
-from cloudview.singleton import Singleton
+from cloudview.singleton import Singleton2
 
 
-@Singleton
+@Singleton2
 class Openstack:
     """
     Class for handling AWS stuff

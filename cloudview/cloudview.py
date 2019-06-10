@@ -24,6 +24,7 @@ import jmespath
 from jmespath.exceptions import JMESPathError
 
 import timeago
+import yaml
 
 from cachetools import cached, TTLCache
 from dateutil import parser
@@ -228,7 +229,7 @@ def print_google_instances():
             location=instance['zone'].rsplit('/', 1)[-1])
 
 
-def print_openstack_instances():
+def print_openstack_instances(cloud=None):
     """
     Print information about Openstack instances
     """
@@ -243,7 +244,7 @@ def print_openstack_instances():
             filters = {}
         filters.update({_[0]: _[1] for _ in args.filter_openstack})
     # https://docs.openstack.org/openstack/latest/reference/vm-states.html
-    openstack = Openstack()
+    openstack = Openstack(cloud=cloud)
     instances = openstack.get_instances(filters=filters)
     keys = {
         'name': itemgetter('name'),
@@ -256,7 +257,7 @@ def print_openstack_instances():
         return
     for instance in instances:
         Output().info(
-            provider="Openstack",
+            provider=cloud,
             name=instance['name'],
             instance_id=instance['id'],
             size=openstack.get_instance_type(instance['flavor']['id']),
@@ -302,7 +303,10 @@ def check_openstack():
     Returns True if OpenStack credentials exist
     """
     return (bool(args.filter_openstack) or
-            any(v.startswith("OS_") for v in os.environ))
+            any(v.startswith("OS_") for v in os.environ) or
+            os.path.exists(
+                os.path.expanduser("~/.config/openstack/clouds.yaml")) or
+            os.path.exists("/etc/openstack/clouds.yaml"))
 
 
 @cached(cache=TTLCache(maxsize=2, ttl=120))
@@ -321,7 +325,21 @@ def print_info():
     if check_gcp():
         threads.append(Thread(target=print_google_instances))
     if check_openstack():
-        threads.append(Thread(target=print_openstack_instances))
+        clouds = [None]
+        for path in [
+                os.path.expanduser("~/.config/openstack/clouds.yaml"),
+                "/etc/openstack/clouds.yaml"]:
+            try:
+                with open(os.path.expanduser(path)) as f:
+                    data = f.read()
+            except FileNotFoundError:
+                pass
+            else:
+                data = yaml.load(data, Loader=yaml.FullLoader)
+                clouds = [_ for _ in data['clouds']]
+        for cloud in clouds:
+            threads.append(
+                Thread(target=print_openstack_instances, args=(cloud,)))
     for thread in threads:
         thread.start()
     for thread in threads:
@@ -373,8 +391,8 @@ def handle_instance(request):
             response = Azure().get_instance(instance)
         elif provider == "gcp":
             response = GCP().get_instance(instance)
-        elif provider == "openstack":
-            response = Openstack().get_instance(instance)
+        else:
+            response = Openstack(cloud=provider).get_instance(instance)
     if response is None:
         response = Response('Not found!')
         response.status_int = 404
