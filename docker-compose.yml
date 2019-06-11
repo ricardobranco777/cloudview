@@ -23,6 +23,7 @@ services:
     volumes:
       - ${GOOGLE_APPLICATION_CREDENTIALS}:${GOOGLE_APPLICATION_CREDENTIALS}:ro
       - ${OS_CACERT}:${OS_CACERT}:ro
+      - ${HOME}/.config/openstack/clouds.yaml:/etc/openstack/clouds.yaml:ro
       - type: tmpfs
         target: /tmp
         tmpfs:
