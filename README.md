@@ -74,7 +74,7 @@ docker build -t cloud --pull .
 Export the variables listed in the [.dockerenv](.dockerenv) file and run with:
 
 ```
-docker run --rm -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" -v "$OS_CACERT:$OS_CACERT:ro" -v ~/.config/openstack/clouds.yaml:/etc/openstack/clouds.yaml:ro --env-file .dockerenv cloudview --status all
+docker run --rm -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" -v "$OS_CACERT:$OS_CACERT:ro" -v ~/.config/openstack:/etc/openstack:ro --env-file .dockerenv cloudview --status all
 ```
 
 NOTES:
