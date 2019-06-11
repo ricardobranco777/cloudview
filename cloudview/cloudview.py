@@ -23,8 +23,8 @@ from wsgiref.simple_server import make_server
 import jmespath
 from jmespath.exceptions import JMESPathError
 
+import openstack.config
 import timeago
-import yaml
 
 from cachetools import cached, TTLCache
 from dateutil import parser
@@ -243,12 +243,12 @@ def print_openstack_instances(cloud=None):
             filters = {}
         filters.update({_[0]: _[1] for _ in args.filter_openstack})
     # https://docs.openstack.org/openstack/latest/reference/vm-states.html
-    openstack = Openstack(cloud=cloud)
-    instances = openstack.get_instances(filters=filters)
+    ostack = Openstack(cloud=cloud)
+    instances = ostack.get_instances(filters=filters)
     keys = {
         'name': itemgetter('name'),
         'time': itemgetter('created', 'name'),
-        'status': lambda k: (openstack.get_status(k), k['name'])
+        'status': lambda k: (ostack.get_status(k), k['name'])
     }
     instances.sort(key=keys[args.sort], reverse=args.reverse)
     if args.output == "JSON":
@@ -256,11 +256,11 @@ def print_openstack_instances(cloud=None):
         return
     for instance in instances:
         Output().info(
-            provider=cloud,
+            provider=cloud if cloud is not None else "Openstack",
             name=instance['name'],
             instance_id=instance['id'],
-            size=openstack.get_instance_type(instance['flavor']['id']),
-            status=openstack.get_status(instance),
+            size=ostack.get_instance_type(instance['flavor']['id']),
+            status=ostack.get_status(instance),
             created=fix_date(instance['created']),
             location=instance['OS-EXT-AZ:availability_zone'])
 
@@ -324,19 +324,10 @@ def print_info():
     if check_gcp():
         threads.append(Thread(target=print_google_instances))
     if check_openstack():
-        clouds = [None]
-        for path in [
-                os.path.expanduser("~/.config/openstack/clouds.yaml"),
-                "/etc/openstack/clouds.yaml"]:
-            try:
-                with open(os.path.expanduser(path)) as f:
-                    data = f.read()
-            except FileNotFoundError:
-                pass
-            else:
-                data = yaml.load(data, Loader=yaml.FullLoader)
-                clouds = data['clouds'].keys()
-                break
+        clouds = openstack.config.OpenStackConfig(
+            load_envvars=False).get_cloud_names()
+        if set(clouds) == set(['defaults']):
+            clouds = [None]
         for cloud in clouds:
             threads.append(
                 Thread(target=print_openstack_instances, args=(cloud,)))
