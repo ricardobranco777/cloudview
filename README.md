@@ -51,7 +51,7 @@ This script is best run with Docker to have all dependencies in just one package
   - The `AWS_*` environment variables are optional.  If not set, the AWS SDK will grab the information from `~/.aws/credentials` and `~/.aws/config`.  For Docker it's safer to set these variables so we can unset them after initialization and avoid mounting `~/aws/`.  So, if you don't set them, you must add `-v ~/.aws:/root/aws:ro` to `docker run` and edit [docker-compose.yml](docker-compose.yml) accordingly.
   - The `GOOGLE_APPLICATION_CREDENTIALS` environment variable must contain the path to the JSON file downloaded from the GCP web console after creating a personal key for the service account of your project.
   - The `AZURE_*` environment variables are mandatory if you want Azure output.  For `AZURE_TENANT_ID` & `AZURE_SUBSCRIPTION_ID` check the output of `az account show --query "{subscriptionId:id, tenantId:tenantId}"`.  For the client id and secret, an Azure AD Service Principal is required and can be created, with the proper permissions, with this command: `az ad sp create-for-rbac --name MY-AD-SP --role=Contributor --scopes=/subscriptions/<SUBSCRIPTION ID>`.  These variables are the same as the `ARM_*` variables used by the Terraform Azure provider.  More information in the [official Microsoft documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/terraform-install-configure)
-  - The `OS_*` variables are set by sourcing the OpenStack RC v2.0 or v3 scripts that you may download from the web UI at [https://OPENSTACK_SERVER/project/access_and_security/api_access/openrc/](https://OPENSTACK_SERVER/project/access_and_security/api_access/openrc/)
+  - The `OS_*` variables are optional.  You may set them by sourcing the OpenStack RC v2.0 or v3 scripts that you may download from the web UI at [https://OPENSTACK_SERVER/project/access_and_security/api_access/openrc/](https://OPENSTACK_SERVER/project/access_and_security/api_access/openrc/).  Alternatively, you may use the `clouds.yaml` file described at the [OpenstackSDK documentation](https://docs.openstack.org/openstacksdk/latest/user/guides/connect_from_config.html)
 
 ## To run stand-alone:
 
@@ -74,7 +74,7 @@ docker build -t cloud --pull .
 Export the variables listed in the [.dockerenv](.dockerenv) file and run with:
 
 ```
-docker run --rm -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" -v "$OS_CACERT:$OS_CACERT:ro" --env-file .dockerenv cloudview --status all
+docker run --rm -v "$GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS:ro" -v "$OS_CACERT:$OS_CACERT:ro" -v ~/.config/openstack/clouds.yaml:/etc/openstack/clouds.yaml:ro --env-file .dockerenv cloudview --status all
 ```
 
 NOTES:
