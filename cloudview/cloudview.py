@@ -335,7 +335,8 @@ def print_info():
                 pass
             else:
                 data = yaml.load(data, Loader=yaml.FullLoader)
-                clouds = [_ for _ in data['clouds']]
+                clouds = data['clouds'].keys()
+                break
         for cloud in clouds:
             threads.append(
                 Thread(target=print_openstack_instances, args=(cloud,)))
