@@ -61,6 +61,9 @@ class Azure:
         for var in [_ for _ in os.environ if _.startswith('AZURE_')]:
             os.environ.unsetenv(var)
 
+    def __del__(self):
+        self._client.close()
+
     def _get_instance_view(self, instance):
         """
         Get instance view for more information
