@@ -8,6 +8,7 @@ RUN	apk --no-cache --virtual .build-deps add \
 		libffi-dev \
 		make \
 		openssl-dev && \
+	apk --no-cache add tzdata && \
 	pip install --no-cache-dir -r /tmp/requirements.txt && \
 	ln -s /usr/local/bin/python3 /usr/bin/python3 && \
 	apk del .build-deps
