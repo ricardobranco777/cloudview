@@ -4,7 +4,8 @@
 #
 """
 References:
-https://docs.microsoft.com/en-us/python/api/azure-mgmt-compute/azure.mgmt.compute.v2018_10_01.operations.virtualmachinesoperations?view=azure-python
+https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/instanceview
+https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/listall
 """
 
 import re
@@ -93,21 +94,25 @@ class Azure:
         """
         for disk in instance['instance_view']['disks']:
             if disk['name'] == instance['storage_profile']['os_disk']['name']:
-                return disk['statuses'][0].get('time')
-        return None
+                try:
+                    return disk['statuses'][0]['time']
+                except KeyError:
+                    break
+        return instance['instance_view']['statuses'][0].get('time')
 
     @staticmethod
     def get_status(instance):
         """
-        Returns the status of the VM:
+        Returns the power status (or the provisioning state) of the VM:
+        https://docs.microsoft.com/en-us/azure/virtual-machines/windows/states-lifecycle
         starting | running | stopping | stopped | deallocating | deallocated
         """
         status = instance['instance_view']['statuses']
         if len(status) > 1:
-            status = status[1]['code']
+            status = status[1]['display_status']
         else:
-            status = status[0]['code']
-        return status.rsplit('/', 1)[1]
+            status = status[0]['display_status']
+        return status.split()[-1].lower()
 
     @staticmethod
     def get_tags(instance):
