@@ -7,8 +7,6 @@ Reference:
 https://developer.openstack.org/api-ref/compute/
 """
 
-import os
-
 import concurrent.futures
 
 from functools import lru_cache
@@ -36,9 +34,6 @@ class Openstack:
         except OpenStackCloudException as exc:
             raise FatalError("Openstack", exc)
         self._cache = None
-        # Remove these variables from the environment
-        for var in [_ for _ in os.environ if _.startswith('OS_')]:
-            os.environ.unsetenv(var)
 
     def get_instances(self, filters=None):
         """

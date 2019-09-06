@@ -7,8 +7,6 @@ Reference:
 https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.describe_instances
 """
 
-import os
-
 from boto3 import client
 from botocore.exceptions import BotoCoreError, ClientError
 
@@ -27,9 +25,6 @@ class AWS:
         except (BotoCoreError, ClientError) as exc:
             raise FatalError("AWS", exc)
         self._cache = None
-        # Remove these variables from the environment
-        for var in [_ for _ in os.environ if _.startswith('AWS_')]:
-            os.environ.unsetenv(var)
 
     @staticmethod
     def get_tags(instance):
