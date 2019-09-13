@@ -7,12 +7,12 @@
 Show all instances created on cloud providers
 """
 
+import argparse
 import os
 import re
 import logging
 import sys
 
-from argparse import ArgumentParser
 from datetime import datetime
 from io import StringIO
 from itertools import groupby
@@ -424,13 +424,13 @@ def parse_args():
     """
     Parse command line options
     """
-    argparser = ArgumentParser(usage=USAGE, add_help=False)
+    argparser = argparse.ArgumentParser(usage=USAGE, add_help=False)
     argparser.add_argument('-h', '--help', action='store_true')
     argparser.add_argument('-l', '--log', default='error',
                            choices='debug info warning error critical'.split())
     argparser.add_argument('-o', '--output', default='text',
                            choices=['text', 'html', 'json', 'JSON'])
-    argparser.add_argument('-p', '--port', type=int)
+    argparser.add_argument('-p', '--port', type=port_number)
     argparser.add_argument('-r', '--reverse', action='store_true')
     argparser.add_argument('-s', '--sort', default='name',
                            choices=['name', 'status', 'time'])
@@ -444,6 +444,15 @@ def parse_args():
     argparser.add_argument('--filter-gcp', type=str)
     argparser.add_argument('--filter-openstack', nargs=2, action='append')
     return argparser.parse_args()
+
+
+def port_number(port):
+    """
+    Check port argument
+    """
+    if port.isdigit() and 1 <= int(port) <= 65535:
+        return int(port)
+    raise argparse.ArgumentTypeError("%s is an invalid port number" % port)
 
 
 def main():
