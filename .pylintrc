@@ -1,2 +1,4 @@
+[MESSAGES CONTROL]
+disable=import-outside-toplevel
 [TYPECHECK]
 ignored-classes=googleapiclient.discovery.Resource
