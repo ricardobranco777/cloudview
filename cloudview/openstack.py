@@ -43,7 +43,7 @@ class Openstack:
             filters = {}
         try:
             # https://developer.openstack.org/api-ref/compute/#list-servers
-            instances = [_ for _ in self._client.list_servers(filters=filters)]
+            instances = list(self._client.list_servers(filters=filters))
         except OpenStackCloudException as exc:
             raise FatalError("Openstack", exc)
         self._get_instance_types(instances)
