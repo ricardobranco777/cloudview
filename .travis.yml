@@ -6,13 +6,12 @@ services:
 dist: xenial
 
 python:
-  - "3.5"
   - "3.6"
   - "3.7"
   - "3.8"
 
 before_install:
-  - sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose
+  - sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose
   - sudo docker-compose build --pull
   - mkdir $HOME/.aws
   - touch $HOME/empty.json
@@ -22,5 +21,5 @@ install:
 
 script:
   - make test
-  - sudo PASS=testing GOOGLE_APPLICATION_CREDENTIALS=/dummy OS_CACERT=/dummy docker-compose up -d
-  - sh -c 'sleep 7; test "$(curl -4k -u test:testing https://localhost:8443/test)" = "OK"'
+  - sudo PASS=testing GOOGLE_APPLICATION_CREDENTIALS=/dummy OS_CACERT=/dummy2 docker-compose up -d
+  - sh -c 'sleep 10; test "$(curl -4k -u test:testing https://localhost:8443/test)" = "OK"'

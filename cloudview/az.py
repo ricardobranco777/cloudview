@@ -13,8 +13,9 @@ import os
 
 import concurrent.futures
 
-from azure.common.credentials import ServicePrincipalCredentials
+from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
+from azure.core.exceptions import AzureError
 from msrestazure.azure_exceptions import CloudError
 from requests.exceptions import RequestException
 
@@ -30,18 +31,9 @@ def get_credentials():
         subscription_id = os.getenv(
             'AZURE_SUBSCRIPTION_ID',
             os.getenv('ARM_SUBSCRIPTION_ID'))
-        credentials = ServicePrincipalCredentials(
-            client_id=os.getenv(
-                'AZURE_CLIENT_ID',
-                os.getenv('ARM_CLIENT_ID')),
-            secret=os.getenv(
-                'AZURE_CLIENT_SECRET',
-                os.getenv('ARM_CLIENT_SECRET')),
-            tenant=os.getenv(
-                'AZURE_TENANT_ID',
-                os.getenv('ARM_TENANT_ID')))
+        credentials = DefaultAzureCredential()
         return credentials, subscription_id
-    except (KeyError, CloudError, RequestException) as exc:
+    except (KeyError, AzureError, CloudError, RequestException) as exc:
         FatalError("Azure", exc)
 
 
@@ -54,8 +46,10 @@ class Azure:
         credentials, subscription_id = get_credentials()
         try:
             self._client = ComputeManagementClient(
-                credentials, subscription_id, api_version=api_version)
-        except (CloudError, RequestException) as exc:
+                credential=credentials,
+                subscription_id=subscription_id,
+                api_version=api_version)
+        except (AzureError, CloudError, RequestException) as exc:
             FatalError("Azure", exc)
         self._cache = None
 
@@ -72,7 +66,7 @@ class Azure:
         try:
             instance_view = self._client.virtual_machines.instance_view(
                 resource_group, instance.name)
-        except (CloudError, RequestException) as exc:
+        except (AzureError, CloudError, RequestException) as exc:
             FatalError("Azure", exc)
         instance.instance_view = instance_view
         return instance.as_dict()
@@ -124,7 +118,7 @@ class Azure:
         """
         try:
             instances = self._client.virtual_machines.list_all()
-        except (CloudError, RequestException) as exc:
+        except (AzureError, CloudError, RequestException) as exc:
             FatalError("Azure", exc)
         # https://github.com/Azure/azure-sdk-for-python/issues/573
         instances = self._get_instance_views(instances)
@@ -146,7 +140,7 @@ class Azure:
                     return self._client.virtual_machines.get(
                         resource_group_name=resource_group,
                         vm_name=name, expand="instanceView").as_dict()
-                except (CloudError, RequestException) as exc:
+                except (AzureError, CloudError, RequestException) as exc:
                     FatalError("Azure", exc)
         for instance in self._cache:
             if instance['vm_id'] == instance_id:
