@@ -3,7 +3,7 @@ language: python
 services:
   - docker
 
-dist: xenial
+dist: focal
 
 python:
   - "3.6"
@@ -11,7 +11,6 @@ python:
   - "3.8"
 
 before_install:
-  - sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose
   - sudo docker-compose build --pull
   - mkdir $HOME/.aws
   - touch $HOME/empty.json
