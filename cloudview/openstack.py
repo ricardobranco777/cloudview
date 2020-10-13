@@ -82,7 +82,7 @@ class Openstack:
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(
                 self.get_instance_type,
-                {_['flavor']['id'] for _ in instances})
+                {_['flavor']['id'] for _ in instances if 'id' in _['flavor']})
 
     @staticmethod
     def get_status(instance):
