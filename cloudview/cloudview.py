@@ -270,12 +270,12 @@ def check_aws():
     """
     Returns True if AWS credentials exist
     """
-    return (bool(args.filter_aws) or
-            'AWS_ACCESS_KEY_ID' in os.environ or
-            os.path.exists(
-                os.getenv(
-                    'AWS_SHARED_CREDENTIALS_FILE',
-                    os.path.expanduser("~/.aws/credentials"))))
+    return bool(args.filter_aws) or \
+        'AWS_ACCESS_KEY_ID' in os.environ or \
+        os.path.exists(
+            os.getenv(
+                'AWS_SHARED_CREDENTIALS_FILE',
+                os.path.expanduser("~/.aws/credentials")))
 
 
 @cached(cache={})
@@ -283,8 +283,7 @@ def check_azure():
     """
     Returns True if Azure credentials exist
     """
-    return (bool(args.filter_azure) or
-            any(v.startswith("AZURE_") for v in os.environ))
+    return bool(args.filter_azure) or any(v.startswith("AZURE_") for v in os.environ)
 
 
 @cached(cache={})
@@ -292,8 +291,7 @@ def check_gcp():
     """
     Returns True if GCP credentials exist
     """
-    return (bool(args.filter_gcp) or
-            'GOOGLE_APPLICATION_CREDENTIALS' in os.environ)
+    return bool(args.filter_gcp) or 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ
 
 
 @cached(cache={})
@@ -301,11 +299,10 @@ def check_openstack():
     """
     Returns True if OpenStack credentials exist
     """
-    return (bool(args.filter_openstack) or
-            any(v.startswith("OS_") for v in os.environ) or
-            os.path.exists(
-                os.path.expanduser("~/.config/openstack/clouds.yaml")) or
-            os.path.exists("/etc/openstack/clouds.yaml"))
+    return bool(args.filter_openstack) or \
+        any(v.startswith("OS_") for v in os.environ) or \
+        os.path.exists(os.path.expanduser("~/.config/openstack/clouds.yaml")) or \
+        os.path.exists("/etc/openstack/clouds.yaml")
 
 
 @cached(cache=TTLCache(maxsize=2, ttl=120))
