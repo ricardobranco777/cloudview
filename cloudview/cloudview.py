@@ -256,7 +256,7 @@ def print_openstack_instances(cloud=None):
         return
     for instance in instances:
         Output().info(
-            provider=cloud if cloud is not None else "Openstack",
+            provider=cloud or "Openstack",
             name=instance['name'],
             instance_id=instance['id'],
             size=ostack.get_instance_type(instance['flavor']['id']) if 'id' in instance['flavor'] else instance['flavor'],

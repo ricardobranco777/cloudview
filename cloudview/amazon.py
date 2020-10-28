@@ -37,8 +37,7 @@ class AWS:
         """
         Get EC2 instances
         """
-        if filters is None:
-            filters = []
+        filters = filters or []
         instances = []
         try:
             pages = self._client.get_paginator('describe_instances').paginate(

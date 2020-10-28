@@ -39,8 +39,7 @@ class Openstack:
         """
         Get Openstack instances
         """
-        if filters is None:
-            filters = {}
+        filters = filters or {}
         try:
             # https://developer.openstack.org/api-ref/compute/#list-servers
             instances = list(self._client.list_servers(filters=filters))

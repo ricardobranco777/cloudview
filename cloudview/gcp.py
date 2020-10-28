@@ -46,10 +46,7 @@ class GCP:
             self._compute = build('compute', 'v1')
         except (GoogleAuthError, GoogleError) as exc:
             FatalError("GCP", exc)
-        if project is None:
-            self._project = get_project()
-        else:
-            self._project = project
+        self._project = project or get_project()
         self._cache = None
 
     def get_projects(self):
@@ -65,8 +62,7 @@ class GCP:
         """
         Returns a list of available zones
         """
-        if project is None:
-            project = self._project
+        project = project or self._project
         items = []
         request = self._compute.zones().list(project=project, filter=filters)
         while request is not None:
