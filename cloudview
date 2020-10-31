@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # Copyright 2019 Ricardo Branco <rbranco@suse.de>
 # MIT License
@@ -23,7 +23,6 @@ from wsgiref.simple_server import make_server
 import jmespath
 from jmespath.exceptions import JMESPathError
 
-import openstack.config
 import timeago
 
 from cachetools import cached, TTLCache
@@ -33,13 +32,9 @@ from pyramid.view import view_config
 from pyramid.config import Configurator
 from pyramid.response import Response
 
-from cloudview.amazon import AWS
-from cloudview.az import Azure
-from cloudview.gcp import GCP
-from cloudview.openstack import Openstack
-from cloudview.exceptions import FatalError
-from cloudview.output import Output
-from cloudview import __version__
+from _cloudview.exceptions import FatalError
+from _cloudview.output import Output
+from _cloudview import __version__
 
 
 USAGE = "Usage: " + os.path.basename(sys.argv[0]) + """ [OPTIONS]
@@ -265,46 +260,6 @@ def print_openstack_instances(cloud=None):
             location=instance['OS-EXT-AZ:availability_zone'])
 
 
-@cached(cache={})
-def check_aws():
-    """
-    Returns True if AWS credentials exist
-    """
-    return bool(args.filter_aws) or \
-        'AWS_ACCESS_KEY_ID' in os.environ or \
-        os.path.exists(
-            os.getenv(
-                'AWS_SHARED_CREDENTIALS_FILE',
-                os.path.expanduser("~/.aws/credentials")))
-
-
-@cached(cache={})
-def check_azure():
-    """
-    Returns True if Azure credentials exist
-    """
-    return bool(args.filter_azure) or any(v.startswith("AZURE_") for v in os.environ)
-
-
-@cached(cache={})
-def check_gcp():
-    """
-    Returns True if GCP credentials exist
-    """
-    return bool(args.filter_gcp) or 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ
-
-
-@cached(cache={})
-def check_openstack():
-    """
-    Returns True if OpenStack credentials exist
-    """
-    return bool(args.filter_openstack) or \
-        any(v.startswith("OS_") for v in os.environ) or \
-        os.path.exists(os.path.expanduser("~/.config/openstack/clouds.yaml")) or \
-        os.path.exists("/etc/openstack/clouds.yaml")
-
-
 @cached(cache=TTLCache(maxsize=2, ttl=120))
 def print_info():
     """
@@ -314,13 +269,13 @@ def print_info():
         sys.stdout = StringIO()
     Output().header()
     threads = []
-    if check_aws():
+    if check_aws:
         threads.append(Thread(target=print_amazon_instances))
-    if check_azure():
+    if check_azure:
         threads.append(Thread(target=print_azure_instances))
-    if check_gcp():
+    if check_gcp:
         threads.append(Thread(target=print_google_instances))
-    if check_openstack():
+    if check_openstack:
         clouds = openstack.config.OpenStackConfig(
             load_envvars=False).get_cloud_names()
         if set(clouds) == set(['defaults']):
@@ -484,6 +439,23 @@ def main():
 
 
 if __name__ == "__main__":
+    args = parse_args()
+    check_aws = bool(args.filter_aws) or 'AWS_ACCESS_KEY_ID' in os.environ or \
+        os.path.exists(os.getenv('AWS_SHARED_CREDENTIALS_FILE', os.path.expanduser("~/.aws/credentials")))
+    check_azure = bool(args.filter_azure) or any(v.startswith("AZURE_") for v in os.environ)
+    check_gcp = bool(args.filter_gcp) or 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ
+    check_openstack = bool(args.filter_openstack) or any(v.startswith("OS_") for v in os.environ) or \
+        os.path.exists(os.path.expanduser("~/.config/openstack/clouds.yaml")) or \
+        os.path.exists("/etc/openstack/clouds.yaml")
+    if check_aws:
+        from _cloudview.amazon import AWS
+    if check_azure:
+        from _cloudview.az import Azure
+    if check_gcp:
+        from _cloudview.gcp import GCP
+    if check_openstack:
+        import openstack
+        from _cloudview.openstack import Openstack  # pylint: disable=ungrouped-imports
     try:
         main()
     except KeyboardInterrupt:

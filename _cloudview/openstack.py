@@ -11,11 +11,11 @@ import concurrent.futures
 
 from functools import lru_cache
 
-import openstack.cloud
+import openstack
 from openstack.exceptions import OpenStackCloudException
 
-from cloudview.exceptions import FatalError
-from cloudview.singleton import Singleton2
+from _cloudview.exceptions import FatalError
+from _cloudview.singleton import Singleton2
 
 
 @Singleton2

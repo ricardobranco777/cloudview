@@ -12,7 +12,7 @@ from json import JSONEncoder
 
 from jinja2 import Template
 
-from cloudview.singleton import Singleton
+from _cloudview.singleton import Singleton
 
 
 @lru_cache(maxsize=1)

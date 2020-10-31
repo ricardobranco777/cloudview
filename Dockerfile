@@ -13,14 +13,15 @@ RUN	apk --no-cache --virtual .build-deps add \
 	ln -s /usr/local/bin/python3 /usr/bin/python3 && \
 	apk del .build-deps
 
-COPY	cloudview /cloudview
-COPY	scripts/cloudview /usr/local/bin/
+COPY	. /cloudview
 
-RUN	python3 -OO -m compileall && \
-	python3 -OO -m compileall /cloudview/
+RUN	pip install /cloudview && \
+	python3 -OO -m compileall && \
+	python3 -OO -m compileall /cloudview
 
-ENV	PYTHONPATH	.
+ENV 	PYTHONPATH	/cloudview
 
-ENTRYPOINT ["/usr/local/bin/cloudview"]
+
+ENTRYPOINT ["/cloudview/cloudview"]
 
 CMD []

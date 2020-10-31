@@ -10,8 +10,8 @@ https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.h
 from boto3 import client
 from botocore.exceptions import BotoCoreError, ClientError
 
-from cloudview.exceptions import FatalError, WarningError
-from cloudview.singleton import Singleton
+from _cloudview.exceptions import FatalError, WarningError
+from _cloudview.singleton import Singleton
 
 
 @Singleton
