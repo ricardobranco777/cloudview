@@ -21,7 +21,7 @@ from cloudview.singleton import Singleton2
 @Singleton2
 class Openstack:
     """
-    Class for handling AWS stuff
+    Class for handling Openstack stuff
     """
     def __init__(self, cloud=None, insecure=False):
         if insecure:
