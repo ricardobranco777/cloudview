@@ -166,3 +166,7 @@ Note: If `status` is present in the filter, the `--status` option is ignored.
   - Search by tag (this can be done with the `filter-*` options)
   - Sort by instance type (very tricky to get right ATM for all providers).
   - Use apache-libcloud? (slow for some providers)
+
+## Similar projects
+
+  - [public cloud watch](https://github.com/cfconrad/pcw/)
