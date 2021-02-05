@@ -46,7 +46,7 @@ class Azure:
         credentials, subscription_id = get_credentials()
         try:
             self._client = ComputeManagementClient(
-                credential=credentials,
+                credentials=credentials,
                 subscription_id=subscription_id,
                 api_version=api_version)
         except (AzureError, CloudError, RequestException) as exc:
