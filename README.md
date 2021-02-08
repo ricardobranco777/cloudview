@@ -28,7 +28,7 @@ Filter options:
 **NOTES**:
   - Use `--output JSON` to dump _all_ available information received from each provider.
 
-This script is best run with Docker to have all dependencies in just one package, but it may be run stand-alone on systems with Python 3.5+
+This script is best run with Docker to have all dependencies in just one package, but it may be run stand-alone on systems with Python 3.6+
 
 ## Environment variables
 
