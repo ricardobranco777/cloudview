@@ -7,8 +7,7 @@ Reference:
 https://developer.openstack.org/api-ref/compute/
 """
 
-import concurrent.futures
-
+from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
 
 import openstack
@@ -78,7 +77,7 @@ class Openstack:
         """
         Threaded version to get all instance types using a pool of workers
         """
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor() as executor:
             executor.map(
                 self.get_instance_type,
                 {_['flavor']['id'] for _ in instances if 'id' in _['flavor']})

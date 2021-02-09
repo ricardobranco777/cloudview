@@ -11,7 +11,7 @@ https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/listall
 import re
 import os
 
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
@@ -75,7 +75,7 @@ class Azure:
         """
         Threaded version to get all instance views using a pool of workers
         """
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor() as executor:
             yield from executor.map(self._get_instance_view, instances)
 
     @staticmethod
