@@ -11,7 +11,7 @@ cachetools==4.2.1
 certifi==2020.12.5
 cffi==1.14.4
 chardet==4.0.0
-cryptography==3.4.4
+cryptography==3.3.2
 decorator==4.4.2
 dogpile.cache==1.1.2
 google-api-core==1.26.0
