@@ -30,6 +30,7 @@ def get_project():
         return data['project_id']
     except (KeyError, OSError) as exc:
         FatalError("GCP", exc)
+    return None
 
 
 @Singleton
@@ -57,6 +58,7 @@ class GCP:
             return [_.project_id for _ in self._client.list_projects()]
         except (GoogleAuthError, GoogleAPIError) as exc:
             FatalError("GCP", exc)
+        return None
 
     def get_zones(self, project=None, filters="status: UP"):
         """

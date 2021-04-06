@@ -35,6 +35,7 @@ def get_credentials():
         return credentials, subscription_id
     except (KeyError, AzureError, CloudError, RequestException) as exc:
         FatalError("Azure", exc)
+    return None
 
 
 @Singleton
