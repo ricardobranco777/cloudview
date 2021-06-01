@@ -70,7 +70,7 @@ timeago==1.0.15
 toml==0.10.2
 translationstring==1.4
 uritemplate==3.0.1
-urllib3==1.26.4
+urllib3==1.26.5
 venusian==3.0.0
 WebOb==1.8.6
 zope.deprecation==4.4.0
