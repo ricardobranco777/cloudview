@@ -4,13 +4,10 @@ COPY	requirements.txt /tmp/
 
 RUN	apk --no-cache --virtual .build-deps add \
 		gcc \
-		g++ \
 		libc-dev \
 		libffi-dev \
-		libstdc++ \
 		make \
 		openssl-dev && \
-	apk add libstdc++ && \
 	apk --no-cache add tzdata && \
 	pip install --compile --no-cache-dir -r /tmp/requirements.txt && \
 	apk del .build-deps

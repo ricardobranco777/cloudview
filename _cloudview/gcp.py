@@ -12,8 +12,6 @@ import os
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import Error as GoogleError, HttpError
-from google.cloud import resourcemanager_v3
-from google.api_core.exceptions import GoogleAPIError
 from google.auth.exceptions import GoogleAuthError
 
 from _cloudview.exceptions import FatalError, WarningError
@@ -45,17 +43,6 @@ class GCP:
             FatalError("GCP", exc)
         self._project = project or get_project()
         self._cache = None
-
-    def get_projects(self):
-        """
-        Returns a list of projects
-        """
-        try:
-            with google.cloud.resourcemanager_v3.ProjectsClient() as client:
-                return [_.project_id for _ in client.list_projects()]
-        except (GoogleAuthError, GoogleAPIError) as exc:
-            FatalError("GCP", exc)
-        return None
 
     def get_zones(self, project=None, filters="status: UP"):
         """
