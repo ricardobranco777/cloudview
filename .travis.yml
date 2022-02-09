@@ -9,7 +9,7 @@ python:
   - "3.9"
 
 before_install:
-  - sudo docker-compose build --pull
+  - sudo OS_CACERT=/var/lib/empty docker-compose build --pull
   - mkdir $HOME/.aws
   - touch $HOME/empty.json
 
@@ -18,5 +18,5 @@ install:
 
 script:
   - make test
-  - sudo PASS=testing GOOGLE_APPLICATION_CREDENTIALS=/dummy OS_CACERT=/dummy2 docker-compose up -d
+  - sudo PASS=testing GOOGLE_APPLICATION_CREDENTIALS=/var/lib/emtpy OS_CACERT=/var/lib/empty docker-compose up -d
   - sh -c 'sleep 10; test "$(curl -4k -u test:testing https://localhost:8443/test)" = "OK"'
