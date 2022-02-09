@@ -20,7 +20,7 @@ def get_html_header(**kwargs):
     """
     Return the HTML header rendered from a Jinja2 template
     """
-    with open(dirname(__file__) + "/html/header.html") as file:
+    with open(dirname(__file__) + "/html/header.html", encoding="utf-8") as file:
         template = Template(file.read())
     return template.render(**kwargs)
 
@@ -30,7 +30,7 @@ def get_html_footer(**kwargs):
     """
     Return the HTML footer rendered from a Jinja2 template
     """
-    with open(dirname(__file__) + "/html/footer.html") as file:
+    with open(dirname(__file__) + "/html/footer.html", encoding="utf-8") as file:
         template = Template(file.read())
     return template.render(**kwargs)
 
@@ -48,7 +48,7 @@ class Output:
         seconds is the refresh time for HTML output
         """
         if output_format not in ('text', 'json', 'html'):
-            raise ValueError("Invalid type: {}".format(output_format))
+            raise ValueError(f"Invalid type: {output_format}")
         self.output_format = output_format
         self.keys = keys.split()
         self.fmt = fmt
@@ -67,9 +67,7 @@ class Output:
         elif self.output_format == "json":
             print("[")
         elif self.output_format == "html":
-            table_header = "\n".join([
-                "<th>{}</th>".format(_.upper().replace('_', ' '))
-                for _ in self.keys])
+            table_header = "\n".join([f"<th>{_.upper().replace('_', ' ')}</th>" for _ in self.keys])
             print(get_html_header(seconds=self.seconds) + table_header)
 
     def info(self, item=None, **kwargs):
@@ -82,18 +80,14 @@ class Output:
             print(self.fmt.format(d=item))
         elif self.output_format == "json":
             if self.last_item is not None:
-                print("{},".format(self.last_item))
+                print(f"{self.last_item}")
             self.last_item = JSONEncoder(
                 default=str, indent=2, sort_keys=True
             ).encode(item)
         elif self.output_format == "html":
-            kwargs['name'] = '<a href="instance/{}/{}">{}</a>'.format(
-                kwargs['provider'].lower(),
-                kwargs['instance_id'],
-                kwargs['name'])
-            print("<tr>\n{}\n</tr>".format(
-                "\n".join([
-                    " <td>{}</td>".format(kwargs[_]) for _ in self.keys])))
+            kwargs['name'] = f"<a href=\"instance/{kwargs['provider'].lower()}/{kwargs['instance_id']}\">{kwargs['name']}</a>"
+            lines = "\n".join([f" <td>{kwargs[_]}</td>" for _ in self.keys])
+            print(f"<tr>\n{lines}\n</tr>")
 
     def all(self, iterable):
         """
@@ -109,6 +103,6 @@ class Output:
         if self.output_format == "json":
             if self.last_item is None:
                 self.last_item = ""
-            print("{}\n]".format(self.last_item))
+            print(f"{self.last_item}\n]")
         elif self.output_format == "html":
             print(get_html_footer(seconds=self.seconds))

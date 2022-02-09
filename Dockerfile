@@ -7,6 +7,7 @@ RUN	apk --no-cache --virtual .build-deps add \
 		g++ \
 		libc-dev \
 		libffi-dev \
+		libstdc++ \
 		make \
 		openssl-dev && \
 	apk add libstdc++ && \

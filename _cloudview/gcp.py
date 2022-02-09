@@ -12,7 +12,7 @@ import os
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import Error as GoogleError, HttpError
-from google.cloud import resource_manager
+from google.cloud import resourcemanager_v3
 from google.api_core.exceptions import GoogleAPIError
 from google.auth.exceptions import GoogleAuthError
 
@@ -25,7 +25,7 @@ def get_project():
     Get the project from the GCP credentials JSON file
     """
     try:
-        with open(os.environ['GOOGLE_APPLICATION_CREDENTIALS']) as file:
+        with open(os.environ['GOOGLE_APPLICATION_CREDENTIALS'], encoding="utf-8") as file:
             data = json.loads(file.read())
         return data['project_id']
     except (KeyError, OSError) as exc:
@@ -40,7 +40,7 @@ class GCP:
     """
     def __init__(self, project=None):
         try:
-            self._client = resource_manager.Client()
+            self._client = google.cloud.resourcemanager_v3.ProjectsClient()
         except (GoogleAuthError, GoogleAPIError) as exc:
             FatalError("GCP", exc)
         try:
