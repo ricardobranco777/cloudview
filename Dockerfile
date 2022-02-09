@@ -9,6 +9,7 @@ RUN	apk --no-cache --virtual .build-deps add \
 		libffi-dev \
 		make \
 		openssl-dev && \
+	apk add libstdc++ && \
 	apk --no-cache add tzdata && \
 	pip install --compile --no-cache-dir -r /tmp/requirements.txt && \
 	apk del .build-deps
