@@ -40,10 +40,6 @@ class GCP:
     """
     def __init__(self, project=None):
         try:
-            self._client = google.cloud.resourcemanager_v3.ProjectsClient()
-        except (GoogleAuthError, GoogleAPIError) as exc:
-            FatalError("GCP", exc)
-        try:
             self._compute = build('compute', 'v1')
         except (GoogleAuthError, GoogleError) as exc:
             FatalError("GCP", exc)
@@ -55,7 +51,8 @@ class GCP:
         Returns a list of projects
         """
         try:
-            return [_.project_id for _ in self._client.list_projects()]
+            with google.cloud.resourcemanager_v3.ProjectsClient() as client:
+                return [_.project_id for _ in client.list_projects()]
         except (GoogleAuthError, GoogleAPIError) as exc:
             FatalError("GCP", exc)
         return None
