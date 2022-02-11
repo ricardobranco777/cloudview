@@ -14,13 +14,9 @@ RUN	apk --no-cache --virtual .build-deps add \
 
 COPY	. /cloudview
 
-RUN	pip install /cloudview && \
-	python3 -OO -m compileall && \
-	python3 -OO -m compileall /cloudview
+RUN	pip install --compile /cloudview && \
+	python3 -OO -m compileall
 
-ENV 	PYTHONPATH	/cloudview
-
-
-ENTRYPOINT ["/cloudview/cloudview"]
+ENTRYPOINT ["/usr/local/bin/cloudview"]
 
 CMD []

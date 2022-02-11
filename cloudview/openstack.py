@@ -13,8 +13,8 @@ from functools import lru_cache
 import openstack
 from openstack.exceptions import OpenStackCloudException
 
-from _cloudview.exceptions import FatalError
-from _cloudview.singleton import Singleton2
+from cloudview.exceptions import FatalError
+from cloudview.singleton import Singleton2
 
 
 @Singleton2
@@ -58,7 +58,7 @@ class Openstack:
             except OpenStackCloudException as exc:
                 raise FatalError("Openstack", exc)
         else:
-            for instance in self._cache:
+            for instance in self._cache:  # pylint: disable=not-an-iterable
                 if instance['id'] == instance_id:
                     return instance
         return None

@@ -14,8 +14,8 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import Error as GoogleError, HttpError
 from google.auth.exceptions import GoogleAuthError
 
-from _cloudview.exceptions import FatalError, WarningError
-from _cloudview.singleton import Singleton
+from cloudview.exceptions import FatalError, WarningError
+from cloudview.singleton import Singleton
 
 
 def get_project():

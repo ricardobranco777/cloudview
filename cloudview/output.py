@@ -6,33 +6,24 @@
 Handle tabular output in these formats: text, json & html
 """
 
-from functools import lru_cache
-from os.path import dirname
 from json import JSONEncoder
 
-from jinja2 import Template
+from cloudview.singleton import Singleton
+from cloudview.html import HEADER, FOOTER
 
-from _cloudview.singleton import Singleton
 
-
-@lru_cache(maxsize=1)
 def get_html_header(**kwargs):
     """
     Return the HTML header rendered from a Jinja2 template
     """
-    with open(dirname(__file__) + "/html/header.html", encoding="utf-8") as file:
-        template = Template(file.read())
-    return template.render(**kwargs)
+    return HEADER.render(**kwargs)
 
 
-@lru_cache(maxsize=1)
 def get_html_footer(**kwargs):
     """
     Return the HTML footer rendered from a Jinja2 template
     """
-    with open(dirname(__file__) + "/html/footer.html", encoding="utf-8") as file:
-        template = Template(file.read())
-    return template.render(**kwargs)
+    return FOOTER.render(**kwargs)
 
 
 @Singleton

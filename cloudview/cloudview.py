@@ -13,6 +13,9 @@ import re
 import logging
 import sys
 
+import html
+from json import JSONEncoder
+
 from datetime import datetime
 from io import StringIO
 from itertools import groupby
@@ -32,12 +35,18 @@ from pyramid.view import view_config
 from pyramid.config import Configurator
 from pyramid.response import Response
 
-from _cloudview.exceptions import FatalError
-from _cloudview.output import Output
-from _cloudview import __version__
+import openstack
+from cloudview.amazon import AWS
+from cloudview.az import Azure
+from cloudview.gcp import GCP
+from cloudview.openstack import Openstack
+
+from .exceptions import FatalError
+from .output import Output
+from . import __version__
 
 
-USAGE = "Usage: " + os.path.basename(sys.argv[0]) + """ [OPTIONS]
+USAGE = f"""Usage: {os.path.basename(sys.argv[0])} [OPTIONS]
 Options:
     -h, --help                          show this help message and exit
     -l, --log debug|info|warning|error|critical
@@ -269,13 +278,13 @@ def print_info():
         sys.stdout = StringIO()
     Output().header()
     threads = []
-    if check_aws:
+    if check_aws():
         threads.append(Thread(target=print_amazon_instances))
-    if check_azure:
+    if check_azure():
         threads.append(Thread(target=print_azure_instances))
-    if check_gcp:
+    if check_gcp():
         threads.append(Thread(target=print_google_instances))
-    if check_openstack:
+    if check_openstack():
         clouds = openstack.config.OpenStackConfig(
             load_envvars=False).get_cloud_names()
         if set(clouds) == set(['defaults']):
@@ -320,9 +329,6 @@ def handle_instance(request):
     """
     Handle HTTP requests for instances
     """
-    import html
-    from json import JSONEncoder
-
     logging.info(request)
     provider = request.matchdict['provider']
     instance = request.matchdict['id']
@@ -407,6 +413,41 @@ def port_number(port):
     raise argparse.ArgumentTypeError(f"{port} is an invalid port number")
 
 
+def check_aws():
+    """
+    Check AWS?
+    """
+    return any([bool(args.filter_aws),
+               os.environ.get('AWS_ACCESS_KEY_ID'),
+               os.path.exists(os.getenv('AWS_SHARED_CREDENTIALS_FILE', os.path.expanduser("~/.aws/credentials")))])
+
+
+def check_azure():
+    """
+    Check Azure?
+    """
+    return any([bool(args.filter_azure),
+               any(v.startswith("AZURE_") for v in os.environ)])
+
+
+def check_gcp():
+    """
+    Check GCP?
+    """
+    return any([bool(args.filter_gcp),
+               os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')])
+
+
+def check_openstack():
+    """
+    Check Openstack?
+    """
+    return any([bool(args.filter_openstack),
+               any(v.startswith("OS_") for v in os.environ),
+               os.path.exists(os.path.expanduser("~/.config/openstack/clouds.yaml")),
+               os.path.exists("/etc/openstack/clouds.yaml")])
+
+
 def main():
     """
     Main function
@@ -436,27 +477,3 @@ def main():
         sys.exit(1)
 
     print_info()
-
-
-if __name__ == "__main__":
-    args = parse_args()
-    check_aws = bool(args.filter_aws) or 'AWS_ACCESS_KEY_ID' in os.environ or \
-        os.path.exists(os.getenv('AWS_SHARED_CREDENTIALS_FILE', os.path.expanduser("~/.aws/credentials")))
-    check_azure = bool(args.filter_azure) or any(v.startswith("AZURE_") for v in os.environ)
-    check_gcp = bool(args.filter_gcp) or 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ
-    check_openstack = bool(args.filter_openstack) or any(v.startswith("OS_") for v in os.environ) or \
-        os.path.exists(os.path.expanduser("~/.config/openstack/clouds.yaml")) or \
-        os.path.exists("/etc/openstack/clouds.yaml")
-    if check_aws:
-        from _cloudview.amazon import AWS
-    if check_azure:
-        from _cloudview.az import Azure
-    if check_gcp:
-        from _cloudview.gcp import GCP
-    if check_openstack:
-        import openstack
-        from _cloudview.openstack import Openstack  # pylint: disable=ungrouped-imports
-    try:
-        main()
-    except KeyboardInterrupt:
-        sys.exit(1)

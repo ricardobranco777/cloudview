@@ -19,8 +19,8 @@ from azure.core.exceptions import AzureError
 from msrestazure.azure_exceptions import CloudError
 from requests.exceptions import RequestException
 
-from _cloudview.exceptions import FatalError
-from _cloudview.singleton import Singleton
+from cloudview.exceptions import FatalError
+from cloudview.singleton import Singleton
 
 
 def get_credentials():
