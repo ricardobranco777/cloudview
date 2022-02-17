@@ -17,13 +17,10 @@ import html
 from json import JSONEncoder
 
 from io import StringIO
-from itertools import groupby
 from operator import itemgetter
 from threading import Thread
 from wsgiref.simple_server import make_server
 
-import jmespath
-from jmespath.exceptions import JMESPathError
 from cachetools import cached, TTLCache
 from pyramid.view import view_config
 from pyramid.config import Configurator
@@ -35,9 +32,8 @@ from .az import Azure
 from .gcp import GCP
 from .openstack import Openstack
 from .utils import fix_date
-
-from .exceptions import FatalError
 from .output import Output
+from .filters import filters_aws, filters_azure, filters_gcp, filters_openstack
 from . import __version__
 
 
@@ -67,28 +63,7 @@ def print_amazon_instances():
     """
     Print information about AWS EC2 instances
     """
-    filters = []
-    # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html
-    if args.status in ('running', 'stopped'):
-        # Consider an instance "running" if not stopped or terminated
-        # and "stopped" if not pending or running, hence the overlap
-        if args.status == "running":
-            statuses = 'pending running stopping shutting-down'.split()
-        else:
-            statuses = 'stopping stopped shutting-down terminated'.split()
-        filters = [['instance-state-name', _] for _ in statuses]
-    # If instance-state-name was specified in the filter, use it instead
-    if args.filter_aws:
-        if 'instance-state-name' in {_[0] for _ in args.filter_aws}:
-            filters = args.filter_aws
-        else:
-            filters.extend(args.filter_aws)
-    # Compile filter using 'Name' & 'Values'
-    filters = [
-        {'Name': name, 'Values': [v for _, v in values]}
-        for name, values in groupby(
-            sorted(filters, key=itemgetter(0)), itemgetter(0))
-    ]
+    filters = filters_aws(args.filter_aws, args.status)
     aws = AWS()
     instances = aws.get_instances(filters=filters)
     keys = {
@@ -115,29 +90,7 @@ def print_azure_instances():
     """
     Print information about Azure Compute instances
     """
-    filters = ""
-    # https://docs.microsoft.com/en-us/azure/virtual-machines/windows/states-lifecycle
-    if args.status in ('running', 'stopped'):
-        # Consider an instance "running" if not stopped / deallocated
-        # and "stopped" if not starting or running, hence the overlap
-        if args.status == "running":
-            statuses = 'starting running stopping'
-        else:
-            statuses = 'stopping stopped deallocating deallocated'
-        filters = " || ".join(
-            f"instance_view.statuses[1].code == 'PowerState/{status}'"
-            for status in statuses.split())
-    # If status was specified in the filter, use it instead
-    if args.filter_azure:
-        if "instance_view.statuses" in args.filter_azure or not filters:
-            filters = args.filter_azure
-        else:
-            filters += f" && ({args.filter_azure})"
-    if filters:
-        try:
-            filters = jmespath.compile(filters)
-        except JMESPathError as exc:
-            FatalError("Azure", exc)
+    filters = filters_azure(args.filter_azure, args.status)
     azure = Azure()
     instances = azure.get_instances(filters=filters if filters else None)
     keys = {
@@ -168,26 +121,7 @@ def print_google_instances():
     """
     Print information about Google Compute instances
     """
-    filters = ""
-    # https://cloud.google.com/compute/docs/instances/instance-life-cycle
-    # NOTE: The above list is incomplete. The API returns more statuses
-    if args.status in ('running', 'stopped'):
-        # Consider an instance "running if not stopped / terminated
-        # and "stopped" if not starting, running, hence the overlap
-        if args.status == "running":
-            statuses = ('provisioning staging running'
-                        ' stopping suspending suspended')
-        else:
-            statuses = 'stopping stopped terminated'
-        filters = " OR ".join(
-            f"status: {status}"
-            for status in statuses.split())
-    # If status was specified in the filter, use it instead
-    if args.filter_gcp:
-        if "status" in args.filter_gcp or not filters:
-            filters = args.filter_gcp
-        else:
-            filters += f" AND ({args.filter_gcp})"
+    filters = filters_gcp(args.filter_gcp, args.status)
     gcp = GCP()
     instances = gcp.get_instances(filters=filters if filters else None)
     keys = {
@@ -214,17 +148,7 @@ def print_openstack_instances(cloud=None):
     """
     Print information about Openstack instances
     """
-    filters = {}
-    if args.status == 'running':
-        filters = {'status': 'ACTIVE'}
-    elif args.status == 'stopped':
-        filters = {'status': 'STOPPED'}
-    # If instance-state-name was specified in the filter, use it instead
-    if args.filter_openstack:
-        if 'status' in {_[0] for _ in args.filter_openstack}:
-            filters = {}
-        filters.update({_[0]: _[1] for _ in args.filter_openstack})
-    # https://docs.openstack.org/openstack/latest/reference/vm-states.html
+    filters = filters_openstack(args.filter_openstack, args.status)
     ostack = Openstack(cloud=cloud)
     instances = ostack.get_instances(filters=filters)
     keys = {
