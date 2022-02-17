@@ -256,13 +256,13 @@ def print_info():
         sys.stdout = StringIO()
     Output().header()
     threads = []
-    if check_aws():
+    if check_aws:
         threads.append(Thread(target=print_amazon_instances))
-    if check_azure():
+    if check_azure:
         threads.append(Thread(target=print_azure_instances))
-    if check_gcp():
+    if check_gcp:
         threads.append(Thread(target=print_google_instances))
-    if check_openstack():
+    if check_openstack:
         clouds = openstack.config.OpenStackConfig(
             load_envvars=False).get_cloud_names()
         if set(clouds) == set(['defaults']):
@@ -391,48 +391,22 @@ def port_number(port):
     raise argparse.ArgumentTypeError(f"{port} is an invalid port number")
 
 
-def check_aws():
-    """
-    Check AWS?
-    """
-    return any([bool(args.filter_aws),
-               os.environ.get('AWS_ACCESS_KEY_ID'),
-               os.path.exists(os.getenv('AWS_SHARED_CREDENTIALS_FILE', os.path.expanduser("~/.aws/credentials")))])
-
-
-def check_azure():
-    """
-    Check Azure?
-    """
-    return any([bool(args.filter_azure),
-               any(v.startswith("AZURE_") for v in os.environ)])
-
-
-def check_gcp():
-    """
-    Check GCP?
-    """
-    return any([bool(args.filter_gcp),
-               os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')])
-
-
-def check_openstack():
-    """
-    Check Openstack?
-    """
-    return any([bool(args.filter_openstack),
-               any(v.startswith("OS_") for v in os.environ),
-               os.path.exists(os.path.expanduser("~/.config/openstack/clouds.yaml")),
-               os.path.exists("/etc/openstack/clouds.yaml")])
+args = parse_args()
+check_aws = any([bool(args.filter_aws),
+                'AWS_ACCESS_KEY_ID' in os.environ,
+                 os.path.exists(os.getenv('AWS_SHARED_CREDENTIALS_FILE', os.path.expanduser("~/.aws/credentials")))])
+check_azure = bool(args.filter_azure) or any(v.startswith("AZURE_") for v in os.environ)
+check_gcp = bool(args.filter_gcp) or 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ
+check_openstack = any([bool(args.filter_openstack),
+                      any(v.startswith("OS_") for v in os.environ),
+                      os.path.exists(os.path.expanduser("~/.config/openstack/clouds.yaml")),
+                      os.path.exists("/etc/openstack/clouds.yaml")])
 
 
 def main():
     """
     Main function
     """
-    global args  # pylint: disable=global-statement
-    args = parse_args()
-
     if args.help or args.version:
         print(USAGE if args.help else __version__)
         sys.exit(0)
