@@ -16,7 +16,6 @@ import sys
 import html
 from json import JSONEncoder
 
-from datetime import datetime
 from io import StringIO
 from itertools import groupby
 from operator import itemgetter
@@ -25,21 +24,17 @@ from wsgiref.simple_server import make_server
 
 import jmespath
 from jmespath.exceptions import JMESPathError
-
-import timeago
-
 from cachetools import cached, TTLCache
-from dateutil import parser
-from pytz import utc
 from pyramid.view import view_config
 from pyramid.config import Configurator
 from pyramid.response import Response
 
 import openstack
-from cloudview.amazon import AWS
-from cloudview.az import Azure
-from cloudview.gcp import GCP
-from cloudview.openstack import Openstack
+from .amazon import AWS
+from .az import Azure
+from .gcp import GCP
+from .openstack import Openstack
+from .utils import fix_date
 
 from .exceptions import FatalError
 from .output import Output
@@ -66,23 +61,6 @@ Filter options:
 """
 
 args = None
-
-
-def fix_date(date):
-    """
-    Converts datetime object or string to local time or the
-    timezone specified by the TZ environment variable
-    """
-    if isinstance(date, str):
-        # The parser returns datetime objects
-        date = parser.parse(date)
-    if isinstance(date, datetime):
-        # GCP doesn't return UTC dates
-        date = utc.normalize(date)
-        if args.verbose:
-            return date.astimezone().strftime(args.time)
-        return timeago.format(date, datetime.now(tz=utc))
-    return ""
 
 
 def print_amazon_instances():
@@ -129,7 +107,7 @@ def print_amazon_instances():
             instance_id=instance['InstanceId'],
             size=instance['InstanceType'],
             status=aws.get_status(instance),
-            created=fix_date(instance['LaunchTime']),
+            created=fix_date(instance['LaunchTime'], args.time if args.verbose else None),
             location=instance['Placement']['AvailabilityZone'])
 
 
@@ -182,7 +160,7 @@ def print_azure_instances():
             instance_id=instance['vm_id'],
             size=instance['hardware_profile']['vm_size'],
             status=azure.get_status(instance),
-            created=fix_date(azure.get_date(instance)),
+            created=fix_date(azure.get_date(instance), args.time if args.verbose else None),
             location=instance['location'])
 
 
@@ -228,7 +206,7 @@ def print_google_instances():
             instance_id=instance['id'],
             size=instance['machineType'].rsplit('/', 1)[-1],
             status=gcp.get_status(instance),
-            created=fix_date(instance['creationTimestamp']),
+            created=fix_date(instance['creationTimestamp'], args.time if args.verbose else None),
             location=instance['zone'].rsplit('/', 1)[-1])
 
 
@@ -265,7 +243,7 @@ def print_openstack_instances(cloud=None):
             instance_id=instance['id'],
             size=ostack.get_instance_type(instance['flavor']['id']) if 'id' in instance['flavor'] else instance['flavor']['original_name'],
             status=ostack.get_status(instance),
-            created=fix_date(instance['created']),
+            created=fix_date(instance['created'], args.time if args.verbose else None),
             location=instance['OS-EXT-AZ:availability_zone'])
 
 
