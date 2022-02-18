@@ -62,7 +62,6 @@ rsa==4.8
 s3transfer==0.5.1
 six==1.16.0
 stevedore==3.5.0
-timeago==1.0.15
 translationstring==1.4
 uritemplate==4.1.1
 urllib3==1.26.8

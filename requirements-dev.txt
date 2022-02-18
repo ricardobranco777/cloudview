@@ -10,4 +10,3 @@ oauth2client
 openstacksdk
 pyramid
 pytz
-timeago

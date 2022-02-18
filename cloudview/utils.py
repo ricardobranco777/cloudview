@@ -4,10 +4,28 @@ Helper functions
 
 from datetime import datetime
 
-import timeago
-
 from dateutil import parser
+from dateutil.relativedelta import relativedelta
 from pytz import utc
+
+
+def get_age(date):
+    """
+    Get age
+    """
+    age = relativedelta(datetime.now(tz=utc), date)
+    string = ""
+    if age.years:
+        string = f"{age.years}y"
+    if age.months:
+        string += f"{age.months}M"
+    if age.days:
+        string += f"{age.days}d"
+    if age.hours:
+        string += f"{age.hours}h"
+    if age.minutes:
+        string += f"{age.seconds}s"
+    return string
 
 
 def fix_date(date, time_format=None):
@@ -23,5 +41,5 @@ def fix_date(date, time_format=None):
         date = utc.normalize(date)
         if time_format is not None:
             return date.astimezone().strftime(time_format)
-        return timeago.format(date, datetime.now(tz=utc))
+        return get_age(date)
     return ""
