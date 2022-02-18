@@ -49,6 +49,7 @@ Options:
     -T, --time TIME_FORMAT              time format as used by strftime(3)
     -V, --version                       show version and exit
     -v, --verbose                       be verbose
+    --insecure                          do not validate TLS certificates
 Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
     --filter-azure FILTER               Filter for Azure
@@ -149,7 +150,7 @@ def print_openstack_instances(cloud=None):
     Print information about Openstack instances
     """
     filters = filters_openstack(args.filter_openstack, args.status)
-    ostack = Openstack(cloud=cloud)
+    ostack = Openstack(cloud=cloud, insecure=args.insecure)
     instances = ostack.get_instances(filters=filters)
     keys = {
         'name': itemgetter('name'),
@@ -243,7 +244,7 @@ def handle_instance(request):
         elif provider == "gcp":
             response = GCP().get_instance(instance)
         else:
-            response = Openstack(cloud=provider).get_instance(instance)
+            response = Openstack(cloud=provider, insecure=args.insecure).get_instance(instance)
     if response is None:
         response = Response('Not found!')
         response.status_int = 404

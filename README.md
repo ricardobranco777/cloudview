@@ -18,6 +18,7 @@ Options:
     -T, --time TIME_FORMAT              time format as used by strftime(3)
     -v, --verbose                       be verbose
     -V, --version                       show version and exit
+    --insecure                          do not validate TLS certificates
 Filter options:
     --filter-aws NAME VALUE             may be specified multiple times
     --filter-azure FILTER               Filter for Azure
