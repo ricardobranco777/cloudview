@@ -61,7 +61,7 @@ class GCP:
             request = self._compute.zones().list_next(request, response)
         return items
 
-    def get_instances(self, filters=None, orderBy=None):
+    def get_instances(self, filters=None, orderBy=None):  # pylint: disable=invalid-name
         """
         Get GCP instances
         Only sorting by "name" or "creationTimestamp desc" is supported

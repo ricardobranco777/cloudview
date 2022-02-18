@@ -31,7 +31,7 @@ class Openstack:
             self._client = openstack.connect(
                 cloud=cloud, insecure=insecure)
         except OpenStackCloudException as exc:
-            raise FatalError("Openstack", exc)
+            raise FatalError("Openstack", exc) from exc
         self._cache = None
 
     def get_instances(self, filters=None):
@@ -43,7 +43,7 @@ class Openstack:
             # https://developer.openstack.org/api-ref/compute/#list-servers
             instances = list(self._client.list_servers(filters=filters))
         except OpenStackCloudException as exc:
-            raise FatalError("Openstack", exc)
+            raise FatalError("Openstack", exc) from exc
         self._get_instance_types(instances)
         self._cache = instances
         return instances
@@ -56,7 +56,7 @@ class Openstack:
             try:
                 return self._client.get_server_by_id(instance_id)
             except OpenStackCloudException as exc:
-                raise FatalError("Openstack", exc)
+                raise FatalError("Openstack", exc) from exc
         else:
             for instance in self._cache:  # pylint: disable=not-an-iterable
                 if instance['id'] == instance_id:
@@ -71,7 +71,7 @@ class Openstack:
         try:
             return self._client.get_flavor_by_id(flavor_id).name
         except OpenStackCloudException as exc:
-            raise FatalError("Openstack", exc)
+            raise FatalError("Openstack", exc) from exc
 
     def _get_instance_types(self, instances):
         """

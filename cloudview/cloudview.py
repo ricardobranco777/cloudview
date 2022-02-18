@@ -57,7 +57,7 @@ Filter options:
     --filter-openstack NAME VALUE       may be specified multiple times
 """
 
-args = None
+args = None  # pylint: disable=invalid-name
 
 
 def print_amazon_instances():
