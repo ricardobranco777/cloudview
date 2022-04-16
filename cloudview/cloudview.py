@@ -27,7 +27,7 @@ from pyramid.config import Configurator
 from pyramid.response import Response
 
 import openstack
-from .amazon import AWS
+from .aws import AWS
 from .az import Azure
 from .gcp import GCP
 from .openstack import Openstack
