@@ -63,7 +63,7 @@ class Openstack:
                     return instance
         return None
 
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=1)
     def get_instance_type(self, flavor_id):
         """
         Return instance type
