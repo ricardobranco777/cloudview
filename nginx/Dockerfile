@@ -5,8 +5,7 @@ RUN	apk --no-cache add bash openssl
 COPY	site.conf.template /etc/nginx/conf.d/
 COPY	entrypoint.sh /run
 RUN	chmod +x /run/entrypoint.sh && \
-	ln -sf /run/site.conf /etc/nginx/conf.d/default.conf && \
-	cp /etc/ssl1.1/openssl.cnf /etc/ssl/
+	ln -sf /run/site.conf /etc/nginx/conf.d/default.conf
 
 COPY	favicon.ico	/usr/share/nginx/html/
 
