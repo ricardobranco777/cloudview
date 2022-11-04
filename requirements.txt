@@ -45,7 +45,7 @@ pbr==5.9.0
 plaster==1.0
 plaster-pastedeploy==0.7
 portalocker==2.4.0
-protobuf==3.20.1
+protobuf==3.20.2
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pycparser==2.21
