@@ -1,7 +1,7 @@
+![Build Status](https://github.com/ricardobranco777/cloudview/actions/workflows/ci.yml/badge.svg)
+
 # cloudview
 View instance information on all supported cloud providers: Amazon Web Services, Azure, Google Compute Platform & OpenStack.
-
-[![Build Status](https://travis-ci.com/ricardobranco777/cloudview.svg?branch=master)](https://travis-ci.org/ricardobranco777/cloudview)
 
 ## Usage
 
