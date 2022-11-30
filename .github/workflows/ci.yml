@@ -1,4 +1,4 @@
-name: Python package
+name: CI
 
 on: [push]
 
@@ -26,3 +26,19 @@ jobs:
       - name: pylint
         run: |
           pylint --disable=line-too-long,R0801 cloudview/*.py
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: docker/setup-buildx-action@v2
+      - name: test docker image
+        run: |
+          mkdir $HOME/.aws
+          OS_CACERT=/abc GOOGLE_APPLICATION_CREDENTIALS=/xyz docker compose build --pull
+          OS_CACERT=/abc GOOGLE_APPLICATION_CREDENTIALS=/xyz PASS=testing docker compose up -d
+          sleep 10
+          test "$(curl -4k -u test:testing https://localhost:8443/test)" = "OK"
+
+
+
