@@ -8,7 +8,7 @@ azure-mgmt-core==1.3.2
 boto3==1.26.1
 botocore==1.29.1
 cachetools==5.2.0
-certifi==2022.5.18.1
+certifi==2022.12.7
 cffi==1.15.0
 charset-normalizer==2.0.12
 cryptography==38.0.3
