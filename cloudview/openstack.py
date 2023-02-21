@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
 
 import openstack
-from openstack.exceptions import OpenStackCloudException
+from openstack.exceptions import OpenStackCloudException, ResourceNotFound
 
 from cloudview.exceptions import FatalError
 from cloudview.singleton import Singleton2
@@ -70,6 +70,8 @@ class Openstack:
         """
         try:
             return self._client.get_flavor_by_id(flavor_id).name
+        except ResourceNotFound:
+            return flavor_id
         except OpenStackCloudException as exc:
             raise FatalError("Openstack", exc) from exc
 
