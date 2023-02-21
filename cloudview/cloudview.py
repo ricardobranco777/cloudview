@@ -287,6 +287,7 @@ def parse_args():
     """
     argparser = argparse.ArgumentParser(usage=USAGE, add_help=False)
     argparser.add_argument('-h', '--help', action='store_true')
+    argparser.add_argument('--insecure', action='store_true')
     argparser.add_argument('-l', '--log', default='error',
                            choices='debug info warning error critical'.split())
     argparser.add_argument('-o', '--output', default='text',
