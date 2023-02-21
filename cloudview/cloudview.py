@@ -317,18 +317,6 @@ def port_number(port):
     raise argparse.ArgumentTypeError(f"{port} is an invalid port number")
 
 
-args = parse_args()
-check_aws = any([bool(args.filter_aws),
-                'AWS_ACCESS_KEY_ID' in os.environ,
-                 os.path.exists(os.getenv('AWS_SHARED_CREDENTIALS_FILE', os.path.expanduser("~/.aws/credentials")))])
-check_azure = bool(args.filter_azure) or any(v.startswith("AZURE_") for v in os.environ)
-check_gcp = bool(args.filter_gcp) or 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ
-check_openstack = any([bool(args.filter_openstack),
-                      any(v.startswith("OS_") for v in os.environ),
-                      os.path.exists(os.path.expanduser("~/.config/openstack/clouds.yaml")),
-                      os.path.exists("/etc/openstack/clouds.yaml")])
-
-
 def main():
     """
     Main function
@@ -355,3 +343,15 @@ def main():
         sys.exit(1)
 
     print_info()
+
+
+args = parse_args()
+check_aws = any([bool(args.filter_aws),
+                'AWS_ACCESS_KEY_ID' in os.environ,
+                 os.path.exists(os.getenv('AWS_SHARED_CREDENTIALS_FILE', os.path.expanduser("~/.aws/credentials")))])
+check_azure = bool(args.filter_azure) or any(v.startswith("AZURE_") for v in os.environ)
+check_gcp = bool(args.filter_gcp) or 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ
+check_openstack = any([bool(args.filter_openstack),
+                      any(v.startswith("OS_") for v in os.environ),
+                      os.path.exists(os.path.expanduser("~/.config/openstack/clouds.yaml")),
+                      os.path.exists("/etc/openstack/clouds.yaml")])
