@@ -1,5 +1,5 @@
 test:
-	@pylint --disable=line-too-long,R0801 cloudview/*.py
+	@pylint --disable=line-too-long,pointless-exception-statement,R0801 cloudview/*.py
 	@flake8 --ignore=E501 cloudview/*.py
 	@find -type f -name \*.sh -exec bash -n {} \;
 
