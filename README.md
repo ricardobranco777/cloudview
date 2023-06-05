@@ -3,6 +3,8 @@
 # cloudview
 View instance information on all supported cloud providers: Amazon Web Services, Azure, Google Compute Platform & OpenStack.
 
+Docker image available at `ghcr.io/ricardobranco777/cloudview:latest`
+
 ## Usage
 
 ```
