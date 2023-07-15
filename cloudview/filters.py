@@ -8,7 +8,7 @@ from operator import itemgetter
 import jmespath
 from jmespath.exceptions import JMESPathError
 
-from .exceptions import FatalError
+from cloudview.errors import error
 
 
 def filters_aws(filter_aws, status):
@@ -66,7 +66,7 @@ def filters_azure(filter_azure, status):
         try:
             filters = jmespath.compile(filters)
         except JMESPathError as exc:
-            FatalError("Azure", exc)
+            error("Azure", exc)
     return filters
 
 

@@ -14,7 +14,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import Error as GoogleError, HttpError
 from google.auth.exceptions import GoogleAuthError
 
-from cloudview.exceptions import FatalError, WarningError
+from cloudview.errors import error, warning
 from cloudview.singleton import Singleton
 
 
@@ -27,7 +27,7 @@ def get_project():
             data = json.loads(file.read())
         return data['project_id']
     except (KeyError, OSError) as exc:
-        FatalError("GCP", exc)
+        error("GCP", exc)
     return None
 
 
@@ -40,7 +40,7 @@ class GCP:
         try:
             self._compute = build('compute', 'v1')
         except (GoogleAuthError, GoogleError) as exc:
-            FatalError("GCP", exc)
+            error("GCP", exc)
         self._project = project or get_project()
         self._cache = None
 
@@ -55,7 +55,7 @@ class GCP:
             try:
                 response = request.execute()
             except (GoogleAuthError, GoogleError) as exc:
-                FatalError("GCP", exc)
+                error("GCP", exc)
             if 'items' in response:
                 items.extend(_['name'] for _ in response['items'])
             request = self._compute.zones().list_next(request, response)
@@ -68,7 +68,7 @@ class GCP:
         Specifying both a list filter and sort order is not currently supported
         """
         if filters is not None and orderBy is not None:
-            raise FatalError(
+            error(
                 ("Specifying both a list filter and"
                  "sort order is not currently supported"),
                 ValueError)
@@ -84,9 +84,9 @@ class GCP:
                     # pylint: disable=protected-access
                     reason = exception._get_reason()
                     if reason.startswith("Invalid value for field 'zone'"):
-                        WarningError("GCP", exception)
+                        warning("GCP", exception)
                         return
-                FatalError("GCP", exception)
+                error("GCP", exception)
             if 'items' in response:
                 instances.extend(response['items'])
                 if 'nextPageToken' in response:
@@ -109,7 +109,7 @@ class GCP:
             try:
                 batch.execute()
             except (GoogleAuthError, GoogleError) as exc:
-                FatalError("GCP", exc)
+                error("GCP", exc)
             for zone in retry_zones:
                 requests[zone] = self._compute.instances().list_next(
                     requests[zone], responses[zone])
@@ -129,7 +129,7 @@ class GCP:
                         project=self._project, zone=zone, instance=name)
                     return request.execute()
                 except (GoogleAuthError, GoogleError) as exc:
-                    FatalError("GCP", exc)
+                    error("GCP", exc)
         for instance in self._cache:
             if instance['id'] == instance_id:
                 return instance

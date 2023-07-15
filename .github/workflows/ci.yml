@@ -21,11 +21,11 @@ jobs:
           pip install -r requirements-test.txt
       - name: flake8
         run: |
-          flake8 --ignore=E501 cloudview/*.py
+          make flake8
         continue-on-error: true
       - name: pylint
         run: |
-          pylint --disable=line-too-long,pointless-exception-statement,R0801 cloudview/*.py
+          make pylint
 
   docker:
     runs-on: ubuntu-latest

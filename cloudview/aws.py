@@ -10,7 +10,7 @@ https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.h
 from boto3 import client
 from botocore.exceptions import BotoCoreError, ClientError
 
-from cloudview.exceptions import FatalError, WarningError
+from cloudview.errors import error, warning
 from cloudview.singleton import Singleton
 
 
@@ -23,7 +23,7 @@ class AWS:
         try:
             self._client = client('ec2')
         except (BotoCoreError, ClientError) as exc:
-            raise FatalError("AWS", exc) from exc
+            error("AWS", exc)
         self._cache = None
 
     @staticmethod
@@ -43,7 +43,7 @@ class AWS:
             pages = self._client.get_paginator('describe_instances').paginate(
                 Filters=filters)
         except (BotoCoreError, ClientError) as exc:
-            raise FatalError("AWS", exc) from exc
+            error("AWS", exc)
         if jmespath_filter is not None:
             pages = pages.search(jmespath_filter)
         for page in pages:
@@ -61,7 +61,7 @@ class AWS:
                 return self._client.describe_instances(
                     InstanceIds=[instance_id])
             except (BotoCoreError, ClientError) as exc:
-                raise WarningError("AWS", exc) from exc
+                warning("AWS", exc)
         else:
             for instance in self._cache:
                 if instance['InstanceId'] == instance_id:

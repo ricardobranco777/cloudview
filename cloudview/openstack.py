@@ -13,7 +13,7 @@ from functools import lru_cache
 import openstack
 from openstack.exceptions import OpenStackCloudException, ResourceNotFound
 
-from cloudview.exceptions import FatalError
+from cloudview.errors import error
 from cloudview.singleton import Singleton2
 
 
@@ -31,7 +31,7 @@ class Openstack:
             self._client = openstack.connect(
                 cloud=cloud, insecure=insecure)
         except OpenStackCloudException as exc:
-            raise FatalError("Openstack", exc) from exc
+            error("Openstack", exc)
         self._cache = None
 
     def get_instances(self, filters=None):
@@ -43,7 +43,7 @@ class Openstack:
             # https://developer.openstack.org/api-ref/compute/#list-servers
             instances = list(self._client.list_servers(filters=filters))
         except OpenStackCloudException as exc:
-            raise FatalError("Openstack", exc) from exc
+            error("Openstack", exc)
         self._get_instance_types(instances)
         self._cache = instances
         return instances
@@ -56,7 +56,7 @@ class Openstack:
             try:
                 return self._client.get_server_by_id(instance_id)
             except OpenStackCloudException as exc:
-                raise FatalError("Openstack", exc) from exc
+                error("Openstack", exc)
         else:
             for instance in self._cache:  # pylint: disable=not-an-iterable
                 if instance['id'] == instance_id:
@@ -64,7 +64,7 @@ class Openstack:
         return None
 
     @lru_cache(maxsize=1)
-    def get_instance_type(self, flavor_id):
+    def get_instance_type(self, flavor_id):  # pylint: disable=inconsistent-return-statements
         """
         Return instance type
         """
@@ -73,7 +73,7 @@ class Openstack:
         except ResourceNotFound:
             return flavor_id
         except OpenStackCloudException as exc:
-            raise FatalError("Openstack", exc) from exc
+            error("Openstack", exc)
 
     def _get_instance_types(self, instances):
         """

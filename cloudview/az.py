@@ -19,7 +19,7 @@ from azure.core.exceptions import AzureError
 from msrestazure.azure_exceptions import CloudError
 from requests.exceptions import RequestException
 
-from cloudview.exceptions import FatalError
+from cloudview.errors import error
 from cloudview.singleton import Singleton
 
 
@@ -34,7 +34,7 @@ def get_credentials():
         credentials = DefaultAzureCredential()
         return credentials, subscription_id
     except (KeyError, AzureError, CloudError, RequestException) as exc:
-        FatalError("Azure", exc)
+        error("Azure", exc)
     return None
 
 
@@ -51,7 +51,7 @@ class Azure:
                 subscription_id=subscription_id,
                 api_version=api_version)
         except (AzureError, CloudError, RequestException) as exc:
-            FatalError("Azure", exc)
+            error("Azure", exc)
         self._cache = None
 
     def __del__(self):
@@ -68,7 +68,7 @@ class Azure:
             instance_view = self._client.virtual_machines.instance_view(
                 resource_group, instance.name)
         except (AzureError, CloudError, RequestException) as exc:
-            FatalError("Azure", exc)
+            error("Azure", exc)
         instance.instance_view = instance_view
         return instance.as_dict()
 
@@ -120,7 +120,7 @@ class Azure:
         try:
             instances = self._client.virtual_machines.list_all()
         except (AzureError, CloudError, RequestException) as exc:
-            FatalError("Azure", exc)
+            error("Azure", exc)
         # https://github.com/Azure/azure-sdk-for-python/issues/573
         instances = self._get_instance_views(instances)
         if filters is not None:
@@ -142,7 +142,7 @@ class Azure:
                         resource_group_name=resource_group,
                         vm_name=name, expand="instanceView").as_dict()
                 except (AzureError, CloudError, RequestException) as exc:
-                    FatalError("Azure", exc)
+                    error("Azure", exc)
         for instance in self._cache:
             if instance['vm_id'] == instance_id:
                 return instance
