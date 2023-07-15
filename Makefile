@@ -1,10 +1,13 @@
-test:
-	@pylint --disable=line-too-long,R0801 cloudview/*.py
-	@flake8 --ignore=E501 cloudview/*.py
-	@find -type f -name \*.sh -exec bash -n {} \;
+.PHONY: all
+all: flake8 pylint
 
-pypi:
-	@python3 -m build --sdist --wheel --outdir dist/
+.PHONY: flake8
+flake8:
+	@flake8 --ignore=E501 cloudview/*.py
+
+.PHONY: pylint
+pylint:
+	@pylint --disable=line-too-long,R0801 cloudview/*.py
 
 clean:
 	@rm -rf dist/ build/ *.egg-info
