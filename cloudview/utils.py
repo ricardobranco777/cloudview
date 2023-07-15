@@ -14,17 +14,16 @@ def get_age(date):
     Get age
     """
     age = relativedelta(datetime.now(tz=utc), date)
-    string = ""
-    if age.years:
-        string = f"{age.years}y"
-    if age.months:
-        string += f"{age.months}M"
-    if age.days:
-        string += f"{age.days}d"
-    if age.hours:
-        string += f"{age.hours}h"
-    if age.minutes:
-        string += f"{age.seconds}s"
+    string = "".join([
+        f"{age.years}y" if age.years else "",
+        f"{age.months}M" if age.months else "",
+        f"{age.days}d" if age.days else "",
+        f"{age.hours}h" if age.hours else "",
+        f"{age.minutes}m" if age.minutes else "",
+        f"{age.seconds}s" if age.seconds else "",
+    ])
+    if string == "":
+        string = "0s"
     return string
 
 
