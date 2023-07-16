@@ -7,7 +7,6 @@ Class for error & warning messages
 """
 
 import logging
-import sys
 import traceback
 
 
@@ -29,4 +28,3 @@ def error(msg, err):
         logging.debug("%s", traceback.format_exc())
         err = f"{err.__class__.__name__}: {err}"
     logging.error("%s: %s", msg, err)
-    sys.exit(1)
