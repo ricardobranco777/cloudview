@@ -43,19 +43,15 @@ class Azure:
     """
     Class for handling Azure stuff
     """
-    def __init__(self, api_version=None):
+    def __init__(self):
         credentials, subscription_id = get_credentials()
         try:
             self._client = ComputeManagementClient(
                 credential=credentials,
                 subscription_id=subscription_id,
-                api_version=api_version)
+                api_version=None)
         except (AzureError, CloudError, RequestException) as exc:
             error("Azure", exc)
-        self._cache = None
-
-    def __del__(self):
-        self._client.close()
 
     def _get_instance_view(self, instance):
         """
@@ -126,24 +122,16 @@ class Azure:
         if filters is not None:
             instances = filter(filters.search, instances)
         instances = list(instances)
-        self._cache = instances
         return instances
 
-    def get_instance(self, instance_id, name=None, resource_group=None):
+    def get_instance(self, name, resource_group=None):
         """
         Return specific instance
         """
-        if self._cache is None:
-            if name is None or resource_group is None:
-                self.get_instances()
-            else:
-                try:
-                    return self._client.virtual_machines.get(
-                        resource_group_name=resource_group,
-                        vm_name=name, expand="instanceView").as_dict()
-                except (AzureError, CloudError, RequestException) as exc:
-                    error("Azure", exc)
-        for instance in self._cache:
-            if instance['vm_id'] == instance_id:
-                return instance
+        try:
+            return self._client.virtual_machines.get(
+                resource_group_name=resource_group,
+                vm_name=name, expand="instanceView").as_dict()
+        except (AzureError, CloudError, RequestException) as exc:
+            error("Azure", exc)
         return None

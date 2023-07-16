@@ -8,16 +8,15 @@ https://developer.openstack.org/api-ref/compute/
 """
 
 from concurrent.futures import ThreadPoolExecutor
-from functools import lru_cache
 
 import openstack
 from openstack.exceptions import OpenStackCloudException, ResourceNotFound
 
 from cloudview.errors import error
-from cloudview.singleton import Singleton2
+from cloudview.singleton import Singleton
 
 
-@Singleton2
+@Singleton
 class Openstack:
     """
     Class for handling Openstack stuff
@@ -32,7 +31,6 @@ class Openstack:
                 cloud=cloud, insecure=insecure)
         except OpenStackCloudException as exc:
             error("Openstack", exc)
-        self._cache = None
 
     def get_instances(self, filters=None):
         """
@@ -45,25 +43,18 @@ class Openstack:
         except OpenStackCloudException as exc:
             error("Openstack", exc)
         self._get_instance_types(instances)
-        self._cache = instances
         return instances
 
     def get_instance(self, instance_id):
         """
         Return specific instance
         """
-        if self._cache is None:
-            try:
-                return self._client.get_server_by_id(instance_id)
-            except OpenStackCloudException as exc:
-                error("Openstack", exc)
-        else:
-            for instance in self._cache:  # pylint: disable=not-an-iterable
-                if instance['id'] == instance_id:
-                    return instance
+        try:
+            return self._client.get_server_by_id(instance_id)
+        except OpenStackCloudException as exc:
+            error("Openstack", exc)
         return None
 
-    @lru_cache(maxsize=1)
     def get_instance_type(self, flavor_id):  # pylint: disable=inconsistent-return-statements
         """
         Return instance type

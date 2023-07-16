@@ -24,7 +24,6 @@ class AWS:
             self._client = client('ec2')
         except (BotoCoreError, ClientError) as exc:
             error("AWS", exc)
-        self._cache = None
 
     @staticmethod
     def get_tags(instance):
@@ -49,23 +48,17 @@ class AWS:
         for page in pages:
             for item in page['Reservations']:
                 instances.extend(item['Instances'])
-        self._cache = instances
         return instances
 
     def get_instance(self, instance_id):
         """
         Return specific instance
         """
-        if self._cache is None:
-            try:
-                return self._client.describe_instances(
-                    InstanceIds=[instance_id])
-            except (BotoCoreError, ClientError) as exc:
-                warning("AWS", exc)
-        else:
-            for instance in self._cache:
-                if instance['InstanceId'] == instance_id:
-                    return instance
+        try:
+            return self._client.describe_instances(
+                InstanceIds=[instance_id])
+        except (BotoCoreError, ClientError) as exc:
+            warning("AWS", exc)
         return None
 
     @staticmethod

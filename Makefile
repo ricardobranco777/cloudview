@@ -1,5 +1,5 @@
 .PHONY: all
-all: flake8 pylint pytest
+all: flake8 pylint test
 
 .PHONY: flake8
 flake8:

@@ -42,7 +42,6 @@ class GCP:
         except (GoogleAuthError, GoogleError) as exc:
             error("GCP", exc)
         self._project = project or get_project()
-        self._cache = None
 
     def get_zones(self, project=None, filters="status: UP"):
         """
@@ -113,26 +112,18 @@ class GCP:
             for zone in retry_zones:
                 requests[zone] = self._compute.instances().list_next(
                     requests[zone], responses[zone])
-        self._cache = instances
         return instances
 
-    def get_instance(self, instance_id, name=None, zone=None):
+    def get_instance(self, name, zone=None):
         """
         Get specific instance
         """
-        if self._cache is None:
-            if name is None or zone is None:
-                self.get_instances()
-            else:
-                try:
-                    request = self._compute.instances().get(
-                        project=self._project, zone=zone, instance=name)
-                    return request.execute()
-                except (GoogleAuthError, GoogleError) as exc:
-                    error("GCP", exc)
-        for instance in self._cache:
-            if instance['id'] == instance_id:
-                return instance
+        try:
+            request = self._compute.instances().get(
+                project=self._project, zone=zone, instance=name)
+            return request.execute()
+        except (GoogleAuthError, GoogleError) as exc:
+            error("GCP", exc)
         return None
 
     @staticmethod

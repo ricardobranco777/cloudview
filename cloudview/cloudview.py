@@ -28,7 +28,7 @@ from pyramid.response import Response
 
 import openstack
 from .aws import AWS
-from .az import Azure
+from .azure import Azure
 from .gcp import GCP
 from .openstack import Openstack
 from .utils import fix_date
