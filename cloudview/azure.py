@@ -1,137 +1,85 @@
-#
-# Copyright 2019 Ricardo Branco <rbranco@suse.de>
-# MIT License
-#
 """
-References:
-https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/instanceview
-https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/listall
+Reference:
+https://libcloud.readthedocs.io/en/stable/compute/drivers/azure_arm.html
 """
 
-import re
+import logging
 import os
+from typing import Dict, List
 
-from concurrent.futures import ThreadPoolExecutor
-
-from azure.identity import DefaultAzureCredential
-from azure.mgmt.compute import ComputeManagementClient
-from azure.core.exceptions import AzureError
-from msrestazure.azure_exceptions import CloudError
+from libcloud.compute.providers import get_driver
+from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
 
-from cloudview.errors import error
-from cloudview.singleton import Singleton
+from cloudview.instance import Instance, CSP
+from cloudview.utils import utc_date, exception
 
 
-def get_credentials():
+def get_creds() -> Dict[str, str]:
     """
-    Get credentials for Azure
+    Get credentials
     """
-    try:
-        subscription_id = os.getenv(
-            'AZURE_SUBSCRIPTION_ID',
-            os.getenv('ARM_SUBSCRIPTION_ID'))
-        credentials = DefaultAzureCredential()
-        return credentials, subscription_id
-    except (KeyError, AzureError, CloudError, RequestException) as exc:
-        error("Azure", exc)
-    return None
+    creds = {}
+    for key, *env_vars in (
+        ('key', "AZURE_CLIENT_ID", "ARM_CLIENT_ID"),
+        ('secret', "AZURE_CLIENT_SECRET", "ARM_CLIENT_SECRET"),
+        ('tenant_id', "AZURE_TENANT_ID", "ARM_TENANT_ID"),
+        ('subscription_id', "AZURE_SUBSCRIPTION_ID", "ARM_SUBSCRIPTION_ID"),
+    ):
+        for var in env_vars:
+            value = os.getenv(var)
+            if value:
+                creds.update({key: value})
+                break
+    return creds
 
 
-@Singleton
-class Azure:
+class Azure(CSP):
     """
     Class for handling Azure stuff
     """
-    def __init__(self):
-        credentials, subscription_id = get_credentials()
+    def __init__(self, cloud: str = "", **creds):
+        if hasattr(self, "cloud"):
+            return
+        super().__init__(cloud)
+        creds = creds or get_creds()
         try:
-            self._client = ComputeManagementClient(
-                credential=credentials,
-                subscription_id=subscription_id,
-                api_version=None)
-        except (AzureError, CloudError, RequestException) as exc:
-            error("Azure", exc)
-
-    def _get_instance_view(self, instance):
-        """
-        Get instance view for more information
-        """
-        resource_group = re.search(
-            r"/resourceGroups/([^/]+)/", instance.id).group(1)
-        # https://github.com/Azure/azure-sdk-for-python/issues/573
+            self.creds = (creds.pop('tenant_id'), creds.pop('subscription_id'), creds.pop('key'), creds.pop('secret'))
+        except KeyError as exc:
+            logging.error("Azure: %s: %s", self.cloud, exception(exc))
+            raise LibcloudError(f"{exc}") from exc
+        cls = get_driver(Provider.AZURE_ARM)
         try:
-            instance_view = self._client.virtual_machines.instance_view(
-                resource_group, instance.name)
-        except (AzureError, CloudError, RequestException) as exc:
-            error("Azure", exc)
-        instance.instance_view = instance_view
-        return instance.as_dict()
+            self.driver = cls(*self.creds, ex_resource_group=None, ex_fetch_nic=False, ex_fetch_power_state=True)
+        except RequestException as exc:
+            logging.error("Azure: %s: %s", self.cloud, exception(exc))
+            raise LibcloudError(f"{exc}") from exc
 
-    def _get_instance_views(self, instances):
+    def _get_instances(self) -> List[Instance]:
         """
-        Threaded version to get all instance views using a pool of workers
+        Get Azure instances
         """
-        with ThreadPoolExecutor() as executor:
-            yield from executor.map(self._get_instance_view, instances)
+        all_instances = []
 
-    @staticmethod
-    def get_date(instance):
-        """
-        Guess date for instance based on the OS disk
-        """
-        for disk in instance['instance_view']['disks']:
-            if disk['name'] == instance['storage_profile']['os_disk']['name']:
-                try:
-                    return disk['statuses'][0]['time']
-                except KeyError:
-                    break
-        return instance['instance_view']['statuses'][0].get('time')
-
-    @staticmethod
-    def get_status(instance):
-        """
-        Returns the power status (or the provisioning state) of the VM:
-        https://docs.microsoft.com/en-us/azure/virtual-machines/windows/states-lifecycle
-        starting | running | stopping | stopped | deallocating | deallocated
-        """
-        status = instance['instance_view']['statuses']
-        if len(status) > 1:
-            status = status[1]['display_status']
-        else:
-            status = status[0]['display_status']
-        return status.split()[-1].lower()
-
-    @staticmethod
-    def get_tags(instance):
-        """
-        Returns a dictionary of tags
-        """
-        return instance['tags']
-
-    def get_instances(self, filters=None):
-        """
-        Get Azure Compute instances
-        """
         try:
-            instances = self._client.virtual_machines.list_all()
-        except (AzureError, CloudError, RequestException) as exc:
-            error("Azure", exc)
-        # https://github.com/Azure/azure-sdk-for-python/issues/573
-        instances = self._get_instance_views(instances)
-        if filters is not None:
-            instances = filter(filters.search, instances)
-        instances = list(instances)
-        return instances
+            instances = self.driver.list_nodes()
+        except (AttributeError, LibcloudError, RequestException) as exc:
+            logging.error("Azure: %s: %s", self.cloud, exception(exc))
+            return []
 
-    def get_instance(self, name, resource_group=None):
-        """
-        Return specific instance
-        """
-        try:
-            return self._client.virtual_machines.get(
-                resource_group_name=resource_group,
-                vm_name=name, expand="instanceView").as_dict()
-        except (AzureError, CloudError, RequestException) as exc:
-            error("Azure", exc)
-        return None
+        for instance in instances:
+            all_instances.append(
+                Instance(
+                    provider="Azure",
+                    cloud=self.cloud,
+                    name=instance.name,
+                    id=instance.extra['properties']['vmId'],
+                    size=instance.extra['properties']['hardwareProfile']['vmSize'],
+                    time=utc_date(instance.extra['properties']['timeCreated']),
+                    state=instance.state,
+                    location=instance.extra['location'],
+                    extra=instance.extra,
+                )
+            )
+
+        return all_instances

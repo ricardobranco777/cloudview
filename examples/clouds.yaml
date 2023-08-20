@@ -1,0 +1,46 @@
+providers:
+  ec2:
+    project1:
+      key: "YOUR_ACCESS_KEY_ID1"
+      secret: "YOUR_SECRET_ACCESS_KEY1"
+    project2:
+      key: "YOUR_ACCESS_KEY_ID2"
+      secret: "YOUR_SECRET_ACCESS_KEY2"
+  azure:
+    project1:
+      key: "YOUR_CLIENT_ID1"
+      secret: "YOUR_CLIENT_SECRET1"
+      tenant_id: "YOUR_TENANT_ID1"
+      subscription_id: "YOUR_SUBSCRIPTION_ID1"
+    project2:
+      key: "YOUR_CLIENT_ID2"
+      secret: "YOUR_CLIENT_SECRET2"
+      tenant_id: "YOUR_TENANT_ID2"
+      subscription_id: "YOUR_SUBSCRIPTION_ID2"
+  gce:
+    project1:
+      key: /path/to/project1.json
+      # Optional
+      user_id: "YOUR_USER_ID1"
+      project: "YOUR_PROJECT2"
+    project2:
+      key: /path/to/project2.json
+      # Optional
+      user_id: "YOUR_USER_ID1"
+      project: "YOUR_PROJECT2"
+  openstack:
+    project1:
+      key: "YOUR_KEY"
+      secret: "YOUR_SECRET"
+      ex_force_auth_url: https://OPENSTACK_SERVER:5000
+      ex_force_base_url: https://OPENSTACK_SERVER:8774/v2.1
+      ex_tenant_name: "PROJECT_NAME"
+      api_version: "2.2"
+    project2:
+      key: "username"
+      secret: "password"
+      ex_force_auth_url: https://OPENSTACK_SERVER:5000
+      ex_force_base_url: https://OPENSTACK_SERVER:8774/v2.1
+      ex_domain_name: "ldap"
+      ex_tenant_name: "PROJECT_NAME2"
+      api_version: "2.2"

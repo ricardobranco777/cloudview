@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    command: --config /clouds.yaml --sort time --port 7777 --verbose --log info
+    environment:
+      - TZ=Europe/Berlin
+    volumes:
+      - ${PWD}/examples/clouds.yaml:/clouds.yaml:ro
+      # Must be the same path mentioned in clouds.yaml
+      - ${PWD}/gce.json:/gce.json:ro
+    restart: always
+  nginx:
+    build: nginx
+    environment:
+      - APP_PORT=7777
+      - NGINX_HOST=${NGINX_HOST:-localhost}
+      - PASS=${PASS:-}
+    ports:
+      - "8443:443"
+    read_only: true
+    restart: always

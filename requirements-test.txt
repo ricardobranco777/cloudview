@@ -4,3 +4,9 @@ flake8
 freezegun
 pylint
 pytest
+mypy
+types-python-dateutil
+types-pytz
+types-PyYAML
+types-cachetools
+types-requests

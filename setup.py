@@ -3,22 +3,22 @@
 Setup script
 """
 
-from setuptools import find_packages, setup
+from setuptools import setup
+from cloudview import __version__
 
 
 def read(path):
     """
     Read a file
     """
-    with open(path, encoding="utf-8") as file_:
-        return file_.read()
+    with open(path, encoding="utf-8") as file:
+        return file.read()
 
 
 def grep_version():
     """
     Get __version__
     """
-    from cloudview import __version__
     return __version__
 
 
@@ -32,9 +32,9 @@ setup(
     author_email='rbranco@suse.de',
     url='https://github.com/ricardobranco777/cloudview',
     package_dir={'cloudview': 'cloudview'},
-    packages=find_packages(),
+    packages=['cloudview'],
     include_package_data=True,
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     install_requires=read('requirements.txt'),
     license='MIT License',
     zip_safe=False,
@@ -50,7 +50,6 @@ setup(
         'MIT License',
         'Natural Language :: English',
         'Operating System :: Unix',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',

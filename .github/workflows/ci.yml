@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
 
     steps:
       - uses: actions/checkout@v3
@@ -29,6 +29,9 @@ jobs:
       - name: test
         run: |
           make test
+      - name: mypy
+        run: |
+          make mypy
 
   docker:
     runs-on: ubuntu-latest
@@ -37,9 +40,8 @@ jobs:
       - uses: docker/setup-buildx-action@v2
       - name: test docker image
         run: |
-          mkdir $HOME/.aws
-          OS_CACERT=/abc GOOGLE_APPLICATION_CREDENTIALS=/xyz docker compose build --pull
-          OS_CACERT=/abc GOOGLE_APPLICATION_CREDENTIALS=/xyz PASS=testing docker compose up -d
+          docker compose -f examples/docker-compose.yml --project-directory . build --pull
+          PASS=testing docker compose -f examples/docker-compose.yml --project-directory . up -d
           sleep 10
           test "$(curl -4k -u test:testing https://localhost:8443/test)" = "OK"
 

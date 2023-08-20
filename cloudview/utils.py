@@ -2,6 +2,7 @@
 Helper functions
 """
 
+import traceback
 from datetime import datetime
 
 from dateutil import parser
@@ -9,7 +10,17 @@ from dateutil.relativedelta import relativedelta
 from pytz import utc
 
 
-def get_age(date):
+def exception(exc: Exception, trace=False) -> str:
+    """
+    Describe exception with traceback
+    """
+    return "".join([
+        traceback.format_exc() if trace else "",
+        f"{exc.__class__.__name__}: {exc}",
+    ])
+
+
+def get_age(date: datetime):
     """
     Get age
     """
@@ -27,18 +38,18 @@ def get_age(date):
     return string
 
 
-def fix_date(date, time_format=None):
+def utc_date(date: str) -> datetime:
     """
-    Converts datetime object or string to local time or the
+    return UTC normalized datetime object from date string
+    """
+    return utc.normalize(parser.parse(date))
+
+
+def fix_date(date: datetime, time_format=None):
+    """
+    Converts datetime object to local time or the
     timezone specified by the TZ environment variable
     """
-    if isinstance(date, str):
-        # The parser returns datetime objects
-        date = parser.parse(date)
-    if isinstance(date, datetime):
-        # GCP doesn't return UTC dates
-        date = utc.normalize(date)
-        if time_format is not None:
-            return date.astimezone().strftime(time_format)
-        return get_age(date)
-    return ""
+    if time_format is not None:
+        return date.astimezone().strftime(time_format)
+    return get_age(date)

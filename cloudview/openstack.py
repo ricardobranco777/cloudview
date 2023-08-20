@@ -1,92 +1,118 @@
-#
-# Copyright 2019 Ricardo Branco <rbranco@suse.de>
-# MIT License
-#
 """
-Reference:
-https://developer.openstack.org/api-ref/compute/
+References:
+https://libcloud.readthedocs.io/en/stable/compute/drivers/openstack.html
+https://docs.openstack.org/python-openstackclient/latest/cli/man/openstack.html
 """
 
-from concurrent.futures import ThreadPoolExecutor
+import logging
+import os
+from urllib.parse import urlparse
+from typing import List
 
-import openstack
-from openstack.exceptions import OpenStackCloudException, ResourceNotFound
+import libcloud.security
+from libcloud.compute.providers import get_driver
+from libcloud.compute.types import Provider, LibcloudError
+from requests.exceptions import RequestException
 
-from cloudview.errors import error
-from cloudview.singleton import Singleton
+from cloudview.instance import Instance, CSP
+from cloudview.utils import utc_date, exception
 
 
-@Singleton
-class Openstack:
+libcloud.security.CA_CERTS_PATH = os.getenv('REQUESTS_CA_BUNDLE')
+
+
+def get_creds() -> dict:
+    """
+    Get credentials
+    """
+    creds = {}
+    for key, *env_vars in (
+        ("key", "OS_USERNAME"),
+        ("secret", "OS_PASSWORD"),
+        ("ex_domain_name", "OS_USER_DOMAIN_NAME"),
+        ("ex_tenant_name", "OS_PROJECT_NAME", "OS_TENANT_NAME"),
+    ):
+        for var in env_vars:
+            value = os.getenv(var)
+            if value:
+                creds.update({key: value})
+                break
+    url = os.getenv("OS_AUTH_URL")
+    if not url:
+        return creds
+    if not url.startswith(("https://", "http://")):
+        url = f"https://{url}"
+    url = urlparse(url)  # type: ignore
+    auth_url = f"{url.scheme}://{url.netloc}"
+    server = url.netloc.split(':')[0]
+    base_url = f"{url.scheme}://{server}:8774/v2.1"
+    creds.update({
+        "ex_force_auth_url": auth_url,
+        "ex_force_base_url": base_url,
+        "api_version": "2.2",
+    })
+    return creds
+
+
+class Openstack(CSP):
     """
     Class for handling Openstack stuff
     """
-    def __init__(self, cloud=None, insecure=False):
-        if insecure:
-            # https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
-            import logging
-            logging.captureWarnings(True)
+    def __init__(self, cloud: str = "", **creds):
+        if hasattr(self, "cloud"):
+            return
+        super().__init__(cloud)
+        creds = creds or get_creds()
         try:
-            self._client = openstack.connect(
-                cloud=cloud, insecure=insecure)
-        except OpenStackCloudException as exc:
-            error("Openstack", exc)
+            key = creds.pop('key')
+        except KeyError as exc:
+            logging.error("Openstack: %s: %s", self.cloud, exception(exc))
+            raise LibcloudError(f"{exc}") from exc
+        cls = get_driver(Provider.OPENSTACK)
+        try:
+            self.driver = cls(key, **creds)
+            self.sizes = self.driver.list_sizes()
+        except LibcloudError as exc:
+            logging.error("Openstack: %s: %s", self.cloud, exception(exc))
+            raise
+        except RequestException as exc:
+            logging.error("Openstack: %s: %s", self.cloud, exception(exc))
+            raise LibcloudError(f"{exc}") from exc
 
-    def get_instances(self, filters=None):
+    def get_size(self, id_: str) -> str:
+        """
+        Get size name by id
+        """
+        for size in self.sizes:
+            if size.id == id_:
+                return size.name
+        return "unknown"
+
+    def _get_instances(self) -> List[Instance]:
         """
         Get Openstack instances
         """
-        filters = filters or {}
+        all_instances = []
+
         try:
-            # https://developer.openstack.org/api-ref/compute/#list-servers
-            instances = list(self._client.list_servers(filters=filters))
-        except OpenStackCloudException as exc:
-            error("Openstack", exc)
-        self._get_instance_types(instances)
-        return instances
+            instances = self.driver.list_nodes(ex_all_tenants=False)
+        except LibcloudError as exc:
+            logging.error("Openstack: %s: %s", self.cloud, exception(exc))
+            return []
 
-    def get_instance(self, instance_id):
-        """
-        Return specific instance
-        """
-        try:
-            return self._client.get_server_by_id(instance_id)
-        except OpenStackCloudException as exc:
-            error("Openstack", exc)
-        return None
+        for instance in instances:
+            all_instances.append(
+                Instance(
+                    provider="Openstack",
+                    cloud=self.cloud,
+                    name=instance.name,
+                    id=instance.id,
+                    size=self.get_size(instance.extra['flavorId']),
+                    time=utc_date(instance.extra['created']),
+                    state=instance.state,
+                    location=instance.extra['availability_zone'],
+                    extra=instance.extra,
+                )
+            )
 
-    def get_instance_type(self, flavor_id):  # pylint: disable=inconsistent-return-statements
-        """
-        Return instance type
-        """
-        try:
-            return self._client.get_flavor_by_id(flavor_id).name
-        except ResourceNotFound:
-            return flavor_id
-        except OpenStackCloudException as exc:
-            error("Openstack", exc)
-
-    def _get_instance_types(self, instances):
-        """
-        Threaded version to get all instance types using a pool of workers
-        """
-        with ThreadPoolExecutor() as executor:
-            executor.map(
-                self.get_instance_type,
-                {_['flavor']['id'] for _ in instances if 'id' in _['flavor']})
-
-    @staticmethod
-    def get_status(instance):
-        """
-        Returns the status of the Openstack instance
-        """
-        return instance['OS-EXT-STS:vm_state']
-
-    @staticmethod
-    def get_tags(instance):
-        """
-        Return a dictionary of tags
-        """
-        if 'tags' in instance:
-            return dict.fromkeys(instance['tags'])
-        return {}
+        return all_instances

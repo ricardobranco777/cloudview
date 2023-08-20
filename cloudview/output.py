@@ -1,25 +1,22 @@
-#
-# Copyright 2019 Ricardo Branco <rbranco@suse.de>
-# MIT License
-#
 """
 Handle tabular output in these formats: text, json & html
 """
 
 from json import JSONEncoder
+from typing import List, Optional
 
 from cloudview.singleton import Singleton
-from cloudview.html import HEADER, FOOTER
+from cloudview.templates import HEADER, FOOTER
 
 
-def get_html_header(**kwargs):
+def get_html_header(**kwargs) -> str:
     """
     Return the HTML header rendered from a Jinja2 template
     """
     return HEADER.render(**kwargs)
 
 
-def get_html_footer(**kwargs):
+def get_html_footer(**kwargs) -> str:
     """
     Return the HTML footer rendered from a Jinja2 template
     """
@@ -31,7 +28,7 @@ class Output:
     """
     Helper class to handle tabular output in text, json or html
     """
-    def __init__(self, output_format=None, fmt=None, keys=None, seconds=600):
+    def __init__(self, output_format: Optional[str] = None, fmt: Optional[str] = None, keys: Optional[List[str]] = None, seconds: int = 600):
         """
         type must be either text, json or html
         fmt is the format string used for text
@@ -41,7 +38,9 @@ class Output:
         if output_format not in ('text', 'json', 'html'):
             raise ValueError(f"Invalid type: {output_format}")
         self.output_format = output_format
-        self.keys = keys.split()
+        if keys is None:
+            keys = []
+        self.keys = keys
         self.fmt = fmt
         self.last_item = None
         self.seconds = seconds
@@ -61,31 +60,22 @@ class Output:
             table_header = "\n".join([f"<th>{_.upper().replace('_', ' ')}</th>" for _ in self.keys])
             print(get_html_header(seconds=self.seconds) + table_header)
 
-    def info(self, item=None, **kwargs):
+    def info(self, item, **kwargs):
         """
         Dump item information
         """
-        if item is None:
-            item = dict(kwargs)
         if self.output_format == "text":
             print(self.fmt.format(d=item))
         elif self.output_format == "json":
             if self.last_item is not None:
-                print(f"{self.last_item}")
+                print(f"{self.last_item},")
             self.last_item = JSONEncoder(
                 default=str, indent=2, sort_keys=True
-            ).encode(item)
+            ).encode(dict(kwargs))
         elif self.output_format == "html":
-            kwargs['name'] = f"<a href=\"instance/{kwargs['provider'].lower()}/{kwargs['instance_id']}\">{kwargs['name']}</a>"
+            kwargs['name'] = f"<a href=\"instance/{kwargs['provider'].lower()}/{kwargs['cloud'].lower()}/{kwargs['id']}\">{kwargs['name']}</a>"
             lines = "\n".join([f" <td>{kwargs[_]}</td>" for _ in self.keys])
             print(f"<tr>\n{lines}\n</tr>")
-
-    def all(self, iterable):
-        """
-        Dump all items in iterable
-        """
-        for item in iterable:
-            self.info(item=item)
 
     def footer(self):
         """

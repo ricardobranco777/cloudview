@@ -5,7 +5,7 @@ Jinja templates
 from jinja2 import Template
 
 
-HEADER = """<!DOCTYPE html>
+_HEADER = """<!DOCTYPE html>
 <html><head><meta charset="utf-8" http-equiv="refresh" content="{{ seconds }}"/>
 <link rel="shortcut icon" href="/favicon.ico">
 <title>Instances</title></head>
@@ -42,7 +42,7 @@ table#instances tr:nth-child(odd) {
 <table style="width:100%" id="instances">
 """
 
-FOOTER = """
+_FOOTER = """
 </table><br>
 <p>Last updated: <span id="date"></span></p>
 <script type="text/javascript">
@@ -65,5 +65,5 @@ document.getElementById("date").innerHTML = date;
 </body></html>"""
 
 
-HEADER = Template(HEADER)
-FOOTER = Template(FOOTER)
+HEADER = Template(_HEADER)
+FOOTER = Template(_FOOTER)

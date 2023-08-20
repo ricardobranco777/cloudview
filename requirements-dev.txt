@@ -1,12 +1,8 @@
-azure-identity
-azure-mgmt-compute
-boto3
+apache-libcloud
 cachetools
-google-api-python-client
+cryptography
 Jinja2
-jmespath
-msrestazure
-oauth2client
-openstacksdk
 pyramid
+python-dateutil
 pytz
+PyYAML
