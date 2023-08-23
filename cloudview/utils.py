@@ -71,10 +71,10 @@ def check_permissions(path: Path, insecure: bool = False) -> None:
     """
     if path.stat().st_mode & (stat.S_IRWXG | stat.S_IRWXO):
         if insecure:
+            logging.warning("%s is world readable", path)
+        else:
             logging.error("%s is world readable", path)
             sys.exit(1)
-        else:
-            logging.warning("%s is world readable", path)
 
 
 def check_leafs(tree: dict, insecure: bool = False) -> None:
