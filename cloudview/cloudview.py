@@ -197,7 +197,7 @@ def parse_args() -> argparse.Namespace:
     argparser.add_argument(
         "-l",
         "--log",
-        default="error",
+        default="warning",
         choices="debug info warning error critical".split(),
     )
     argparser.add_argument(
