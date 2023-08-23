@@ -85,33 +85,41 @@ def check_leafs(tree: dict, insecure: bool = False) -> None:
         if isinstance(value, dict):
             check_leafs(value)
         elif isinstance(value, str):
-            if os.path.isabs(value) and os.path.isfile(value):
-                check_permissions(Path(value), insecure)
+            try:
+                if os.path.isabs(value) and os.path.isfile(value):
+                    check_permissions(Path(value), insecure)
+            except OSError:
+                pass
 
 
 def get_config(path: Path, insecure: bool = False) -> dict:
     """
     Get configuration from yaml
     """
-    check_permissions(path, insecure)
+    get_config.last_modified_time = getattr(
+        get_config, "last_modified_time", float("Nan")
+    )
 
-    last_modified_time = path.stat().st_mtime
+    try:
+        check_permissions(path, insecure)
+        last_modified_time = path.stat().st_mtime
 
-    # Check if the current modification time is different from the last one
-    if (
-        hasattr(get_config, "last_modified_time")
-        and get_config.last_modified_time == last_modified_time
-    ):
-        return get_config.cached_config
+        # Check if the current modification time is different from the last one
+        if get_config.last_modified_time == last_modified_time:
+            return get_config.cached_config
 
-    # If the file has been modified, read the configuration
-    with open(path, encoding="utf-8") as file:
-        config = yaml.full_load(file)
+        # If the file has been modified, read the configuration
+        with open(path, encoding="utf-8") as file:
+            config = yaml.full_load(file)
+    except OSError:
+        if hasattr(get_config, "cached_config"):
+            return get_config.cached_config
+        raise
 
-        check_leafs(config, insecure)
+    check_leafs(config, insecure)
 
-        # Cache the configuration and modification time
-        get_config.cached_config = config
-        get_config.last_modified_time = last_modified_time
+    # Cache the configuration and modification time
+    get_config.cached_config = config
+    get_config.last_modified_time = last_modified_time
 
-        return config
+    return config
