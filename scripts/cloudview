@@ -5,8 +5,8 @@ import sys
 
 from cloudview import cloudview
 
-if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+if __name__ == "__main__":
+    sys.argv[0] = re.sub(r"(-script\.pyw?|\.exe)?$", "", sys.argv[0])
     try:
         sys.exit(cloudview.main())
     except KeyboardInterrupt:
