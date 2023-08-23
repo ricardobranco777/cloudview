@@ -7,7 +7,6 @@ import argparse
 import os
 import re
 import logging
-import stat
 import sys
 import html
 from json import JSONEncoder
@@ -24,13 +23,12 @@ from pyramid.response import Response
 from pyramid.request import Request
 
 from libcloud.compute.types import Provider, LibcloudError
-import yaml
 
 from .ec2 import EC2
 from .azure import Azure
 from .gce import GCE
 from .openstack import Openstack
-from .utils import fix_date
+from .utils import fix_date, get_config
 from .output import Output
 from .instance import STATES
 from . import __version__
@@ -88,34 +86,6 @@ def print_instances(
         Output().info(instance, **instance.__dict__)
 
 
-def get_config(path: Path) -> dict:
-    """
-    Get configuration from yaml
-    """
-    status = path.stat()
-    if not args.insecure and status.st_mode & (stat.S_IRWXG | stat.S_IRWXO):
-        sys.exit(f"ERROR: {path} is group and world readable")
-
-    last_modified_time = status.st_mtime
-
-    # Check if the current modification time is different from the last one
-    if (
-        hasattr(get_config, "last_modified_time")
-        and get_config.last_modified_time == last_modified_time
-    ):
-        return get_config.cached_config
-
-    # If the file has been modified, read the configuration
-    with open(path, encoding="utf-8") as file:
-        config = yaml.full_load(file)
-
-        # Cache the configuration and modification time
-        get_config.cached_config = config
-        get_config.last_modified_time = last_modified_time
-
-        return config
-
-
 def print_info() -> Optional[Response]:
     """
     Print information about instances
@@ -123,14 +93,7 @@ def print_info() -> Optional[Response]:
     sys.stdout = StringIO() if args.port else sys.stdout
     threads = []
     if args.config.is_file():
-        config = get_config(args.config)
-        if not args.insecure:
-            for cloud in config["providers"]["gce"]:
-                keyfile = Path(config["providers"]["gce"][cloud]["key"])
-                if keyfile.is_file() and keyfile.stat().st_mode & (
-                    stat.S_IRWXG | stat.S_IRWXO
-                ):
-                    sys.exit(f"ERROR: {keyfile} is group and world readable")
+        config = get_config(args.config, args.insecure)
         for provider in config["providers"]:
             if provider not in PROVIDERS:
                 logging.error("Unsupported provider %s", provider)
