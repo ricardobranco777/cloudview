@@ -1,11 +1,15 @@
 FILES=*.py */*.py
 
 .PHONY: all
-all: flake8 pylint test mypy
+all: black flake8 pylint test mypy
+
+.PHONY: black
+black:
+	@black --check .
 
 .PHONY: flake8
 flake8:
-	@flake8 --ignore=E501 $(FILES) tests/*.py
+	@flake8 --ignore=E501,W503 $(FILES) tests/*.py
 
 .PHONY: pylint
 pylint:

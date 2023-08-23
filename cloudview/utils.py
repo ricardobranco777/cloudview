@@ -14,10 +14,12 @@ def exception(exc: Exception, trace=False) -> str:
     """
     Describe exception with traceback
     """
-    return "".join([
-        traceback.format_exc() if trace else "",
-        f"{exc.__class__.__name__}: {exc}",
-    ])
+    return "".join(
+        [
+            traceback.format_exc() if trace else "",
+            f"{exc.__class__.__name__}: {exc}",
+        ]
+    )
 
 
 def get_age(date: datetime):
@@ -25,14 +27,16 @@ def get_age(date: datetime):
     Get age
     """
     age = relativedelta(datetime.now(tz=utc), date)
-    string = "".join([
-        f"{age.years}y" if age.years else "",
-        f"{age.months}M" if age.months else "",
-        f"{age.days}d" if age.days else "",
-        f"{age.hours}h" if age.hours else "",
-        f"{age.minutes}m" if age.minutes else "",
-        f"{age.seconds}s" if age.seconds else "",
-    ])
+    string = "".join(
+        [
+            f"{age.years}y" if age.years else "",
+            f"{age.months}M" if age.months else "",
+            f"{age.days}d" if age.days else "",
+            f"{age.hours}h" if age.hours else "",
+            f"{age.minutes}m" if age.minutes else "",
+            f"{age.seconds}s" if age.seconds else "",
+        ]
+    )
     if string == "":
         string = "0s"
     return string

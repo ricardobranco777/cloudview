@@ -23,6 +23,10 @@ jobs:
         run: |
           make flake8
         continue-on-error: true
+      - name: black
+        run: |
+          make black
+        continue-on-error: true
       - name: pylint
         run: |
           make pylint

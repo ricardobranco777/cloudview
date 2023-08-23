@@ -18,7 +18,7 @@ from cloudview.instance import Instance, CSP
 from cloudview.utils import utc_date, exception
 
 
-libcloud.security.CA_CERTS_PATH = os.getenv('REQUESTS_CA_BUNDLE')
+libcloud.security.CA_CERTS_PATH = os.getenv("REQUESTS_CA_BUNDLE")
 
 
 def get_creds() -> dict:
@@ -44,13 +44,15 @@ def get_creds() -> dict:
         url = f"https://{url}"
     url = urlparse(url)  # type: ignore
     auth_url = f"{url.scheme}://{url.netloc}"
-    server = url.netloc.split(':')[0]
+    server = url.netloc.split(":")[0]
     base_url = f"{url.scheme}://{server}:8774/v2.1"
-    creds.update({
-        "ex_force_auth_url": auth_url,
-        "ex_force_base_url": base_url,
-        "api_version": "2.2",
-    })
+    creds.update(
+        {
+            "ex_force_auth_url": auth_url,
+            "ex_force_base_url": base_url,
+            "api_version": "2.2",
+        }
+    )
     return creds
 
 
@@ -58,13 +60,14 @@ class Openstack(CSP):
     """
     Class for handling Openstack stuff
     """
+
     def __init__(self, cloud: str = "", **creds):
         if hasattr(self, "cloud"):
             return
         super().__init__(cloud)
         creds = creds or get_creds()
         try:
-            key = creds.pop('key')
+            key = creds.pop("key")
         except KeyError as exc:
             logging.error("Openstack: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
@@ -107,10 +110,10 @@ class Openstack(CSP):
                     cloud=self.cloud,
                     name=instance.name,
                     id=instance.id,
-                    size=self.get_size(instance.extra['flavorId']),
-                    time=utc_date(instance.extra['created']),
+                    size=self.get_size(instance.extra["flavorId"]),
+                    time=utc_date(instance.extra["created"]),
                     state=instance.state,
-                    location=instance.extra['availability_zone'],
+                    location=instance.extra["availability_zone"],
                     extra=instance.extra,
                 )
             )

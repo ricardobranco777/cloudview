@@ -23,7 +23,7 @@ def get_creds() -> Dict[str, str]:
     Get credentials
     """
     creds = {}
-    for key, env in (('key', "AWS_ACCESS_KEY_ID"), ('secret', "AWS_SECRET_ACCESS_KEY")):
+    for key, env in (("key", "AWS_ACCESS_KEY_ID"), ("secret", "AWS_SECRET_ACCESS_KEY")):
         value = os.getenv(env)
         if value:
             creds.update({key: value})
@@ -34,13 +34,14 @@ class EC2(CSP):
     """
     Class for handling EC2 stuff
     """
+
     def __init__(self, cloud: str = "", **creds):
         if hasattr(self, "cloud"):
             return
         super().__init__(cloud)
         creds = creds or get_creds()
         try:
-            self.creds = (creds.pop('key'), creds.pop('secret'))
+            self.creds = (creds.pop("key"), creds.pop("secret"))
         except KeyError as exc:
             logging.error("EC2: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
@@ -58,7 +59,10 @@ class EC2(CSP):
         List regions
         """
         # NOTE: self.driver.list_regions() returns hard-coded shit
-        return set(location.availability_zone.region_name for location in self.driver.list_locations())
+        return set(
+            location.availability_zone.region_name
+            for location in self.driver.list_locations()
+        )
 
     def list_instances_in_region(self, region: str) -> List[Node]:
         """
@@ -90,8 +94,13 @@ class EC2(CSP):
             logging.error("EC2: %s: %s", self.cloud, exception(exc))
             return []
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=len(regions)) as executor:
-            future_to_region = {executor.submit(self.list_instances_in_region, region): region for region in regions}
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=len(regions)
+        ) as executor:
+            future_to_region = {
+                executor.submit(self.list_instances_in_region, region): region
+                for region in regions
+            }
             for future in concurrent.futures.as_completed(future_to_region):
                 # region = future_to_region[future]
                 instances = future.result()
@@ -102,10 +111,10 @@ class EC2(CSP):
                             cloud=self.cloud,
                             name=instance.name,
                             id=instance.id,
-                            size=instance.extra['instance_type'],
-                            time=utc_date(instance.extra['launch_time']),
+                            size=instance.extra["instance_type"],
+                            time=utc_date(instance.extra["launch_time"]),
                             state=instance.state,
-                            location=instance.extra['availability'],
+                            location=instance.extra["availability"],
                             extra=instance.extra,
                         )
                     )

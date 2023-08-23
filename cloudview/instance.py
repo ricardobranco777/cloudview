@@ -16,6 +16,7 @@ class Instance:
     """
     Instance class
     """
+
     def __init__(self, **kwargs):
         for attr, value in kwargs.items():
             setattr(self, attr, value)
@@ -28,6 +29,7 @@ class CSP:
     """
     Cloud Service Provider class
     """
+
     __objects: dict = {}
 
     def __new__(cls, cloud: str = "", **kwargs):
