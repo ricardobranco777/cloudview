@@ -43,7 +43,7 @@ Options:
     -o, --output text|html|json         output type
     -p, --port PORT                     run a web server on port PORT
     -r, --reverse                       reverse sort
-    -s, --sort none|name|time|state     sort type
+    -s, --sort name|time|state     sort type
     -S, --states error|migrating|normal|paused|pending|rebooting|reconfiguring|running|starting|stopped|stopping|suspended|terminated|unknown|updating
                                         filter by instance state
     -T, --time TIME_FORMAT              time format as used by strftime(3)
@@ -77,7 +77,7 @@ def print_instances(
         ]
     except LibcloudError:
         return
-    if args.sort != "none":
+    if args.sort:
         instances.sort(
             key=itemgetter(args.sort, "name"), reverse=args.reverse  # type:ignore
         )
@@ -205,9 +205,7 @@ def parse_args() -> argparse.Namespace:
     )
     argparser.add_argument("-p", "--port", type=port_number)
     argparser.add_argument("-r", "--reverse", action="store_true")
-    argparser.add_argument(
-        "-s", "--sort", default="none", choices=["none", "name", "state", "time"]
-    )
+    argparser.add_argument("-s", "--sort", choices=["name", "state", "time"])
     argparser.add_argument("-S", "--states", action="append", choices=STATES)
     argparser.add_argument("-T", "--time", default="%a %b %d %H:%M:%S %Z %Y")
     argparser.add_argument("-v", "--verbose", action="count")

@@ -16,7 +16,7 @@ Options:
     -c, --config FILE                   path to clouds.yaml
     -l, --log debug|info|warning|error|critical
                                         logging level
-    -o, --output none|text|html|json    output type
+    -o, --output text|html|json         output type
     -p, --port PORT                     run a web server on port PORT
     -r, --reverse                       reverse sort
     -s, --sort name|time|state          sort type
