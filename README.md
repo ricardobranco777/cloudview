@@ -30,10 +30,7 @@ Options:
 
 ## Requirements
 
-Docker or Podman to run the Docker image or:
-
-- Python 3.8+ to run installed by pip
-- [Apache Libcloud](https://libcloud.apache.org/)
+Docker or Podman to run the Docker image
 
 ## clouds.yaml
 
@@ -43,13 +40,6 @@ NOTES:
 - The key names are not arbitrary and are the names of the arguments passed to the class factory of each provider in libcloud.
 - If this file is not present, **cloudview** will try to get the information from the standard `AWS_*`, `AZURE_*`, `GOOGLE_*` & `OS_` environment variables.
 
-## To run stand-alone:
-
-```
-pip3 install --user cloudview
-cloudview [OPTIONS]
-```
-
 ## To run with Docker or Podman:
 
 `docker run --rm [OPTIONS] -v /path/to/clouds.yaml:/clouds.yaml:ro ghcr.io/ricardobranco777/cloudview -c /clouds.yaml`
@@ -58,7 +48,7 @@ NOTES:
 - Make sure you also mount the path to the JSON file holding the GCE credentials with the same path mentioned in `clouds.yaml`
 - For private Openstack you'd also want to mount the CA's certificates and add `-e REQUESTS_CA_BUNDLE=/path/to/certs.pem`
 
-## Run the web server with Docker Compose:
+## To run the web server with Docker Compose:
 
 If you have a TLS key pair, put the certificates in `cert.pem`, the private key in `key.pem` and the file containing the passphrase to the private key in `key.txt`.  Then edit the [docker-compose.yml](examples/docker-compose.yml) file to mount the directory to `/etc/nginx/ssl` in the container like this: `- "/path/to/tls:/etc/nginx/ssl:ro"`.  Set and export the `NGINX_HOST` environment variable with the FQDN of your host.
 

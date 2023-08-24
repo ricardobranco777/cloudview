@@ -222,9 +222,6 @@ def port_number(port: str) -> int:
     raise argparse.ArgumentTypeError(f"{port} is an invalid port number")
 
 
-args = parse_args()
-
-
 def main():
     """
     Main function
@@ -255,3 +252,10 @@ def main():
         sys.exit(1)
 
     print_info()
+
+
+try:
+    args = parse_args()
+    main()
+except KeyboardInterrupt:
+    sys.exit(1)
