@@ -28,9 +28,10 @@ from .ec2 import EC2
 from .azure import Azure
 from .gce import GCE
 from .openstack import Openstack
-from .utils import fix_date, get_config
-from .output import Output
 from .instance import STATES
+from .config import Config
+from .output import Output
+from .utils import fix_date
 from . import __version__
 
 
@@ -93,7 +94,7 @@ def print_info() -> Optional[Response]:
     sys.stdout = StringIO() if args.port else sys.stdout
     threads = []
     if args.config.is_file():
-        config = get_config(args.config, args.insecure)
+        config = Config(args.config, args.insecure).get_config()
         for provider in config["providers"]:
             if provider not in PROVIDERS:
                 logging.error("Unsupported provider %s", provider)

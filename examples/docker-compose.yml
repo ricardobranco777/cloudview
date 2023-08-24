@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app:
     build: .
-    command: --config /clouds.yaml --sort time --port 7777 --verbose --log info
+    command: --config /clouds.yaml --sort time --port 7777 --verbose
     environment:
       - TZ=Europe/Berlin
     volumes:
