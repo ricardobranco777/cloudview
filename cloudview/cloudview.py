@@ -201,7 +201,7 @@ def parse_args() -> argparse.Namespace:
         choices="debug info warning error critical".split(),
     )
     argparser.add_argument(
-        "-o", "--output", default="text", choices=["text", "html", "json", "JSON"]
+        "-o", "--output", default="text", choices=["text", "html", "json"]
     )
     argparser.add_argument("-p", "--port", type=port_number)
     argparser.add_argument("-r", "--reverse", action="store_true")
