@@ -21,6 +21,7 @@ from pyramid.config import Configurator
 from pyramid.response import Response
 from pyramid.request import Request
 
+import libcloud
 from libcloud.compute.types import Provider, LibcloudError
 
 from .ec2 import EC2
@@ -225,8 +226,13 @@ def main():
     """
     Main function
     """
-    if args.help or args.version:
-        print(USAGE if args.help else __version__)
+    if args.help:
+        print(USAGE)
+        sys.exit(0)
+    elif args.version:
+        print(f"cloudview {__version__}")
+        print(f"Python {sys.version}")
+        print(f"Libcloud {libcloud.__version__}")
         sys.exit(0)
 
     if not args.states:
