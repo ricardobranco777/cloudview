@@ -5,7 +5,6 @@ Show all instances created on cloud providers
 
 import argparse
 import os
-import re
 import logging
 import sys
 import html
@@ -150,13 +149,11 @@ def handle_instance(request: Request) -> Response:
     logging.info(request)
     provider = request.matchdict["provider"]
     cloud = request.matchdict["cloud"]
-    instance = request.matchdict["id"]
-    info = None
-    if re.match("(i-)?[0-9a-f-]+$", instance):
-        cls = PROVIDERS.get(provider)
-        if cls is not None:
-            info = cls(cloud=cloud).get_instance(instance)
-    if info is None:
+    identifier = request.matchdict["identifier"]
+    cls = PROVIDERS.get(provider)
+    if cls is not None:
+        info = cls(cloud=cloud).get_instance(identifier, **request.params)
+    if cls is None or info is None:
         response = Response("Not found!")
         response.status_int = 404
         return response
@@ -178,7 +175,7 @@ def web_server():
         config.add_view(handle_requests, route_name="handle_requests")
         config.add_route("test", "/test")
         config.add_view(test, route_name="test")
-        config.add_route("instance", "instance/{provider}/{cloud}/{id}")
+        config.add_route("instance", "instance/{provider}/{cloud}/{identifier}")
         config.scan()
         app = config.make_wsgi_app()
         server = make_server("0.0.0.0", args.port, app)

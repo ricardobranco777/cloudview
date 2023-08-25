@@ -5,7 +5,7 @@ https://libcloud.readthedocs.io/en/stable/compute/drivers/azure_arm.html
 
 import logging
 import os
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
@@ -54,17 +54,29 @@ class Azure(CSP):
         except KeyError as exc:
             logging.error("Azure: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
+        options = {
+            "ex_resource_group": None,
+            "ex_fetch_nic": False,
+            "ex_fetch_power_state": True,
+        }
         cls = get_driver(Provider.AZURE_ARM)
         try:
-            self.driver = cls(
-                *self.creds,
-                ex_resource_group=None,
-                ex_fetch_nic=False,
-                ex_fetch_power_state=True,
-            )
+            self.driver = cls(*self.creds, **options)
         except RequestException as exc:
             logging.error("Azure: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
+
+    def _get_instance(self, identifier: str, params: dict) -> Optional[Instance]:
+        """
+        Get instance
+        """
+        instance_id = params["id"]
+        try:
+            instance = self.driver.ex_get_node(instance_id)
+        except (AttributeError, LibcloudError, RequestException) as exc:
+            logging.error("Azure: %s: %s: %s", self.cloud, identifier, exception(exc))
+            return None
+        return Instance(extra=instance.extra)
 
     def _get_instances(self) -> List[Instance]:
         """
@@ -90,6 +102,8 @@ class Azure(CSP):
                     state=instance.state,
                     location=instance.extra["location"],
                     extra=instance.extra,
+                    identifier=instance.id,
+                    params={"id": instance.id},
                 )
             )
 

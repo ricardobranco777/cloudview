@@ -4,6 +4,7 @@ Handle tabular output in these formats: text, json & html
 
 from json import JSONEncoder
 from typing import List, Optional
+from urllib.parse import urlencode
 
 from cloudview.singleton import Singleton
 from cloudview.templates import HEADER, FOOTER
@@ -71,6 +72,8 @@ class Output:
         Dump item information
         """
         if self.output_format == "text":
+            if item["cloud"] != "_":
+                item.provider = "/".join([item["provider"], item["cloud"]])
             print(self.fmt.format(d=item))
         elif self.output_format == "json":
             if self.last_item is not None:
@@ -79,9 +82,11 @@ class Output:
                 dict(kwargs)
             )
         elif self.output_format == "html":
-            kwargs[
-                "name"
-            ] = f"<a href=\"instance/{kwargs['provider'].lower()}/{kwargs['cloud'].lower()}/{kwargs['id']}\">{kwargs['name']}</a>"
+            params = urlencode(item.params)
+            resource = "/".join(
+                [item.provider.lower(), item.cloud, f"{item.id}?{params}"]
+            )
+            kwargs["name"] = f"<a href=\"instance/{resource}\">{kwargs['name']}</a>"
             lines = "\n".join([f" <td>{kwargs[_]}</td>" for _ in self.keys])
             print(f"<tr>\n{lines}\n</tr>")
 

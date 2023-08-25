@@ -2,6 +2,7 @@
 Instance class
 """
 
+import logging
 import threading
 from typing import List, Optional
 
@@ -58,20 +59,26 @@ class CSP:
         with self._lock:
             return self._get_instances()
 
-    def _get_instance(self, key: str, value: str) -> Optional[Instance]:
+    def _get_instance(self, identifier: str, params: dict) -> Optional[Instance]:
         """
-        Get instance by key
+        Get instance
         """
-        for instance in self.get_instances():
-            if getattr(instance, key) == value:
-                return instance
-        return None
+        raise NotImplementedError("CSP._get_instance needs to be overridden")
 
-    def get_instance(self, instance_id: str) -> Optional[dict]:
+    @cached(cache=TTLCache(maxsize=64, ttl=60))
+    def get_instance(self, identifier: str, **params) -> Optional[dict]:
         """
         Get instance by id
         """
-        instance = self._get_instance("id", instance_id)
-        if instance is not None:
-            return instance.extra
-        return None
+        if self.get_instances.cache.currsize:  # pylint: disable=no-member
+            for instance in self.get_instances():
+                if instance.identifier == identifier:
+                    logging.debug(
+                        "get_instance: returning cached info for %s", identifier
+                    )
+                    return instance.extra
+        with self._lock:
+            instance = self._get_instance(identifier, params)  # type: ignore
+        if instance is None:
+            return None
+        return instance.extra

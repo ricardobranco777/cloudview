@@ -7,7 +7,7 @@ import json
 import logging
 import os
 import concurrent.futures
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from cachetools import cached, TTLCache
 from libcloud.compute.base import Node
@@ -86,6 +86,15 @@ class GCE(CSP):
             logging.error("GCE: %s: %s", self.cloud, exception(exc))
             return []
 
+    def _get_instance(self, identifier: str, params: dict) -> Optional[Instance]:
+        name = params["name"]
+        try:
+            instance = self.driver.ex_get_node(name, zone="all")
+        except (AttributeError, LibcloudError, RequestException) as exc:
+            logging.error("GCE: %s: %s: %s", self.cloud, identifier, exception(exc))
+            return None
+        return Instance(extra=instance.extra)
+
     def _get_instances(self) -> List[Instance]:
         """
         Get GCE instances
@@ -118,6 +127,8 @@ class GCE(CSP):
                             state=instance.state,
                             location=instance.extra["zone"].name,
                             extra=instance.extra,
+                            identifier=instance.name,
+                            params={"name": instance.name},
                         )
                     )
 

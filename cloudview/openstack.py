@@ -7,7 +7,7 @@ https://docs.openstack.org/python-openstackclient/latest/cli/man/openstack.html
 import logging
 import os
 from urllib.parse import urlparse
-from typing import List
+from typing import List, Optional
 
 import libcloud.security
 from libcloud.compute.providers import get_driver
@@ -91,6 +91,20 @@ class Openstack(CSP):
                 return size.name
         return "unknown"
 
+    def _get_instance(self, identifier: str, _: dict) -> Optional[Instance]:
+        """
+        Get instance
+        """
+        instance_id = identifier
+        try:
+            instance = self.driver.ex_get_node_details(instance_id)
+        except (AttributeError, LibcloudError, RequestException) as exc:
+            logging.error(
+                "OpenStack: %s: %s: %s", self.cloud, identifier, exception(exc)
+            )
+            return None
+        return Instance(extra=instance.extra)
+
     def _get_instances(self) -> List[Instance]:
         """
         Get Openstack instances
@@ -115,6 +129,8 @@ class Openstack(CSP):
                     state=instance.state,
                     location=instance.extra["availability_zone"],
                     extra=instance.extra,
+                    identifier=instance.id,
+                    params={},
                 )
             )
 

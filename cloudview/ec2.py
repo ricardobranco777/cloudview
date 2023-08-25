@@ -6,7 +6,7 @@ https://libcloud.readthedocs.io/en/stable/compute/drivers/ec2.html
 import logging
 import os
 import concurrent.futures
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Optional
 
 from cachetools import cached, TTLCache
 from libcloud.compute.base import Node
@@ -82,6 +82,18 @@ class EC2(CSP):
             logging.error("EC2: %s: %s", self.cloud, exception(exc))
         return []
 
+    def _get_instance(self, identifier: str, params: dict) -> Optional[Instance]:
+        instance_id = identifier
+        region = params["region"]
+        cls = get_driver(Provider.EC2)
+        try:
+            driver = cls(*self.creds, region=region)
+            instance = driver.list_nodes(ex_node_ids=[instance_id])[0]
+        except (AttributeError, TypeError, LibcloudError, RequestException) as exc:
+            logging.error("EC2: %s: %s: %s", self.cloud, identifier, exception(exc))
+            return None
+        return Instance(extra=instance.extra)
+
     def _get_instances(self) -> List[Instance]:
         """
         Get EC2 instances
@@ -102,7 +114,7 @@ class EC2(CSP):
                 for region in regions
             }
             for future in concurrent.futures.as_completed(future_to_region):
-                # region = future_to_region[future]
+                region = future_to_region[future]
                 instances = future.result()
                 for instance in instances:
                     all_instances.append(
@@ -116,7 +128,8 @@ class EC2(CSP):
                             state=instance.state,
                             location=instance.extra["availability"],
                             extra=instance.extra,
+                            identifier=instance.id,
+                            params={"region": region},
                         )
                     )
-
         return all_instances
