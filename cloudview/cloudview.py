@@ -43,12 +43,13 @@ Options:
     -o, --output text|html|json         output type
     -p, --port PORT                     run a web server on port PORT
     -r, --reverse                       reverse sort
-    -s, --sort name|time|state     sort type
+    -s, --sort name|time|state          sort type
     -S, --states error|migrating|normal|paused|pending|rebooting|reconfiguring|running|starting|stopped|stopping|suspended|terminated|unknown|updating
                                         filter by instance state
     -T, --time TIME_FORMAT              time format as used by strftime(3)
     -V, --version                       show version and exit
     -v, --verbose                       be verbose
+    --insecure                          insecure mode
 """
 
 PROVIDERS = {
