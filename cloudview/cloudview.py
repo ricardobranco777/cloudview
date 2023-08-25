@@ -237,7 +237,7 @@ def main():
     logging.basicConfig(format=fmt, stream=sys.stderr, level=args.log.upper())
 
     keys = "provider name size state time location".split()
-    fmt = "{d[provider]:10}  {d[name]:50}  {d[size]:>20}  {d[state]:>14}  {d[time]:30}  {d[location]:15}"
+    fmt = "{d[provider]:15}  {d[name]:50}  {d[size]:>20}  {d[state]:>10}  {d[time]:30}  {d[location]:15}"
     if args.verbose:
         keys.append("id")
         fmt += "  {d[id]}"

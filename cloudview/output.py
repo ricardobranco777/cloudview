@@ -71,6 +71,8 @@ class Output:
         """
         Dump item information
         """
+        if item["cloud"] != "_":
+            item.provider = "/".join([item["provider"], item["cloud"]])
         if self.output_format == "text":
             if item["cloud"] != "_":
                 item.provider = "/".join([item["provider"], item["cloud"]])
