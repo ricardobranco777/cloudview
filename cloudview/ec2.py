@@ -48,7 +48,7 @@ class EC2(CSP):
         cls = get_driver(Provider.EC2)
         self.driver = cls(*self.creds)
         try:
-            self.list_regions()
+            self.driver.list_locations()
         except (LibcloudError, RequestException) as exc:
             logging.error("EC2: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
@@ -58,7 +58,9 @@ class EC2(CSP):
         """
         List regions
         """
-        # NOTE: self.driver.list_regions() returns hard-coded shit
+        regions = self.driver.list_regions()
+        if regions:
+            return set(regions)
         return set(
             location.availability_zone.region_name
             for location in self.driver.list_locations()
