@@ -7,7 +7,7 @@ https://docs.openstack.org/python-openstackclient/latest/cli/man/openstack.html
 import logging
 import os
 from urllib.parse import urlparse
-from typing import List, Optional
+from typing import Optional
 
 import libcloud.security
 from libcloud.compute.providers import get_driver
@@ -105,7 +105,7 @@ class Openstack(CSP):
             return None
         return Instance(extra=instance.extra)
 
-    def _get_instances(self) -> List[Instance]:
+    def _get_instances(self) -> list[Instance]:
         """
         Get Openstack instances
         """

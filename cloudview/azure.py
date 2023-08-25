@@ -5,7 +5,7 @@ https://libcloud.readthedocs.io/en/stable/compute/drivers/azure_arm.html
 
 import logging
 import os
-from typing import Dict, List, Optional
+from typing import Optional
 
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
@@ -15,7 +15,7 @@ from cloudview.instance import Instance, CSP
 from cloudview.utils import utc_date, exception
 
 
-def get_creds() -> Dict[str, str]:
+def get_creds() -> dict[str, str]:
     """
     Get credentials
     """
@@ -78,7 +78,7 @@ class Azure(CSP):
             return None
         return Instance(extra=instance.extra)
 
-    def _get_instances(self) -> List[Instance]:
+    def _get_instances(self) -> list[Instance]:
         """
         Get Azure instances
         """

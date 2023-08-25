@@ -7,7 +7,7 @@ import json
 import logging
 import os
 import concurrent.futures
-from typing import Dict, List, Optional
+from typing import Optional
 
 from cachetools import cached, TTLCache
 from libcloud.compute.base import Node
@@ -20,7 +20,7 @@ from cloudview.instance import Instance, CSP
 from cloudview.utils import utc_date, exception
 
 
-def get_creds(creds: dict) -> Dict[str, str]:
+def get_creds(creds: dict) -> dict[str, str]:
     """
     Get credentials
     """
@@ -65,13 +65,13 @@ class GCE(CSP):
             raise LibcloudError(f"{exc}") from exc
 
     @cached(cache=TTLCache(maxsize=1, ttl=300))
-    def list_zones(self) -> List[GCEZone]:
+    def list_zones(self) -> list[GCEZone]:
         """
         List zones
         """
         return self.driver.ex_list_zones()
 
-    def list_instances_in_zone(self, zone: GCEZone) -> List[Node]:
+    def list_instances_in_zone(self, zone: GCEZone) -> list[Node]:
         """
         List instances in zone
         """
@@ -95,7 +95,7 @@ class GCE(CSP):
             return None
         return Instance(extra=instance.extra)
 
-    def _get_instances(self) -> List[Instance]:
+    def _get_instances(self) -> list[Instance]:
         """
         Get GCE instances
         """

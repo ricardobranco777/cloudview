@@ -6,7 +6,7 @@ https://libcloud.readthedocs.io/en/stable/compute/drivers/ec2.html
 import logging
 import os
 import concurrent.futures
-from typing import Dict, List, Set, Optional
+from typing import Optional
 
 from cachetools import cached, TTLCache
 from libcloud.compute.base import Node
@@ -18,7 +18,7 @@ from cloudview.instance import Instance, CSP
 from cloudview.utils import utc_date, exception
 
 
-def get_creds() -> Dict[str, str]:
+def get_creds() -> dict[str, str]:
     """
     Get credentials
     """
@@ -54,7 +54,7 @@ class EC2(CSP):
             raise LibcloudError(f"{exc}") from exc
 
     @cached(cache=TTLCache(maxsize=1, ttl=300))
-    def list_regions(self) -> Set[str]:
+    def list_regions(self) -> set[str]:
         """
         List regions
         """
@@ -66,7 +66,7 @@ class EC2(CSP):
             for location in self.driver.list_locations()
         )
 
-    def list_instances_in_region(self, region: str) -> List[Node]:
+    def list_instances_in_region(self, region: str) -> list[Node]:
         """
         List instance in region
         """
@@ -96,7 +96,7 @@ class EC2(CSP):
             return None
         return Instance(extra=instance.extra)
 
-    def _get_instances(self) -> List[Instance]:
+    def _get_instances(self) -> list[Instance]:
         """
         Get EC2 instances
         """

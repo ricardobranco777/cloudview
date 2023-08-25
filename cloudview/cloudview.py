@@ -13,7 +13,7 @@ from io import StringIO
 from pathlib import Path
 from operator import itemgetter
 from threading import Thread
-from typing import Dict, Optional
+from typing import Optional
 
 from wsgiref.simple_server import make_server
 from pyramid.view import view_config
@@ -63,7 +63,7 @@ PROVIDERS = {
 
 
 def print_instances(
-    provider: str, cloud: str = "default", creds: Optional[Dict[str, str]] = None
+    provider: str, cloud: str = "default", creds: Optional[dict[str, str]] = None
 ) -> None:
     """
     Print instances

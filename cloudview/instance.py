@@ -4,7 +4,7 @@ Instance class
 
 import logging
 import threading
-from typing import List, Optional
+from typing import Optional
 
 from cachetools import cached, TTLCache
 
@@ -44,7 +44,7 @@ class CSP:
         self.cloud = cloud or "_"
         self._lock = threading.Lock()
 
-    def _get_instances(self) -> List[Instance]:
+    def _get_instances(self) -> list[Instance]:
         """
         Method to be overriden
         """
@@ -52,7 +52,7 @@ class CSP:
         return []
 
     @cached(cache=TTLCache(maxsize=1, ttl=300))
-    def get_instances(self) -> List[Instance]:
+    def get_instances(self) -> list[Instance]:
         """
         Cached get_instances()
         """

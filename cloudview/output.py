@@ -3,7 +3,7 @@ Handle tabular output in these formats: text, json & html
 """
 
 from json import JSONEncoder
-from typing import List, Optional
+from typing import Optional
 from urllib.parse import urlencode
 
 from cloudview.singleton import Singleton
@@ -34,7 +34,7 @@ class Output:
         self,
         output_format: Optional[str] = None,
         fmt: Optional[str] = None,
-        keys: Optional[List[str]] = None,
+        keys: Optional[list[str]] = None,
         seconds: int = 600,
     ):
         """
