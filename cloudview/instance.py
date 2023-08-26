@@ -3,7 +3,6 @@ Instance class
 """
 
 import logging
-import threading
 from typing import Optional
 
 from cachetools import cached, TTLCache
@@ -34,7 +33,6 @@ class CSP(metaclass=Singleton2):
 
     def __init__(self, cloud: str = ""):
         self.cloud = cloud or "_"
-        self._lock = threading.Lock()
 
     def _get_instances(self) -> list[Instance]:
         """
@@ -48,8 +46,7 @@ class CSP(metaclass=Singleton2):
         """
         Cached get_instances()
         """
-        with self._lock:
-            return self._get_instances()
+        return self._get_instances()
 
     def _get_instance(self, identifier: str, params: dict) -> Optional[Instance]:
         """
@@ -69,8 +66,7 @@ class CSP(metaclass=Singleton2):
                         "get_instance: returning cached info for %s", identifier
                     )
                     return instance.extra
-        with self._lock:
-            instance = self._get_instance(identifier, params)  # type: ignore
+        instance = self._get_instance(identifier, params)  # type: ignore
         if instance is None:
             return None
         return instance.extra
