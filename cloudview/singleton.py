@@ -2,6 +2,8 @@
 Singleton metaclasses
 """
 
+import threading
+
 
 class Singleton(type):
     """
@@ -26,9 +28,12 @@ class Singleton2(type):
     def __init__(cls, name, bases, attrs):
         super().__init__(name, bases, attrs)
         cls._instances = {}
+        cls._lock = threading.RLock()
 
     def __call__(cls, *args, **kwargs):
         key = (cls, args, frozenset(kwargs.items()))
         if key not in cls._instances:
-            cls._instances[key] = super().__call__(*args, **kwargs)
+            with cls._lock:
+                if key not in cls._instances:
+                    cls._instances[key] = super().__call__(*args, **kwargs)
         return cls._instances[key]
