@@ -7,8 +7,9 @@ import threading
 from typing import Optional
 
 from cachetools import cached, TTLCache
-
 from libcloud.compute.types import NodeState
+
+from cloudview.singleton import Singleton2
 
 STATES = [str(getattr(NodeState, _)) for _ in dir(NodeState) if _.isupper()]
 
@@ -26,19 +27,10 @@ class Instance:
         return getattr(self, item)  # Allow access this object as a dictionary
 
 
-class CSP:
+class CSP(metaclass=Singleton2):
     """
     Cloud Service Provider class
     """
-
-    __objects: dict = {}
-
-    def __new__(cls, cloud: str = "", **kwargs):
-        cloud = cloud or "_"
-        key = (cls, cloud)
-        if key not in CSP.__objects:
-            CSP.__objects[key] = object.__new__(cls)
-        return CSP.__objects[key]
 
     def __init__(self, cloud: str = ""):
         self.cloud = cloud or "_"

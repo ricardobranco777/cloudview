@@ -40,8 +40,6 @@ class Azure(CSP):
     """
 
     def __init__(self, cloud: str = "", **creds):
-        if hasattr(self, "cloud"):
-            return
         super().__init__(cloud)
         creds = creds or get_creds()
         try:
@@ -93,7 +91,7 @@ class Azure(CSP):
         for instance in instances:
             all_instances.append(
                 Instance(
-                    provider="Azure",
+                    provider=Provider.AZURE_ARM,
                     cloud=self.cloud,
                     name=instance.name,
                     id=instance.extra["properties"]["vmId"],

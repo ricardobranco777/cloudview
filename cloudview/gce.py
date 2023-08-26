@@ -46,8 +46,6 @@ class GCE(CSP):
     """
 
     def __init__(self, cloud: str = "", **creds):
-        if hasattr(self, "cloud"):
-            return
         super().__init__(cloud)
         try:
             creds = get_creds(creds)
@@ -118,7 +116,7 @@ class GCE(CSP):
                 for instance in instances:
                     all_instances.append(
                         Instance(
-                            provider="GCE",
+                            provider=Provider.GCE,
                             cloud=self.cloud,
                             name=instance.name,
                             id=instance.id,

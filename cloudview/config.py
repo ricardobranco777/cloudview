@@ -40,8 +40,7 @@ def check_leafs(tree: dict, insecure: bool = False) -> None:
                 pass
 
 
-@Singleton
-class Config:
+class Config(metaclass=Singleton):
     """
     Read configuration
     """

@@ -13,7 +13,7 @@ from io import StringIO
 from pathlib import Path
 from operator import itemgetter
 from threading import Thread
-from typing import Optional
+from typing import Optional, Generator
 
 from wsgiref.simple_server import make_server
 from pyramid.view import view_config
@@ -28,7 +28,7 @@ from .ec2 import EC2
 from .azure import Azure
 from .gce import GCE
 from .openstack import Openstack
-from .instance import STATES
+from .instance import CSP, STATES
 from .config import Config
 from .output import Output
 from .utils import fix_date
@@ -53,32 +53,62 @@ Options:
     --insecure                          insecure mode
 """
 
-PROVIDERS = {
-    str(Provider.EC2): EC2,
-    str(Provider.AZURE_ARM): Azure,
-    str(Provider.GCE): GCE,
-    str(Provider.OPENSTACK): Openstack,
-    "azure": Azure,
-}
+
+# pylint: disable=redefined-argument-from-local
+def get_clients(
+    provider: str = "", cloud: str = ""
+) -> Generator[Optional[CSP], None, None]:
+    """
+    Get clients for cloud providers
+    """
+    providers = {
+        str(Provider.EC2): EC2,
+        str(Provider.GCE): GCE,
+        str(Provider.AZURE_ARM): Azure,
+        str(Provider.OPENSTACK): Openstack,
+    }
+
+    if args.config.is_file():
+        config = Config(args.config, args.insecure).get_config()
+        if provider and cloud:
+            try:
+                yield providers[provider](
+                    cloud=cloud, **config["providers"][provider][cloud]
+                )
+            except KeyError:
+                logging.error("Unsupported provider/cloud %s/%s", provider, cloud)
+                yield None
+        for provider in config["providers"]:
+            if provider not in providers:
+                logging.error("Unsupported provider %s", provider)
+                continue
+            for cloud in config["providers"][provider]:
+                try:
+                    yield providers[provider](
+                        cloud=cloud, **config["providers"][provider][cloud]
+                    )
+                except LibcloudError:
+                    pass
+    else:
+        for provider in (provider,) if provider else providers.keys():
+            if provider not in providers:
+                logging.error("Unsupported provider %s", provider)
+            else:
+                try:
+                    yield providers[provider]()
+                except LibcloudError:
+                    pass
 
 
-def print_instances(
-    provider: str, cloud: str = "default", creds: Optional[dict[str, str]] = None
-) -> None:
+def print_instances(client: CSP) -> None:
     """
     Print instances
     """
-    if creds is None:
-        creds = {}
-    try:
-        client = PROVIDERS[provider](cloud=cloud, **creds)
-        instances = [
-            instance
-            for instance in client.get_instances()
-            if str(instance.state) in args.states
-        ]
-    except LibcloudError:
-        return
+    instances = [
+        instance
+        for instance in client.get_instances()
+        if str(instance.state) in args.states
+    ]
     if args.sort:
         instances.sort(
             key=itemgetter(args.sort, "name"), reverse=args.reverse  # type:ignore
@@ -94,22 +124,8 @@ def print_info() -> Optional[Response]:
     """
     sys.stdout = StringIO() if args.port else sys.stdout
     threads = []
-    if args.config.is_file():
-        config = Config(args.config, args.insecure).get_config()
-        for provider in config["providers"]:
-            if provider not in PROVIDERS:
-                logging.error("Unsupported provider %s", provider)
-                continue
-            for cloud in config["providers"][provider]:
-                threads.append(
-                    Thread(
-                        target=print_instances,
-                        args=(provider, cloud, config["providers"][provider][cloud]),
-                    )
-                )
-    else:
-        for provider in PROVIDERS:
-            threads.append(Thread(target=print_instances, args=(provider,)))
+    for client in get_clients():
+        threads.append(Thread(target=print_instances, args=(client,)))
     Output().header()
     for thread in threads:
         thread.start()
@@ -152,10 +168,10 @@ def handle_instance(request: Request) -> Response:
     provider = request.matchdict["provider"]
     cloud = request.matchdict["cloud"]
     identifier = request.matchdict["identifier"]
-    cls = PROVIDERS.get(provider)
-    if cls is not None:
-        info = cls(cloud=cloud).get_instance(identifier, **request.params)
-    if cls is None or info is None:
+    client = list(get_clients(provider=provider, cloud=cloud))[0]
+    if client is not None:
+        info = client.get_instance(identifier, **request.params)
+    if client is None or info is None:
         response = Response("Not found!")
         response.status_int = 404
         return response

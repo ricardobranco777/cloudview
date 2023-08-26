@@ -62,8 +62,6 @@ class Openstack(CSP):
     """
 
     def __init__(self, cloud: str = "", **creds):
-        if hasattr(self, "cloud"):
-            return
         super().__init__(cloud)
         creds = creds or get_creds()
         try:
@@ -120,7 +118,7 @@ class Openstack(CSP):
         for instance in instances:
             all_instances.append(
                 Instance(
-                    provider="Openstack",
+                    provider=Provider.OPENSTACK,
                     cloud=self.cloud,
                     name=instance.name,
                     id=instance.id,

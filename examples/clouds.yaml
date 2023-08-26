@@ -6,7 +6,7 @@ providers:
     project2:
       key: "YOUR_ACCESS_KEY_ID2"
       secret: "YOUR_SECRET_ACCESS_KEY2"
-  azure:
+  azure_arm:
     project1:
       key: "YOUR_CLIENT_ID1"
       secret: "YOUR_CLIENT_SECRET1"

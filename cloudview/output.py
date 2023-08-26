@@ -24,8 +24,7 @@ def get_html_footer(**kwargs) -> str:
     return FOOTER.render(**kwargs)
 
 
-@Singleton
-class Output:
+class Output(metaclass=Singleton):
     """
     Helper class to handle tabular output in text, json or html
     """

@@ -1,21 +1,34 @@
 """
-Singleton decorators
+Singleton metaclasses
 """
 
-import functools
 
-
-class Singleton:  # pylint: disable=too-few-public-methods
+class Singleton(type):
     """
-    Singleton decorator
+    Singleton metaclass
     """
 
-    def __init__(self, cls):
-        self.cls = cls
-        self.instance = None
-        functools.update_wrapper(self, cls)
+    def __init__(cls, name, bases, attrs):
+        super().__init__(name, bases, attrs)
+        cls._instance = None
 
-    def __call__(self, *args, **kwargs):
-        if self.instance is None:
-            self.instance = self.cls(*args, **kwargs)
-        return self.instance
+    def __call__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__call__(*args, **kwargs)
+        return cls._instance
+
+
+class Singleton2(type):
+    """
+    Singleton metaclass that considers arguments
+    """
+
+    def __init__(cls, name, bases, attrs):
+        super().__init__(name, bases, attrs)
+        cls._instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        key = (cls, args, frozenset(kwargs.items()))
+        if key not in cls._instances:
+            cls._instances[key] = super().__call__(*args, **kwargs)
+        return cls._instances[key]

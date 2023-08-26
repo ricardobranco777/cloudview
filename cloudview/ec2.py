@@ -36,8 +36,6 @@ class EC2(CSP):
     """
 
     def __init__(self, cloud: str = "", **creds):
-        if hasattr(self, "cloud"):
-            return
         super().__init__(cloud)
         creds = creds or get_creds()
         try:
@@ -121,7 +119,7 @@ class EC2(CSP):
                 for instance in instances:
                     all_instances.append(
                         Instance(
-                            provider="EC2",
+                            provider=Provider.EC2,
                             cloud=self.cloud,
                             name=instance.name,
                             id=instance.id,
