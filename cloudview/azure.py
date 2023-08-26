@@ -5,6 +5,7 @@ https://libcloud.readthedocs.io/en/stable/compute/drivers/azure_arm.html
 
 import logging
 import os
+from functools import cached_property
 from typing import Optional
 
 from libcloud.compute.providers import get_driver
@@ -52,17 +53,26 @@ class Azure(CSP):
         except KeyError as exc:
             logging.error("Azure: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
-        options = {
+        self.options = {
             "ex_resource_group": None,
             "ex_fetch_nic": False,
             "ex_fetch_power_state": True,
         }
-        cls = get_driver(Provider.AZURE_ARM)
-        try:
-            self.driver = cls(*self.creds, **options)
-        except RequestException as exc:
-            logging.error("Azure: %s: %s", self.cloud, exception(exc))
-            raise LibcloudError(f"{exc}") from exc
+        self._driver = None
+
+    @cached_property
+    def driver(self):
+        """
+        Get driver
+        """
+        if self._driver is None:
+            cls = get_driver(Provider.AZURE_ARM)
+            try:
+                self._driver = cls(*self.creds, **self.options)
+            except RequestException as exc:
+                logging.error("Azure: %s: %s", self.cloud, exception(exc))
+                raise LibcloudError(f"{exc}") from exc
+        return self._driver
 
     def _get_instance(self, identifier: str, params: dict) -> Optional[Instance]:
         """

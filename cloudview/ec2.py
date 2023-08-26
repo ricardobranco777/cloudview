@@ -8,7 +8,6 @@ import os
 import concurrent.futures
 from typing import Optional
 
-from cachetools import cached, TTLCache
 from libcloud.compute.base import Node
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError, InvalidCredsError
@@ -43,26 +42,13 @@ class EC2(CSP):
         except KeyError as exc:
             logging.error("EC2: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
-        cls = get_driver(Provider.EC2)
-        self.driver = cls(*self.creds)
-        try:
-            self.driver.list_locations()
-        except (LibcloudError, RequestException) as exc:
-            logging.error("EC2: %s: %s", self.cloud, exception(exc))
-            raise LibcloudError(f"{exc}") from exc
 
-    @cached(cache=TTLCache(maxsize=1, ttl=300))
-    def list_regions(self) -> set[str]:
+    def list_regions(self) -> list[str]:
         """
         List regions
         """
-        regions = self.driver.list_regions()
-        if regions:
-            return set(regions)
-        return set(
-            location.availability_zone.region_name
-            for location in self.driver.list_locations()
-        )
+        cls = get_driver(Provider.EC2)
+        return list(cls.list_regions())
 
     def list_instances_in_region(self, region: str) -> list[Node]:
         """

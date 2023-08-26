@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import concurrent.futures
+from functools import cached_property
 from typing import Optional
 
 from cachetools import cached, TTLCache
@@ -54,13 +55,22 @@ class GCE(CSP):
             logging.error("GCE: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
         self.creds = creds
-        cls = get_driver(Provider.GCE)
-        try:
-            self.driver = cls(self.user_id, **self.creds)
-            self.list_zones()
-        except (LibcloudError, RequestException) as exc:
-            logging.error("GCE: %s: %s", self.cloud, exception(exc))
-            raise LibcloudError(f"{exc}") from exc
+        self._driver = None
+
+    @cached_property
+    def driver(self):
+        """
+        Get driver
+        """
+        if self._driver is None:
+            cls = get_driver(Provider.GCE)
+            try:
+                self._driver = cls(self.user_id, **self.creds)
+                self.list_zones()
+            except (LibcloudError, RequestException) as exc:
+                logging.error("GCE: %s: %s", self.cloud, exception(exc))
+                raise LibcloudError(f"{exc}") from exc
+        return self._driver
 
     @cached(cache=TTLCache(maxsize=1, ttl=300))
     def list_zones(self) -> list[GCEZone]:
@@ -76,10 +86,8 @@ class GCE(CSP):
         if zone.status != "UP":
             logging.debug("GCE: %s status is %s", zone.name, zone.status)
             return []
-        cls = get_driver(Provider.GCE)
         try:
-            driver = cls(self.user_id, **self.creds)
-            return driver.list_nodes(ex_zone=zone)
+            return self.driver.list_nodes(ex_zone=zone)
         except (LibcloudError, RequestException) as exc:
             logging.error("GCE: %s: %s", self.cloud, exception(exc))
             return []
@@ -105,7 +113,9 @@ class GCE(CSP):
             logging.error("GCE: %s: %s", self.cloud, exception(exc))
             return []
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=len(zones)) as executor:
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=min(10, len(zones))
+        ) as executor:
             future_to_zone = {
                 executor.submit(self.list_instances_in_zone, zone): zone
                 for zone in zones
