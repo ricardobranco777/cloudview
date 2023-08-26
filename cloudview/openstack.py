@@ -107,7 +107,11 @@ class Openstack(CSP):
         """
         Get sizes
         """
-        return self.driver.list_sizes()
+        try:
+            return self.driver.list_sizes()
+        except (LibcloudError, RequestException) as exc:
+            logging.error("Openstack: %s: %s", self.cloud, exception(exc))
+            raise
 
     def _get_instance(self, identifier: str, _: dict) -> Optional[Instance]:
         """
@@ -131,7 +135,7 @@ class Openstack(CSP):
 
         try:
             instances = self.driver.list_nodes(**self.options)
-        except LibcloudError as exc:
+        except (LibcloudError, RequestException) as exc:
             logging.error("Openstack: %s: %s", self.cloud, exception(exc))
             return []
 
