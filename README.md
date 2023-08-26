@@ -40,6 +40,10 @@ NOTES:
 - The key names are not arbitrary and are the names of the arguments passed to the class factory of each provider in libcloud.
 - If this file is not present, **cloudview** will try to get the information from the standard `AWS_*`, `AZURE_*`, `GOOGLE_*` & `OS_` environment variables.
 
+## cloudview.sh
+
+The [cloudview.sh](cloudview.sh) scripts scans `clouds.yaml` and environment variables to execute the proper Docker command.
+
 ## To run with Docker or Podman:
 
 `docker run --rm [OPTIONS] -v /path/to/clouds.yaml:/clouds.yaml:ro ghcr.io/ricardobranco777/cloudview -c /clouds.yaml`

@@ -3,6 +3,7 @@
 set -e
 umask 077
 
+# shellcheck disable=SC2016
 envsubst '$APP_PORT $NGINX_HOST' < /etc/nginx/conf.d/site.conf.template > /run/site.conf
 
 openssl_config() {

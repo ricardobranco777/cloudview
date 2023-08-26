@@ -37,6 +37,16 @@ jobs:
         run: |
           make mypy
 
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: .
+
   docker:
     runs-on: ubuntu-latest
     steps:
@@ -48,6 +58,3 @@ jobs:
           PASS=testing docker compose -f examples/docker-compose.yml --project-directory . up -d
           sleep 10
           test "$(curl -4k -u test:testing https://localhost:8443/test)" = "OK"
-
-
-
