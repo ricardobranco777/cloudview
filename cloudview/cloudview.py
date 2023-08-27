@@ -13,6 +13,7 @@ from io import StringIO
 from pathlib import Path
 from operator import itemgetter
 from threading import Thread
+from urllib.parse import urlencode
 from typing import Optional, Generator
 
 from wsgiref.simple_server import make_server
@@ -114,8 +115,14 @@ def print_instances(client: CSP) -> None:
             key=itemgetter(args.sort, "name"), reverse=args.reverse  # type:ignore
         )
     for instance in instances:
+        if instance.cloud != "_":
+            instance.provider = "/".join([instance.provider, instance.cloud])
+        if args.output == "html":
+            params = urlencode(instance.params)
+            resource = "/".join([instance.provider.lower(), f"{instance.id}?{params}"])
+            instance.href = f"instance/{resource}"
         instance.time = fix_date(instance.time, args.time if args.verbose else None)
-        Output().info(instance, **instance.__dict__)
+        Output().info(instance)
 
 
 def print_info() -> Optional[Response]:
@@ -259,14 +266,14 @@ def main():
     logging.basicConfig(format=fmt, stream=sys.stderr, level=args.log.upper())
 
     keys = "provider name size state time location".split()
-    fmt = "{d[provider]:15}  {d[name]:50}  {d[size]:>20}  {d[state]:>10}  {d[time]:30}  {d[location]:15}"
+    fmt = "{item[provider]:15}  {item[name]:50}  {item[size]:>20}  {item[state]:>10}  {item[time]:30}  {item[location]:15}"
     if args.verbose:
         keys.append("id")
-        fmt += "  {d[id]}"
+        fmt += "  {item[id]}"
 
     if args.port:
         args.output = "html"
-    _ = Output(output_format=args.output.lower(), keys=keys, fmt=fmt)
+    Output(type=args.output.lower(), keys=keys, format=fmt)
 
     if args.port:
         web_server()

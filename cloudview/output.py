@@ -2,28 +2,14 @@
 Handle tabular output in these formats: text, json & html
 """
 
-from json import JSONEncoder
+import json
 from typing import Optional
-from urllib.parse import urlencode
 
 from cloudview.singleton import Singleton
 from cloudview.templates import HEADER, FOOTER
 
 
-def get_html_header(**kwargs) -> str:
-    """
-    Return the HTML header rendered from a Jinja2 template
-    """
-    return HEADER.render(**kwargs)
-
-
-def get_html_footer(**kwargs) -> str:
-    """
-    Return the HTML footer rendered from a Jinja2 template
-    """
-    return FOOTER.render(**kwargs)
-
-
+# pylint: disable=redefined-builtin
 class Output(metaclass=Singleton):
     """
     Helper class to handle tabular output in text, json or html
@@ -31,8 +17,8 @@ class Output(metaclass=Singleton):
 
     def __init__(
         self,
-        output_format: Optional[str] = None,
-        fmt: Optional[str] = None,
+        type: Optional[str] = None,
+        format: Optional[str] = None,
         keys: Optional[list[str]] = None,
         seconds: int = 600,
     ):
@@ -42,60 +28,44 @@ class Output(metaclass=Singleton):
         keys are the items in the dictionary
         seconds is the refresh time for HTML output
         """
-        if output_format not in ("text", "json", "html"):
-            raise ValueError(f"Invalid type: {output_format}")
-        self.output_format = output_format
+        if type not in ("text", "json", "html"):
+            raise ValueError(f"Invalid type: {type}")
+        self.type = type
         if keys is None:
             keys = []
         self.keys = keys
-        self.fmt = fmt
-        self.last_item = None
+        self.format = format
         self.seconds = seconds
+        self.data: list[dict] = []
 
     def header(self):
         """
         Print the header for output
         """
-        if self.output_format == "text":
-            print(self.fmt.format(d={_: _.upper() for _ in self.keys}))
-        elif self.output_format == "json":
-            print("[")
-        elif self.output_format == "html":
-            table_header = "\n".join(
-                [f"<th>{_.upper().replace('_', ' ')}</th>" for _ in self.keys]
-            )
-            print(get_html_header(seconds=self.seconds) + table_header)
+        if self.type == "text":
+            print(self.format.format(item={key: key.upper() for key in self.keys}))
+        elif self.type == "html":
+            table_header = "\n".join([f"<th>{key.upper()}</th>" for key in self.keys])
+            print(f"{HEADER}{table_header}")
 
-    def info(self, item, **kwargs):
+    def info(self, item):
         """
         Dump item information
         """
-        if self.output_format == "text":
-            if item["cloud"] != "_":
-                item.provider = "/".join([item["provider"], item["cloud"]])
-            print(self.fmt.format(d=item))
-        elif self.output_format == "json":
-            if self.last_item is not None:
-                print(f"{self.last_item},")
-            self.last_item = JSONEncoder(default=str, indent=2, sort_keys=True).encode(
-                dict(kwargs)
-            )
-        elif self.output_format == "html":
-            params = urlencode(item.params)
-            resource = "/".join(
-                [item.provider.lower(), item.cloud, f"{item.id}?{params}"]
-            )
-            kwargs["name"] = f"<a href=\"instance/{resource}\">{kwargs['name']}</a>"
-            lines = "\n".join([f" <td>{kwargs[_]}</td>" for _ in self.keys])
+        if self.type == "text":
+            print(self.format.format(item=item))
+        elif self.type == "json":
+            self.data.append(item.__dict__)
+        elif self.type == "html":
+            item.name = f'<a href="{item.href}">{item.name}</a>'
+            lines = "\n".join([f" <td>{item[key]}</td>" for key in self.keys])
             print(f"<tr>\n{lines}\n</tr>")
 
     def footer(self):
         """
         Print the footer for output
         """
-        if self.output_format == "json":
-            if self.last_item is None:
-                self.last_item = ""
-            print(f"{self.last_item}\n]")
-        elif self.output_format == "html":
-            print(get_html_footer(seconds=self.seconds))
+        if self.type == "json":
+            print(json.dumps(self.data, indent=2, default=str))
+        elif self.type == "html":
+            print(FOOTER)

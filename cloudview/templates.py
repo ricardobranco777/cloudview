@@ -5,6 +5,10 @@ Jinja templates
 from jinja2 import Template
 
 
+_PARAMS = {
+    "seconds": 600,
+}
+
 _HEADER = """<!DOCTYPE html>
 <html><head><meta charset="utf-8" http-equiv="refresh" content="{{ seconds }}"/>
 <link rel="shortcut icon" href="/favicon.ico">
@@ -65,5 +69,5 @@ document.getElementById("date").innerHTML = date;
 </body></html>"""
 
 
-HEADER = Template(_HEADER)
-FOOTER = Template(_FOOTER)
+HEADER = Template(_HEADER).render(**_PARAMS)
+FOOTER = Template(_FOOTER).render(**_PARAMS)
