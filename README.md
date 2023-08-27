@@ -1,5 +1,7 @@
 ![Build Status](https://github.com/ricardobranco777/cloudview/actions/workflows/ci.yml/badge.svg)
 
+[![codecov](https://codecov.io/gh/ricardobranco777/cloudview/branch/master/graph/badge.svg)](https://codecov.io/gh/ricardobranco777/cloudview)
+
 # cloudview
 
 View instance information on EC2, Azure, GCE & OpenStack.

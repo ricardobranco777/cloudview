@@ -3,3 +3,4 @@
 *.egg-info
 clouds.yaml
 docker-compose.yml
+.coverage

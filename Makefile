@@ -17,7 +17,7 @@ pylint:
 
 .PHONY: test
 test:
-	@pytest -v
+	@pytest --capture=sys -v --cov --cov-report term-missing
 
 .PHONY: mypy
 mypy:

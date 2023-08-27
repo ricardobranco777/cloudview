@@ -10,7 +10,7 @@ from pathlib import Path
 
 import yaml
 
-from cloudview.singleton import Singleton
+from cloudview.singleton import Singleton2
 
 
 def check_permissions(path: Path, insecure: bool = False) -> None:
@@ -40,7 +40,7 @@ def check_leafs(tree: dict, insecure: bool = False) -> None:
                 pass
 
 
-class Config(metaclass=Singleton):
+class Config(metaclass=Singleton2):
     """
     Read configuration
     """
