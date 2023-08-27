@@ -56,7 +56,7 @@ class Azure(CSP):
         self.options = {
             "ex_resource_group": None,
             "ex_fetch_nic": False,
-            "ex_fetch_power_state": True,
+            "ex_fetch_power_state": False,
         }
         self._driver = None
 
