@@ -42,26 +42,18 @@ class EC2(CSP):
         except KeyError as exc:
             logging.error("EC2: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
-
-    def list_regions(self) -> list[str]:
-        """
-        List regions
-        """
         cls = get_driver(Provider.EC2)
-        return list(cls.list_regions())
+        self.regions = cls.list_regions()
+        self._drivers = {
+            region: cls(*self.creds, region=region) for region in self.regions
+        }
 
     def list_instances_in_region(self, region: str) -> list[Node]:
         """
         List instance in region
         """
-        cls = get_driver(Provider.EC2)
         try:
-            driver = cls(*self.creds, region=region)
-        except (LibcloudError, RequestException) as exc:
-            logging.error("EC2: %s: %s", self.cloud, exception(exc))
-            return []
-        try:
-            return driver.list_nodes(ex_filters=None)
+            return self._drivers[region].list_nodes(ex_filters=None)
         except InvalidCredsError:
             pass
         except (LibcloudError, RequestException) as exc:
@@ -70,12 +62,10 @@ class EC2(CSP):
 
     def _get_instance(self, identifier: str, params: dict) -> Optional[Instance]:
         instance_id = identifier
-        region = params["region"]
-        cls = get_driver(Provider.EC2)
         try:
-            driver = cls(*self.creds, region=region)
-            instance = driver.list_nodes(ex_node_ids=[instance_id])[0]
-        except (AttributeError, TypeError, LibcloudError, RequestException) as exc:
+            region = params["region"]
+            instance = self._drivers[region].list_nodes(ex_node_ids=[instance_id])[0]
+        except (AttributeError, KeyError, TypeError, LibcloudError, RequestException) as exc:
             logging.error("EC2: %s: %s: %s", self.cloud, identifier, exception(exc))
             return None
         return Instance(extra=instance.extra)
@@ -86,18 +76,12 @@ class EC2(CSP):
         """
         all_instances = []
 
-        try:
-            regions = self.list_regions()
-        except (LibcloudError, RequestException) as exc:
-            logging.error("EC2: %s: %s", self.cloud, exception(exc))
-            return []
-
         with concurrent.futures.ThreadPoolExecutor(
-            max_workers=len(regions)
+            max_workers=len(self.regions)
         ) as executor:
             future_to_region = {
                 executor.submit(self.list_instances_in_region, region): region
-                for region in regions
+                for region in self.regions
             }
             for future in concurrent.futures.as_completed(future_to_region):
                 region = future_to_region[future]
