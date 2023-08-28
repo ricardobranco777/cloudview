@@ -65,7 +65,7 @@ class EC2(CSP):
         try:
             region = params["region"]
             instance = self._drivers[region].list_nodes(ex_node_ids=[instance_id])[0]
-        except (AttributeError, KeyError, TypeError, LibcloudError, RequestException) as exc:
+        except (KeyError, TypeError, LibcloudError, RequestException) as exc:
             logging.error("EC2: %s: %s: %s", self.cloud, identifier, exception(exc))
             return None
         return Instance(extra=instance.extra)

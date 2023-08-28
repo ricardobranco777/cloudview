@@ -54,51 +54,50 @@ Options:
     --insecure                          insecure mode
 """
 
+PROVIDERS = {
+    str(Provider.EC2): EC2,
+    str(Provider.GCE): GCE,
+    str(Provider.AZURE_ARM): Azure,
+    str(Provider.OPENSTACK): Openstack,
+}
 
-# pylint: disable=redefined-argument-from-local
+
 def get_clients(
-    provider: str = "", cloud: str = ""
+    config_file: Path,
+    insecure: bool = False,
+    provider: str = "",
+    cloud: str = "",
 ) -> Generator[Optional[CSP], None, None]:
     """
     Get clients for cloud providers
     """
-    providers = {
-        str(Provider.EC2): EC2,
-        str(Provider.GCE): GCE,
-        str(Provider.AZURE_ARM): Azure,
-        str(Provider.OPENSTACK): Openstack,
-    }
-
-    if args.config.is_file():
-        config = Config(args.config, args.insecure).get_config()
-        if provider and cloud:
+    config = Config(config_file, insecure).get_config() if config_file.is_file() else {}
+    providers = (
+        (provider,)
+        if provider
+        else config["providers"].keys()
+        if config
+        else PROVIDERS.keys()
+    )
+    for xprovider in providers:
+        if xprovider not in PROVIDERS:
+            logging.error("Unsupported provider %s", xprovider)
+            continue
+        clouds = (
+            (cloud,)
+            if cloud
+            else config["providers"][xprovider].keys()
+            if config
+            else ("",)
+        )
+        for xcloud in clouds:
             try:
-                yield providers[provider](
-                    cloud=cloud, **config["providers"][provider][cloud]
-                )
+                creds = config["providers"][xprovider][xcloud] if config else {}
+                yield PROVIDERS[xprovider](cloud=xcloud, **creds)
             except KeyError:
-                logging.error("Unsupported provider/cloud %s/%s", provider, cloud)
-                yield None
-        for provider in config["providers"]:
-            if provider not in providers:
-                logging.error("Unsupported provider %s", provider)
-                continue
-            for cloud in config["providers"][provider]:
-                try:
-                    yield providers[provider](
-                        cloud=cloud, **config["providers"][provider][cloud]
-                    )
-                except LibcloudError:
-                    pass
-    else:
-        for provider in (provider,) if provider else providers.keys():
-            if provider not in providers:
-                logging.error("Unsupported provider %s", provider)
-            else:
-                try:
-                    yield providers[provider]()
-                except LibcloudError:
-                    pass
+                logging.error("Unsupported provider/cloud %s/%s", xprovider, xcloud)
+            except LibcloudError:
+                pass
 
 
 def print_instances(client: CSP) -> None:
@@ -115,8 +114,7 @@ def print_instances(client: CSP) -> None:
             key=itemgetter(args.sort, "name"), reverse=args.reverse  # type:ignore
         )
     for instance in instances:
-        if instance.cloud != "_":
-            instance.provider = "/".join([instance.provider, instance.cloud])
+        instance.provider = "/".join([instance.provider, instance.cloud])
         if args.output == "html":
             params = urlencode(instance.params)
             resource = "/".join([instance.provider.lower(), f"{instance.id}?{params}"])
@@ -131,7 +129,7 @@ def print_info() -> Optional[Response]:
     """
     sys.stdout = StringIO() if args.port else sys.stdout
     threads = []
-    for client in get_clients():
+    for client in get_clients(config_file=args.config, insecure=args.insecure):
         threads.append(Thread(target=print_instances, args=(client,)))
     Output().header()
     for thread in threads:
@@ -175,7 +173,14 @@ def handle_instance(request: Request) -> Response:
     provider = request.matchdict["provider"]
     cloud = request.matchdict["cloud"]
     identifier = request.matchdict["identifier"]
-    client = list(get_clients(provider=provider, cloud=cloud))[0]
+    client = list(
+        get_clients(
+            config_file=args.config,
+            insecure=args.insecure,
+            provider=provider,
+            cloud=cloud,
+        )
+    )[0]
     if client is not None:
         info = client.get_instance(identifier, **request.params)
     if client is None or info is None:
@@ -212,9 +217,7 @@ def parse_args() -> argparse.Namespace:
     Parse command line options
     """
     argparser = argparse.ArgumentParser(usage=USAGE, add_help=False)
-    argparser.add_argument(
-        "-c", "--config", default=os.path.expanduser("~/clouds.yaml"), type=Path
-    )
+    argparser.add_argument("-c", "--config", type=Path)
     argparser.add_argument("-h", "--help", action="store_true")
     argparser.add_argument("--insecure", action="store_true")
     argparser.add_argument(
@@ -257,6 +260,15 @@ def main():
         print(f"Python {sys.version}")
         print(f"Libcloud {libcloud.__version__}")
         sys.exit(0)
+
+    if args.config is None:
+        for file in (os.path.expanduser("~/clouds.yaml"), "clouds.yaml"):
+            if os.path.isfile(file):
+                args.config = Path(file)
+        if args.config is None:
+            args.config = Path()
+    elif not args.config.is_file():
+        sys.exit(f"ERROR: No such file: {args.config}")
 
     if not args.states:
         args.states = STATES
