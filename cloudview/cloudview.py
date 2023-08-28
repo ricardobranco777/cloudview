@@ -282,8 +282,9 @@ def main():
     print_info()
 
 
-try:
-    args = parse_args()
-    main()
-except KeyboardInterrupt:
-    sys.exit(1)
+if __name__ == "__main__":
+    try:
+        args = parse_args()
+        main()
+    except KeyboardInterrupt:
+        sys.exit(1)

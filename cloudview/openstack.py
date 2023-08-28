@@ -28,6 +28,9 @@ def get_creds() -> dict:
     """
     Get credentials
     """
+    url = os.getenv("OS_AUTH_URL")
+    if not url:
+        return {}
     creds = {}
     for key, *env_vars in (
         ("key", "OS_USERNAME"),
@@ -40,9 +43,6 @@ def get_creds() -> dict:
             if value:
                 creds.update({key: value})
                 break
-    url = os.getenv("OS_AUTH_URL")
-    if not url:
-        return creds
     if not url.startswith(("https://", "http://")):
         url = f"https://{url}"
     url = urlparse(url)  # type: ignore
