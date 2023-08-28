@@ -3,7 +3,7 @@ Instance class
 """
 
 import logging
-from typing import Optional
+from typing import Optional, Any
 
 from cachetools import cached, TTLCache
 from libcloud.compute.types import NodeState
@@ -22,8 +22,13 @@ class Instance:
         for attr, value in kwargs.items():
             setattr(self, attr, value)
 
+    # Allow access this object as a dictionary
+
     def __getitem__(self, item: str):
-        return getattr(self, item)  # Allow access this object as a dictionary
+        return getattr(self, item)
+
+    def __setitem__(self, item: str, value: Any):
+        return setattr(self, item, value)
 
 
 class CSP(metaclass=Singleton2):
