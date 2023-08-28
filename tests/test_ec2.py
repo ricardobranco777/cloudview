@@ -1,8 +1,13 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,redefined-outer-name,protected-access
 
+import os
 import pytest
 from cloudview.ec2 import get_creds, EC2
 from cloudview.instance import Instance
+
+for var in os.environ:
+    if var.startswith("AWS_"):
+        os.environ.pop(var)
 
 
 def test_get_creds(monkeypatch):

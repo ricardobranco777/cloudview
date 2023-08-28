@@ -1,9 +1,14 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,redefined-outer-name,protected-access
 
+import os
 import pytest
 from libcloud.compute.types import LibcloudError
 from cloudview.azure import get_creds, Azure
 from cloudview.instance import Instance
+
+for var in os.environ:
+    if var.startswith(("AZURE_", "ARM_")):
+        os.environ.pop(var)
 
 
 def test_get_creds(monkeypatch):

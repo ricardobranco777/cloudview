@@ -1,10 +1,13 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,redefined-outer-name,unused-argument,protected-access
 
 import json
+import os
 import pytest
 from libcloud.compute.types import LibcloudError
 from cloudview.gce import get_creds, GCE
 from cloudview.instance import Instance
+
+os.environ.pop("GOOGLE_APPLICATION_CREDENTIALS", "")
 
 
 @pytest.fixture

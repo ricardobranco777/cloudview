@@ -1,9 +1,14 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,redefined-outer-name,unused-argument,protected-access
 
+import os
 import pytest
 from libcloud.compute.types import LibcloudError
 from cloudview.openstack import get_creds, Openstack
 from cloudview.instance import Instance
+
+for k in os.environ:
+    if k.startswith("OS_"):
+        os.environ.pop(k)
 
 
 @pytest.fixture
