@@ -1,6 +1,9 @@
-# pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
+# pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,redefined-outer-name,protected-access
 
-from cloudview.azure import get_creds
+import pytest
+from libcloud.compute.types import LibcloudError
+from cloudview.azure import get_creds, Azure
+from cloudview.instance import Instance
 
 
 def test_get_creds(monkeypatch):
@@ -52,3 +55,128 @@ def test_get_creds_missing_env_vars():
     assert "secret" not in creds
     assert "tenant_id" not in creds
     assert "subscription_id" not in creds
+
+
+# Use the "monkeypatch" fixture to reset the singleton instance before each test
+@pytest.fixture(autouse=True)
+def reset_output_singleton(monkeypatch):
+    monkeypatch.setattr(Azure, "_instances", {})
+
+
+@pytest.fixture
+def valid_creds():
+    return {
+        "tenant_id": "test_tenant",
+        "subscription_id": "test_subscription",
+        "key": "test_key",
+        "secret": "test_secret",
+    }
+
+
+@pytest.fixture
+def mock_get_driver(mocker):
+    return mocker.patch("libcloud.compute.providers.get_driver")
+
+
+@pytest.fixture
+def mock_driver(mocker):
+    return mocker.Mock()
+
+
+@pytest.fixture
+def mock_instance(mocker):
+    return mocker.Mock(
+        id="test_instance_id",
+        name="test_instance",
+        size="small",
+        state="running",
+        extra={
+            "id": "test_instance_id",
+            "name": "test_instance",
+            "size": "small",
+            "state": "running",
+            "properties": {
+                "vmId": "test_instance_id",
+                "hardwareProfile": {"vmSize": "small"},
+                "timeCreated": "2023-08-27T12:34:56Z",
+            },
+            "location": "test_location",
+        },
+    )
+
+
+def test_azure_init_with_valid_creds(mocker, mock_get_driver, valid_creds):
+    mock_get_driver.return_value = mocker.Mock()
+    azure = Azure(cloud="test_cloud", **valid_creds)
+
+    assert azure.cloud == "test_cloud"
+    assert azure.creds == (
+        "test_tenant",
+        "test_subscription",
+        "test_key",
+        "test_secret",
+    )
+    assert azure.options == {
+        "ex_resource_group": None,
+        "ex_fetch_nic": False,
+        "ex_fetch_power_state": False,
+    }
+    assert azure._driver is None
+
+
+def test_azure_init_with_missing_creds(mocker, mock_get_driver):
+    mock_get_driver.return_value = mocker.Mock()
+    creds = {}
+    with pytest.raises(LibcloudError):
+        Azure(cloud="test_cloud", **creds)
+
+
+def test_azure_get_instance_with_valid_identifier(
+    mock_driver, mock_instance, valid_creds
+):
+    mock_driver.ex_get_node.return_value = mock_instance
+    azure = Azure(cloud="test_cloud", **valid_creds)
+    azure._driver = mock_driver
+
+    result = azure._get_instance("test_identifier", params={"id": "test_instance_id"})
+
+    assert isinstance(result, Instance)
+    assert result.extra["id"] == "test_instance_id"
+    assert result.extra["name"] == "test_instance"
+    assert result.extra["size"] == "small"
+    assert result.extra["state"] == "running"
+    assert result.extra["location"] == "test_location"
+
+
+def test_azure_get_instance_with_invalid_identifier(mock_driver, valid_creds):
+    mock_driver.ex_get_node.side_effect = LibcloudError("Node not found")
+    azure = Azure(cloud="test_cloud", **valid_creds)
+    azure._driver = mock_driver
+
+    result = azure._get_instance("test_identifier", params={"id": "non_existent_id"})
+
+    assert result is None
+
+
+def test_azure_get_instances(mock_driver, mock_instance, valid_creds):
+    mock_driver.list_nodes.return_value = [mock_instance]
+    azure = Azure(cloud="test_cloud", **valid_creds)
+    azure._driver = mock_driver
+
+    result = azure._get_instances()
+
+    assert len(result) == 1
+    assert isinstance(result[0], Instance)
+    assert result[0].id == "test_instance_id"
+    assert result[0].size == "small"
+    assert result[0].state == "running"
+    assert result[0].location == "test_location"
+
+
+def test_azure_get_instances_with_driver_exception(mock_driver):
+    mock_driver.list_nodes.side_effect = LibcloudError("Error listing nodes")
+    with pytest.raises(LibcloudError):
+        azure = Azure(cloud="test_cloud")
+        azure._driver = mock_driver
+        result = azure._get_instances()
+        assert len(result) == 0
