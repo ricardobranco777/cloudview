@@ -83,7 +83,7 @@ def test_get_creds_with_invalid_creds_file_and_env_var(
 
 # Fixture to reset the singleton instance before each test
 @pytest.fixture(autouse=True)
-def reset_output_singleton(monkeypatch):
+def reset_singleton(monkeypatch):
     monkeypatch.setattr(GCE, "_instances", {})
 
 
@@ -127,7 +127,7 @@ def mock_instance(mocker):
             "state": "running",
             "location": "test_zone",
             "machineType": "projects/test_project/machineTypes/test_size",
-            "creationTimestamp": "2023-08-27T12:34:56Z",
+            "creationTimestamp": "2023-08-28T10:05:47.723-07:00",
             "zone": mocker.Mock(name="test_zone"),
         },
     )

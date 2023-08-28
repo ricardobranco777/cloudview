@@ -53,7 +53,7 @@ def test_get_creds_with_missing_auth_url(mock_openstack_env, monkeypatch):
 
 # Fixture to reset the singleton instance before each test
 @pytest.fixture(autouse=True)
-def reset_output_singleton(monkeypatch):
+def reset_singleton(monkeypatch):
     monkeypatch.setattr(Openstack, "_instances", {})
 
 

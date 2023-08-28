@@ -53,7 +53,7 @@ def valid_creds():
 
 
 @pytest.fixture(autouse=True)
-def reset_output_singleton(monkeypatch):
+def reset_singleton(monkeypatch):
     monkeypatch.setattr(EC2, "_instances", {})
 
 

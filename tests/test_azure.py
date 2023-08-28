@@ -59,7 +59,7 @@ def test_get_creds_missing_env_vars():
 
 # Use the "monkeypatch" fixture to reset the singleton instance before each test
 @pytest.fixture(autouse=True)
-def reset_output_singleton(monkeypatch):
+def reset_singleton(monkeypatch):
     monkeypatch.setattr(Azure, "_instances", {})
 
 
@@ -88,17 +88,16 @@ def mock_instance(mocker):
     return mocker.Mock(
         id="test_instance_id",
         name="test_instance",
-        size="small",
         state="running",
         extra={
             "id": "test_instance_id",
             "name": "test_instance",
-            "size": "small",
+            "size": "Standard_B1ms",
             "state": "running",
             "properties": {
                 "vmId": "test_instance_id",
-                "hardwareProfile": {"vmSize": "small"},
-                "timeCreated": "2023-08-27T12:34:56Z",
+                "hardwareProfile": {"vmSize": "Standard_B1ms"},
+                "timeCreated": "2023-02-20T09:18:54.0380468+00:00",
             },
             "location": "test_location",
         },
@@ -143,7 +142,7 @@ def test_azure_get_instance_with_valid_identifier(
     assert isinstance(result, Instance)
     assert result.extra["id"] == "test_instance_id"
     assert result.extra["name"] == "test_instance"
-    assert result.extra["size"] == "small"
+    assert result.extra["size"] == "Standard_B1ms"
     assert result.extra["state"] == "running"
     assert result.extra["location"] == "test_location"
 
@@ -168,7 +167,7 @@ def test_azure_get_instances(mock_driver, mock_instance, valid_creds):
     assert len(result) == 1
     assert isinstance(result[0], Instance)
     assert result[0].id == "test_instance_id"
-    assert result[0].size == "small"
+    assert result[0].size == "Standard_B1ms"
     assert result[0].state == "running"
     assert result[0].location == "test_location"
 
