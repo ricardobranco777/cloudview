@@ -30,14 +30,14 @@ class Output(metaclass=Singleton):
         if type not in ("text", "json", "html"):
             raise ValueError(f"Invalid type: {type}")
         self._type = type
+        self._format = format
         if keys is None:
             keys = []
         self._keys = keys
-        self._format = format
-        self._data: list[dict] = []
+        self._items: list[dict] = []
 
     def __repr__(self):
-        return f"{type(self).__name__}(type={self._type}, format={self._format}, keys={self._keys})"
+        return f'{type(self).__name__}(type="{self._type}", format="{self._format}", keys={self._keys})'
 
     def header(self):
         """
@@ -57,9 +57,9 @@ class Output(metaclass=Singleton):
             print(self._format.format(item=item))
         elif self._type == "json":
             if isinstance(item, dict):
-                self._data.append(item)
+                self._items.append(item)
             else:
-                self._data.append(item.__dict__)
+                self._items.append(item.__dict__)
         elif self._type == "html":
             item["name"] = f"<a href=\"{item['href']}\">{item['name']}</a>"
             lines = "".join([f" <td>{item[key]}</td>" for key in self._keys])
@@ -70,6 +70,6 @@ class Output(metaclass=Singleton):
         Print the footer for output
         """
         if self._type == "json":
-            print(json.dumps(self._data, indent=2, default=str))
+            print(json.dumps(self._items, indent=2, default=str))
         elif self._type == "html":
             print(FOOTER)

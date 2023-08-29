@@ -26,7 +26,14 @@ class Instance:
         attrs = [x for x in dir(self) if not callable(x) and not x.startswith("_")]
         return (
             f"{type(self).__name__}("
-            + ", ".join([f"{x}={getattr(self, x)}" for x in attrs])
+            + ", ".join(
+                [
+                    f'{x}="{getattr(self, x)}"'
+                    if isinstance(x, str)
+                    else f"{x}={getattr(self, x)}"
+                    for x in attrs
+                ]
+            )
             + ")"
         )
 
@@ -57,7 +64,7 @@ class CSP(metaclass=Singleton2):
         self.cloud = cloud or "_"
 
     def __repr__(self):
-        return f"{type(self).__name__}(cloud={self.cloud})"
+        return f'{type(self).__name__}(cloud="{self.cloud}")'
 
     def _get_instances(self) -> list[Instance]:
         """

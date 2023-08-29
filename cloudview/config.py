@@ -52,7 +52,9 @@ class Config(metaclass=Singleton2):
         self._last_modified_time: float = float("Nan")
 
     def __repr__(self):
-        return f"{type(self).__name__}(path={self._path}, insecure={self._insecure})"
+        return (
+            f"{type(self).__name__}(path=Path({self._path}), insecure={self._insecure})"
+        )
 
     def get_config(self) -> dict:
         """
