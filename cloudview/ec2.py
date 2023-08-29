@@ -38,14 +38,14 @@ class EC2(CSP):
         super().__init__(cloud)
         creds = creds or get_creds()
         try:
-            self.creds = (creds.pop("key"), creds.pop("secret"))
+            key_secret = (creds.pop("key"), creds.pop("secret"))
         except KeyError as exc:
             logging.error("EC2: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
         cls = get_driver(Provider.EC2)
         self.regions = cls.list_regions()
         self._drivers = {
-            region: cls(*self.creds, region=region) for region in self.regions
+            region: cls(*key_secret, region=region) for region in self.regions
         }
 
     def list_instances_in_region(self, region: str) -> list[Node]:

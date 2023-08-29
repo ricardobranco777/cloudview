@@ -113,7 +113,7 @@ def test_azure_init_with_valid_creds(mocker, mock_get_driver, valid_creds):
     azure = Azure(cloud="test_cloud", **valid_creds)
 
     assert azure.cloud == "test_cloud"
-    assert azure.creds == (
+    assert azure._creds == (
         "test_tenant",
         "test_subscription",
         "test_key",

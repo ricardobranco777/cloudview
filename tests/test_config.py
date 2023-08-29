@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,redefined-outer-name,unused-argument
+# pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,redefined-outer-name,unused-argument,protected-access
 
 import stat
 from pathlib import Path
@@ -146,7 +146,7 @@ def test_get_config_cached(
     mock_stat.return_value.st_mtime = 12345.0
     config_instance = Config(Path("/path/to/config.yaml"))
 
-    config_instance.config = {"key": "value"}
+    config_instance._config = {"key": "value"}
 
     config = config_instance.get_config()
     assert config == {"key": "value"}
@@ -177,8 +177,8 @@ def test_get_config_file_not_modified(
 ):
     mock_stat.return_value.st_mtime = 12345.0
     config_instance = Config(Path("/path/to/config3.yaml"))
-    config_instance.config = {"cached": "config"}
-    config_instance.last_modified_time = 12345.0
+    config_instance._config = {"cached": "config"}
+    config_instance._last_modified_time = 12345.0
 
     config = config_instance.get_config()
     assert config == {"cached": "config"}
@@ -193,7 +193,7 @@ def test_get_config_file_modified(
 ):
     mock_stat.return_value.st_mtime = 12346.0
     config_instance = Config(Path("/path/to/config4.yaml"))
-    config_instance.last_modified_time = 12345.0
+    config_instance._last_modified_time = 12345.0
 
     mock_yaml_load.return_value = {"modified": "config"}
 
@@ -213,7 +213,7 @@ def test_get_config_os_error_cached_config(
 
     # Simulate an OSError and ensure that the cached configuration is returned
     mock_check_permissions.side_effect = OSError
-    config_instance.config = {"cached": "config"}
+    config_instance._config = {"cached": "config"}
 
     config = config_instance.get_config()
 

@@ -56,6 +56,9 @@ class CSP(metaclass=Singleton2):
     def __init__(self, cloud: str = ""):
         self.cloud = cloud or "_"
 
+    def __repr__(self):
+        return f"{type(self).__name__}(cloud={self.cloud})"
+
     def _get_instances(self) -> list[Instance]:
         """
         Method to be overriden

@@ -72,9 +72,9 @@ class Openstack(CSP):
         except KeyError as exc:
             logging.error("Openstack: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
-        self.creds = creds
-        self.options = {"ex_all_tenants": False}
+        self._creds = creds
         self._driver = None
+        self.options = {"ex_all_tenants": False}
 
     @cached_property
     def driver(self):
@@ -84,7 +84,7 @@ class Openstack(CSP):
         if self._driver is None:
             cls = get_driver(Provider.OPENSTACK)
             try:
-                self._driver = cls(self.key, **self.creds)
+                self._driver = cls(self.key, **self._creds)
             except LibcloudError as exc:
                 logging.error("Openstack: %s: %s", self.cloud, exception(exc))
                 raise

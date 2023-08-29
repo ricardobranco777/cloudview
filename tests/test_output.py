@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,redefined-outer-name
+# pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,redefined-outer-name,protected-access
 
 import json
 
@@ -36,7 +36,7 @@ def test_invalid_output_type():
 
 def test_text_output_header(text_output, capsys):
     expected_header = "NAME  AGE\n"
-    text_output.keys = ["name", "age"]
+    text_output._keys = ["name", "age"]
     text_output.header()
     captured = capsys.readouterr()
     assert captured.out == expected_header
@@ -44,7 +44,7 @@ def test_text_output_header(text_output, capsys):
 
 def test_text_output_info(text_output, capsys):
     expected_info = "John   30\n"
-    text_output.format = "{item[name]}   {item[age]}"
+    text_output._format = "{item[name]}   {item[age]}"
     text_output.info({"name": "John", "age": 30})
     captured = capsys.readouterr()
     assert captured.out == expected_info

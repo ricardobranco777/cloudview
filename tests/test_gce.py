@@ -142,7 +142,7 @@ def test_gce_init_with_valid_creds(mocker, mock_get_driver, valid_creds):
 
     assert gce.cloud == "test_cloud"
     assert gce.user_id == "test_user"
-    assert gce.creds == {
+    assert gce._creds == {
         "project": "test_project",
         "key": "test_key",
     }

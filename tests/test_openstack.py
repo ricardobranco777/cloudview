@@ -107,7 +107,7 @@ def test_openstack_init_with_valid_creds(mocker, mock_get_driver, valid_creds):
 
     assert openstack.cloud == "test_cloud"
     assert openstack.key == "test_key"
-    assert openstack.creds == {
+    assert openstack._creds == {
         "tenant_name": "test_project",
         "user_domain_name": "test_domain",
     }

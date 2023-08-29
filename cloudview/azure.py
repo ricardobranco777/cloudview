@@ -44,7 +44,7 @@ class Azure(CSP):
         super().__init__(cloud)
         creds = creds or get_creds()
         try:
-            self.creds = (
+            self._creds = (
                 creds.pop("tenant_id"),
                 creds.pop("subscription_id"),
                 creds.pop("key"),
@@ -68,7 +68,7 @@ class Azure(CSP):
         if self._driver is None:
             cls = get_driver(Provider.AZURE_ARM)
             try:
-                self._driver = cls(*self.creds, **self.options)
+                self._driver = cls(*self._creds, **self.options)
             except RequestException as exc:
                 logging.error("Azure: %s: %s", self.cloud, exception(exc))
                 raise LibcloudError(f"{exc}") from exc

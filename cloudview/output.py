@@ -20,7 +20,6 @@ class Output(metaclass=Singleton):
         type: Optional[str] = None,
         format: Optional[str] = None,
         keys: Optional[list[str]] = None,
-        seconds: int = 600,
     ):
         """
         type must be either text, json or html
@@ -30,45 +29,47 @@ class Output(metaclass=Singleton):
         """
         if type not in ("text", "json", "html"):
             raise ValueError(f"Invalid type: {type}")
-        self.type = type
+        self._type = type
         if keys is None:
             keys = []
-        self.keys = keys
-        self.format = format
-        self.seconds = seconds
-        self.data: list[dict] = []
+        self._keys = keys
+        self._format = format
+        self._data: list[dict] = []
+
+    def __repr__(self):
+        return f"{type(self).__name__}(type={self._type}, format={self._format}, keys={self._keys})"
 
     def header(self):
         """
         Print the header for output
         """
-        if self.type == "text":
-            print(self.format.format(item={key: key.upper() for key in self.keys}))
-        elif self.type == "html":
-            table_header = "".join([f"<th>{key.upper()}</th>" for key in self.keys])
+        if self._type == "text":
+            print(self._format.format(item={key: key.upper() for key in self._keys}))
+        elif self._type == "html":
+            table_header = "".join([f"<th>{key.upper()}</th>" for key in self._keys])
             print(f"{HEADER}{table_header}")
 
     def info(self, item):
         """
         Dump item information
         """
-        if self.type == "text":
-            print(self.format.format(item=item))
-        elif self.type == "json":
+        if self._type == "text":
+            print(self._format.format(item=item))
+        elif self._type == "json":
             if isinstance(item, dict):
-                self.data.append(item)
+                self._data.append(item)
             else:
-                self.data.append(item.__dict__)
-        elif self.type == "html":
+                self._data.append(item.__dict__)
+        elif self._type == "html":
             item["name"] = f"<a href=\"{item['href']}\">{item['name']}</a>"
-            lines = "".join([f" <td>{item[key]}</td>" for key in self.keys])
+            lines = "".join([f" <td>{item[key]}</td>" for key in self._keys])
             print(f"<tr>\n{lines}\n</tr>")
 
     def footer(self):
         """
         Print the footer for output
         """
-        if self.type == "json":
-            print(json.dumps(self.data, indent=2, default=str))
-        elif self.type == "html":
+        if self._type == "json":
+            print(json.dumps(self._data, indent=2, default=str))
+        elif self._type == "html":
             print(FOOTER)

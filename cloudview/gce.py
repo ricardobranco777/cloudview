@@ -54,7 +54,7 @@ class GCE(CSP):
         except (KeyError, OSError, json.decoder.JSONDecodeError) as exc:
             logging.error("GCE: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
-        self.creds = creds
+        self._creds = creds
         self._driver = None
 
     @cached_property
@@ -65,7 +65,7 @@ class GCE(CSP):
         if self._driver is None:
             cls = get_driver(Provider.GCE)
             try:
-                self._driver = cls(self.user_id, **self.creds)
+                self._driver = cls(self.user_id, **self._creds)
                 self.list_zones()
             except (LibcloudError, RequestException) as exc:
                 logging.error("GCE: %s: %s", self.cloud, exception(exc))

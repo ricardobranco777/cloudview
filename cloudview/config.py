@@ -46,35 +46,38 @@ class Config(metaclass=Singleton2):
     """
 
     def __init__(self, path: Path, insecure: bool = False):
-        self.path = path
-        self.insecure = insecure
-        self.config: dict = {}
-        self.last_modified_time: float = float("Nan")
+        self._path = path
+        self._insecure = insecure
+        self._config: dict = {}
+        self._last_modified_time: float = float("Nan")
+
+    def __repr__(self):
+        return f"{type(self).__name__}(path={self._path}, insecure={self._insecure})"
 
     def get_config(self) -> dict:
         """
         Get configuration from yaml
         """
         try:
-            check_permissions(self.path, self.insecure)
-            last_modified_time = self.path.stat().st_mtime
+            check_permissions(self._path, self._insecure)
+            last_modified_time = self._path.stat().st_mtime
 
             # Check if the current modification time is different from the last one
-            if self.last_modified_time == last_modified_time:
-                return self.config
+            if self._last_modified_time == last_modified_time:
+                return self._config
 
             # If the file has been modified, read the configuration
-            with open(self.path, encoding="utf-8") as file:
+            with open(self._path, encoding="utf-8") as file:
                 config = yaml.full_load(file)
         except OSError:
-            if self.config:
-                return self.config
+            if self._config:
+                return self._config
             raise
 
-        check_leafs(config, self.insecure)
+        check_leafs(config, self._insecure)
 
         # Cache the configuration and modification time
-        self.config = config
-        self.last_modified_time = last_modified_time
+        self._config = config
+        self._last_modified_time = last_modified_time
 
         return config
