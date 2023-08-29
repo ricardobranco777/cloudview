@@ -44,15 +44,7 @@ NOTES:
 
 ## cloudview.sh
 
-The [cloudview.sh](cloudview.sh) scripts scans `clouds.yaml` and environment variables to execute the proper Docker command.
-
-## To run with Docker or Podman:
-
-`docker run --rm [OPTIONS] -v /path/to/clouds.yaml:/clouds.yaml:ro ghcr.io/ricardobranco777/cloudview -c /clouds.yaml`
-
-NOTES:
-- Make sure you also mount the path to the JSON file holding the GCE credentials with the same path mentioned in `clouds.yaml`
-- For private Openstack you'd also want to mount the CA's certificates and add `-e REQUESTS_CA_BUNDLE=/path/to/certs.pem`
+The [cloudview.sh](cloudview.sh) script scans `clouds.yaml` and environment variables to execute the proper `docker` command.
 
 ## To run the web server with Docker Compose:
 
