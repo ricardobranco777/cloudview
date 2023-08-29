@@ -13,7 +13,7 @@ from io import StringIO
 from pathlib import Path
 from operator import itemgetter
 from threading import Thread
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote, unquote
 from typing import Optional, Generator
 
 from wsgiref.simple_server import make_server
@@ -164,6 +164,27 @@ def test(request: Optional[Request] = None) -> Optional[Response]:
     return None
 
 
+def not_found():
+    """
+    Not found!
+    """
+    response = Response("Not found!")
+    response.status_int = 404
+    return response
+
+
+def valid_elem(elem: str) -> bool:
+    """
+    Validates URL path component
+    """
+    return (
+        0 < len(elem) < 64
+        and elem.isascii()
+        and "/" not in elem
+        and elem == unquote(quote(elem, safe=""))
+    )
+
+
 @view_config(route_name="instance")
 def handle_instance(request: Request) -> Response:
     """
@@ -173,6 +194,8 @@ def handle_instance(request: Request) -> Response:
     provider = request.matchdict["provider"]
     cloud = request.matchdict["cloud"]
     identifier = request.matchdict["identifier"]
+    if provider not in PROVIDERS or not valid_elem(cloud) or not valid_elem(identifier):
+        return not_found()
     client = list(
         get_clients(
             config_file=args.config,
@@ -184,9 +207,7 @@ def handle_instance(request: Request) -> Response:
     if client is not None:
         info = client.get_instance(identifier, **request.params)
     if client is None or info is None:
-        response = Response("Not found!")
-        response.status_int = 404
-        return response
+        return not_found()
     response = html.escape(
         JSONEncoder(default=str, indent=4, sort_keys=True).encode(info)
     )

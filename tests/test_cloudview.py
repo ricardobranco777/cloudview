@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 import pytest
 from libcloud.compute.types import Provider, LibcloudError
-from cloudview.cloudview import port_number, get_clients
+from cloudview.cloudview import port_number, get_clients, valid_elem
 
 
 class EC2:
@@ -31,6 +31,35 @@ def test_invalid_port_number_non_numeric():
     for port in invalid_ports:
         with pytest.raises(argparse.ArgumentTypeError):
             port_number(port)
+
+
+def test_valid_elem_valid_input():
+    assert valid_elem("example") is True
+    assert valid_elem("path123") is True
+
+
+def test_valid_elem_empty_input():
+    assert valid_elem("") is False
+
+
+def test_valid_elem_too_long_input():
+    assert valid_elem("a" * 64) is False
+
+
+def test_valid_elem_contains_slash():
+    assert valid_elem("with/slash") is False
+
+
+def test_valid_elem_non_ascii_input():
+    assert valid_elem("résumé") is False
+
+
+def test_valid_elem_url_encoding():
+    assert valid_elem("hello%20world") is True
+
+
+def test_valid_elem_url_decoding():
+    assert valid_elem("hello world") is True
 
 
 def test_get_clients_unsupported_provider(caplog):
