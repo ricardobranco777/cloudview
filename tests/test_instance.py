@@ -5,41 +5,16 @@ from cloudview.instance import Instance, CSP
 
 
 def test_instance_creation():
-    instance = Instance(name="Example", type="VM", status="Running")
+    instance = Instance(name="Example", state="Running")
     assert instance.name == "Example"
-    assert instance.type == "VM"
-    assert instance.status == "Running"
+    assert instance.state == "Running"
 
 
 def test_instance_dict_access():
-    instance = Instance(name="Example", type="VM", status="Running")
+    instance = Instance(name="Example", state="Running")
 
     assert instance["name"] == "Example"
-    assert instance["type"] == "VM"
-    assert instance["status"] == "Running"
-
-
-def test_instance_dict_assignment():
-    instance = Instance()
-
-    instance["name"] = "Updated Name"
-    instance["type"] = "Updated Type"
-
-    assert instance.name == "Updated Name"
-    assert instance.type == "Updated Type"
-
-
-def test_instance_dict_deletion():
-    instance = Instance(name="Alice", age=30)
-
-    with pytest.raises(KeyError):
-        del instance["nonexistent"]
-    del instance["name"]
-    with pytest.raises(AttributeError):
-        _ = instance.name
-
-    with pytest.raises(KeyError):
-        del instance["nonexistent"]
+    assert instance["state"] == "Running"
 
 
 def test_instance_unknown_attribute():
@@ -94,6 +69,7 @@ def test_csp_get_instance():
     csp = MockCSP()
     instance = csp.get_instance("id1")
     assert instance["name"] == "Instance1"
+    assert instance["state"] == "running"
 
 
 def test_csp_get_instance_not_found():

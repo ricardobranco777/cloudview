@@ -3,7 +3,8 @@ Instance class
 """
 
 import logging
-from typing import Any
+from datetime import datetime
+from typing import Optional
 
 from cachetools import cached, TTLCache
 from libcloud.compute.types import NodeState, LibcloudError
@@ -16,25 +17,62 @@ CACHED_SECONDS = 300
 STATES = [str(getattr(NodeState, _)) for _ in dir(NodeState) if _.isupper()]
 
 
-class Instance:
+class Instance:  # pylint: disable=too-many-instance-attributes
     """
     Instance class
     """
 
-    def __init__(self, **kwargs):
-        for attr, value in kwargs.items():
-            setattr(self, attr, value)
+    __slots__ = (
+        "__weakref__",
+        "provider",
+        "cloud",
+        "name",
+        "id",
+        "size",
+        "time",
+        "state",
+        "location",
+        "extra",
+        "identifier",
+        "params",
+    )
+
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        provider: str = "",
+        cloud: str = "",
+        name: str = "",
+        id: str = "",  # pylint: disable=redefined-builtin,invalid-name
+        size: str = "",
+        time: datetime | None = None,
+        state: str = "",
+        location: str = "",
+        extra: dict | None = None,
+        identifier: str = "",
+        params: dict | None = None,
+    ):
+        self.provider = provider
+        self.cloud = cloud
+        self.name = name
+        self.id = id  # pylint: disable=invalid-name
+        self.size = size
+        self.time = time
+        self.state = state
+        self.location = location
+        self.extra = extra
+        self.identifier = identifier
+        self.params = params
 
     def __repr__(self):
-        attrs = [x for x in dir(self) if not callable(x) and not x.startswith("_")]
         return (
             f"{type(self).__name__}("
             + ", ".join(
                 [
-                    f'{x}="{getattr(self, x)}"'
-                    if isinstance(x, str)
-                    else f"{x}={getattr(self, x)}"
-                    for x in attrs
+                    f'{attr}="{getattr(self, attr)}"'
+                    if isinstance(getattr(self, attr), str)
+                    else f"{attr}={getattr(self, attr)}"
+                    for attr in self.__slots__
+                    if not attr.startswith("_")
                 ]
             )
             + ")"
@@ -48,14 +86,15 @@ class Instance:
         except AttributeError as exc:
             raise KeyError(exc) from exc
 
-    def __setitem__(self, item: str, value: Any):
-        setattr(self, item, value)
-
-    def __delitem__(self, item: str):
-        try:
-            delattr(self, item)
-        except AttributeError as exc:
-            raise KeyError(exc) from exc
+    def to_dict(self):
+        """
+        Return dictionary of object
+        """
+        return {
+            attr: getattr(self, attr)
+            for attr in self.__slots__
+            if not attr.startswith("_")
+        }
 
 
 class CSP(metaclass=Singleton2):

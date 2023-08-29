@@ -37,7 +37,7 @@ def get_creds() -> dict:
         ("ex_domain_name", "OS_USER_DOMAIN_NAME"),
         ("ex_tenant_name", "OS_PROJECT_NAME", "OS_TENANT_NAME"),
     ):
-        for var in env_vars:
+        for var in env_vars:  # pylint: disable=duplicate-code
             value = os.getenv(var)
             if value:
                 creds.update({key: value})

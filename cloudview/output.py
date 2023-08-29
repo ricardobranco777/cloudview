@@ -76,7 +76,9 @@ class Output(metaclass=Singleton):
             else:
                 print(Template(self._template).render(item.__dict__))
         elif self._type == "json":
-            if isinstance(item, dict):
+            if hasattr(item, "to_dict") and callable(getattr(item, "to_dict")):
+                self._items.append(item.to_dict())
+            elif isinstance(item, dict):
                 self._items.append(item)
             else:
                 self._items.append(item.__dict__)
