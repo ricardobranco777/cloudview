@@ -13,7 +13,7 @@ flake8:
 
 .PHONY: pylint
 pylint:
-	@pylint --disable=line-too-long,duplicate-code,too-few-public-methods $(FILES)
+	@pylint $(FILES)
 
 .PHONY: test
 test:
