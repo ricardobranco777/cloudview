@@ -82,13 +82,19 @@ def image(random_port, client):
 
 @pytest.fixture(scope="session")
 def container(random_port, image, client):
+    command = shlex.split(f"--port {7777}")
+    environment = {}
+    if os.getenv("DEBUG"):
+        command.extend(shlex.split("--log debug"))
+        environment.update({"LIBCLOUD_DEBUG": 1})
     try:
         # Run container
         container = client.containers.run(
             image=image,
             name=image,
             detach=True,
-            command=shlex.split(f"--port {7777}"),
+            command=command,
+            environment=environment,
             ports={f"{7777}/tcp": random_port},
         )
     except (APIError, PodmanError, DockerException, RequestException) as exc:
