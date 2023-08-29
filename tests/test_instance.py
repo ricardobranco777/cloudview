@@ -28,10 +28,23 @@ def test_instance_dict_assignment():
     assert instance.type == "Updated Type"
 
 
+def test_instance_dict_deletion():
+    instance = Instance(name="Alice", age=30)
+
+    with pytest.raises(KeyError):
+        del instance["nonexistent"]
+    del instance["name"]
+    with pytest.raises(AttributeError):
+        _ = instance.name
+
+    with pytest.raises(KeyError):
+        del instance["nonexistent"]
+
+
 def test_instance_unknown_attribute():
     instance = Instance()
     with pytest.raises(AttributeError):
-        _ = instance["unknown_attribute"]
+        _ = instance.unknown_attribute
 
 
 class MockCSP(CSP):

@@ -25,10 +25,19 @@ class Instance:
     # Allow access this object as a dictionary
 
     def __getitem__(self, item: str):
-        return getattr(self, item)
+        try:
+            return getattr(self, item)
+        except AttributeError as exc:
+            raise KeyError(exc) from exc
 
     def __setitem__(self, item: str, value: Any):
-        return setattr(self, item, value)
+        setattr(self, item, value)
+
+    def __delitem__(self, item: str):
+        try:
+            delattr(self, item)
+        except AttributeError as exc:
+            raise KeyError(exc) from exc
 
 
 class CSP(metaclass=Singleton2):
