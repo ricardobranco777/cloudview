@@ -22,6 +22,14 @@ class Instance:
         for attr, value in kwargs.items():
             setattr(self, attr, value)
 
+    def __repr__(self):
+        attrs = [x for x in dir(self) if not callable(x) and not x.startswith("_")]
+        return (
+            f"{type(self).__name__}("
+            + ", ".join([f"{x}={getattr(self, x)}" for x in attrs])
+            + ")"
+        )
+
     # Allow access this object as a dictionary
 
     def __getitem__(self, item: str):
