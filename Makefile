@@ -17,7 +17,11 @@ pylint:
 
 .PHONY: test
 test:
-	@pytest --capture=sys -v --cov --cov-report term-missing
+	@SKIP_SELENIUM=1 pytest --capture=sys -v --cov --cov-report term-missing
+
+.PHONY: selenium
+selenium:
+	@pytest tests/test_selenium.py
 
 .PHONY: mypy
 mypy:

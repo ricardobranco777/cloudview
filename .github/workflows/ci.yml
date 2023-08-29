@@ -34,7 +34,7 @@ jobs:
         run: |
           make mypy
 
-  codecov:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -49,6 +49,8 @@ jobs:
         run: make test
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
+      - name: Selenium test
+        run: make selenium
 
   shellcheck:
     name: Shellcheck
@@ -63,7 +65,7 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
       - uses: docker/setup-buildx-action@v2
       - name: test docker image
         run: |

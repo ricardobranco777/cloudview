@@ -13,3 +13,6 @@ types-pytz
 types-PyYAML
 types-cachetools
 types-requests
+podman
+docker
+selenium
