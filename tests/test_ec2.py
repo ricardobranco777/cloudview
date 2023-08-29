@@ -59,7 +59,7 @@ def valid_creds():
 
 @pytest.fixture(autouse=True)
 def reset_singleton(monkeypatch):
-    monkeypatch.setattr(EC2, "_instances", {})
+    monkeypatch.setattr(EC2, "_singleton_instances", {})
 
 
 def test_list_instances_in_region(
@@ -67,7 +67,6 @@ def test_list_instances_in_region(
 ):
     mocker.patch("cloudview.ec2.get_creds", return_value=valid_creds)
     mock_ec2_driver.list_nodes.return_value = [mock_ec2_instance]
-    mocker.patch.object(EC2, "_instances", {})
 
     ec2 = EC2(**valid_creds)
     ec2._drivers = {"us-east-1": mock_ec2_driver}
@@ -82,7 +81,6 @@ def test_list_instances_in_region(
 def test_get_instance(mock_ec2_driver, mock_ec2_instance, mocker, valid_creds):
     mocker.patch("cloudview.ec2.get_creds", return_value=valid_creds)
     mock_ec2_driver.list_nodes.return_value = [mock_ec2_instance]
-    mocker.patch.object(EC2, "_instances", {})
 
     ec2 = EC2(**valid_creds)
     ec2.regions = ["us-east-1"]
@@ -96,7 +94,6 @@ def test_get_instance(mock_ec2_driver, mock_ec2_instance, mocker, valid_creds):
 def test_get_instances(mock_ec2_driver, mock_ec2_instance, mocker, valid_creds):
     mocker.patch("cloudview.ec2.get_creds", return_value=valid_creds)
     mock_ec2_driver.list_nodes.return_value = [mock_ec2_instance]
-    mocker.patch.object(EC2, "_instances", {})
 
     ec2 = EC2(**valid_creds)
     ec2.regions = ["us-east-1"]

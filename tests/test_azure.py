@@ -62,10 +62,9 @@ def test_get_creds_missing_env_vars():
     assert "subscription_id" not in creds
 
 
-# Use the "monkeypatch" fixture to reset the singleton instance before each test
 @pytest.fixture(autouse=True)
 def reset_singleton(monkeypatch):
-    monkeypatch.setattr(Azure, "_instances", {})
+    monkeypatch.setattr(Azure, "_singleton_instances", {})
 
 
 @pytest.fixture

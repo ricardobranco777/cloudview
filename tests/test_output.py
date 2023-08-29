@@ -26,7 +26,7 @@ def html_output():
 # Use the "monkeypatch" fixture to reset the singleton instance before each test
 @pytest.fixture(autouse=True)
 def reset_singleton(monkeypatch):
-    monkeypatch.setattr(Output, "_instance", None)
+    monkeypatch.setattr(Output, "_singleton_instance", None)
 
 
 def test_invalid_output_type():

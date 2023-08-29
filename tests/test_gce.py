@@ -87,7 +87,7 @@ def test_get_creds_with_invalid_creds_file_and_env_var(
 # Fixture to reset the singleton instance before each test
 @pytest.fixture(autouse=True)
 def reset_singleton(monkeypatch):
-    monkeypatch.setattr(GCE, "_instances", {})
+    monkeypatch.setattr(GCE, "_singleton_instances", {})
 
 
 @pytest.fixture
