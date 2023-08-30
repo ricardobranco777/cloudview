@@ -6,7 +6,6 @@ https://libcloud.readthedocs.io/en/stable/compute/drivers/ec2.html
 import logging
 import os
 import concurrent.futures
-from typing import Optional
 
 from libcloud.compute.base import Node
 from libcloud.compute.providers import get_driver
@@ -60,7 +59,7 @@ class EC2(CSP):
             logging.error("EC2: %s: %s", self.cloud, exception(exc))
         return []
 
-    def _get_instance(self, identifier: str, params: dict) -> Optional[Instance]:
+    def _get_instance(self, identifier: str, params: dict) -> Instance | None:
         instance_id = identifier
         try:
             region = params["region"]

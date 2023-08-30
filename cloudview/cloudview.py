@@ -13,7 +13,7 @@ from io import StringIO
 from operator import itemgetter
 from threading import Thread
 from urllib.parse import urlencode, quote, unquote
-from typing import Optional, Generator
+from typing import Generator
 
 from wsgiref.simple_server import make_server
 from pyramid.view import view_config
@@ -64,7 +64,7 @@ def get_clients(
     config_file: str,
     provider: str = "",
     cloud: str = "",
-) -> Generator[Optional[CSP], None, None]:
+) -> Generator[CSP | None, None, None]:
     """
     Get clients for cloud providers
     """
@@ -120,7 +120,7 @@ def print_instances(client: CSP) -> None:
         Output().info(instance)
 
 
-def print_info() -> Optional[Response]:
+def print_info() -> Response | None:
     """
     Print information about instances
     """
@@ -141,7 +141,7 @@ def print_info() -> Optional[Response]:
     return None
 
 
-def handle_requests(request: Request) -> Optional[Response]:
+def handle_requests(request: Request) -> Response | None:
     """
     Handle HTTP requests
     """
@@ -150,7 +150,7 @@ def handle_requests(request: Request) -> Optional[Response]:
     return Response(response)
 
 
-def test(request: Optional[Request] = None) -> Optional[Response]:
+def test(request: Request | None = None) -> Response | None:
     """
     Used for testing
     """

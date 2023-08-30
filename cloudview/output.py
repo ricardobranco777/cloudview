@@ -4,7 +4,6 @@ Handle tabular output in these formats: text, json & html
 
 import json
 import os
-from typing import Optional, Union
 
 from jinja2 import Template
 
@@ -20,8 +19,8 @@ class Output(metaclass=Singleton):
 
     def __init__(
         self,
-        type: Optional[str] = None,
-        keys: Optional[Union[dict[str, str], list[str]]] = None,
+        type: str | None = None,
+        keys: dict[str, str] | list[str] | None = None,
         **kwargs,
     ):
         """

@@ -3,7 +3,7 @@ Instance class
 """
 
 import logging
-from typing import Optional, Any
+from typing import Any
 
 from cachetools import cached, TTLCache
 from libcloud.compute.types import NodeState
@@ -80,14 +80,14 @@ class CSP(metaclass=Singleton2):
         """
         return self._get_instances()
 
-    def _get_instance(self, identifier: str, params: dict) -> Optional[Instance]:
+    def _get_instance(self, identifier: str, params: dict) -> Instance | None:
         """
         Get instance
         """
         raise NotImplementedError("CSP._get_instance needs to be overridden")
 
     @cached(cache=TTLCache(maxsize=64, ttl=60))
-    def get_instance(self, identifier: str, **params) -> Optional[dict]:
+    def get_instance(self, identifier: str, **params) -> dict | None:
         """
         Get instance by id
         """

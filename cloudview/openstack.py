@@ -8,7 +8,6 @@ import logging
 import os
 from functools import cached_property
 from urllib.parse import urlparse
-from typing import Optional
 
 import libcloud.security
 from libcloud.compute.base import NodeSize
@@ -113,7 +112,7 @@ class Openstack(CSP):
             logging.error("Openstack: %s: %s", self.cloud, exception(exc))
             raise
 
-    def _get_instance(self, identifier: str, _: dict) -> Optional[Instance]:
+    def _get_instance(self, identifier: str, _: dict) -> Instance | None:
         """
         Get instance
         """

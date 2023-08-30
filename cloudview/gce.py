@@ -8,7 +8,6 @@ import logging
 import os
 import concurrent.futures
 from functools import cached_property
-from typing import Optional
 
 from cachetools import cached, TTLCache
 from libcloud.compute.base import Node
@@ -92,7 +91,7 @@ class GCE(CSP):
             logging.error("GCE: %s: %s", self.cloud, exception(exc))
             return []
 
-    def _get_instance(self, identifier: str, params: dict) -> Optional[Instance]:
+    def _get_instance(self, identifier: str, params: dict) -> Instance | None:
         name = params["name"]
         try:
             instance = self.driver.ex_get_node(name, zone="all")

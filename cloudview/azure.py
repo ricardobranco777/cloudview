@@ -6,7 +6,6 @@ https://libcloud.readthedocs.io/en/stable/compute/drivers/azure_arm.html
 import logging
 import os
 from functools import cached_property
-from typing import Optional
 
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
@@ -74,7 +73,7 @@ class Azure(CSP):
                 raise LibcloudError(f"{exc}") from exc
         return self._driver
 
-    def _get_instance(self, identifier: str, params: dict) -> Optional[Instance]:
+    def _get_instance(self, identifier: str, params: dict) -> Instance | None:
         """
         Get instance
         """
