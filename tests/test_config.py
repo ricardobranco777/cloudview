@@ -27,7 +27,7 @@ def test_check_leafs_no_files(dummy_config_data):
 
 def test_check_leafs_with_files(dummy_config_data, mocker):
     mocker.patch("os.path.isfile", side_effect=[True, False])
-    mocker.patch("cloudview.config.os.stat")
+    mocker.patch("os.stat")
     with pytest.raises(RuntimeError) as exc_info:
         check_leafs(dummy_config_data)
 
@@ -36,18 +36,18 @@ def test_check_leafs_with_files(dummy_config_data, mocker):
 
 def test_config_initialization(mocker):
     mocker.patch("builtins.open", mocker.mock_open(read_data="config data"))
-    mocker.patch("cloudview.config.os.stat")
+    mocker.patch("os.stat")
     mocker.patch("os.fstat", return_value=mocker.Mock(st_mode=0o600))
 
-    config = Config("test_config.yaml")
-    assert config.path == "test_config.yaml"
+    config = Config("/path/to/test_config.yaml")
+    assert config.path == "/path/to/test_config.yaml"
 
 
 def test_config_get_config(mocker):
     mocker.patch("builtins.open", mocker.mock_open(read_data="key: value"))
-    mocker.patch("cloudview.config.os.fstat", return_value=mocker.Mock(st_mode=0o600))
+    mocker.patch("os.fstat", return_value=mocker.Mock(st_mode=0o600))
 
-    config = Config("test_config.yaml")
+    config = Config("/path/to/test_config.yaml")
     result = config.get_config()
 
     assert result == {"key": "value"}
@@ -55,8 +55,8 @@ def test_config_get_config(mocker):
 
 def test_config_get_config_with_file_permissions_issue(mocker):
     mocker.patch("builtins.open", mocker.mock_open(read_data="key: value"))
-    mocker.patch("cloudview.config.os.stat")
-    mocker.patch("cloudview.config.os.fstat", return_value=mocker.Mock(st_mode=0o644))
+    mocker.patch("os.stat")
+    mocker.patch("os.fstat", return_value=mocker.Mock(st_mode=0o644))
 
     with pytest.raises(RuntimeError):
-        _ = Config("test_config.yaml")
+        _ = Config("/path/to/test_config.yaml")
