@@ -1,7 +1,6 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,redefined-outer-name,no-member,unused-argument
 
 import contextlib
-import json
 import logging
 import random
 import os
@@ -67,10 +66,6 @@ def image(random_port, client):
     except RequestException as exc:
         pytest.skip(f"Broken Docker environment: {exc}")
     except (DockerException, PodmanError) as exc:
-        for log in exc.build_log:
-            line = json.loads(log.decode("utf-8"))
-            if line:
-                print(line.get("stream"), file=sys.stderr, end="")
         pytest.fail(f"{exc}")
 
     yield image_name
