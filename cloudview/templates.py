@@ -2,14 +2,7 @@
 Jinja templates
 """
 
-from jinja2 import Template
-
-
-_PARAMS = {
-    "seconds": 600,
-}
-
-_HEADER = """<!DOCTYPE html>
+HEADER = """<!DOCTYPE html>
 <html><head><meta charset="utf-8" http-equiv="refresh" content="{{ seconds }}"/>
 <link rel="shortcut icon" href="/favicon.ico">
 <title>Instances</title></head>
@@ -46,7 +39,7 @@ table#instances tr:nth-child(odd) {
 <table style="width:100%" id="instances">
 """
 
-_FOOTER = """
+FOOTER = """
 </table><br>
 <p>Last updated: <span id="date"></span></p>
 <script type="text/javascript">
@@ -56,7 +49,7 @@ document.getElementById("date").innerHTML = date;
 
 <p id="refresh"></p>
 <script type="text/javascript">
- var seconds = {{ seconds }};
+ var seconds = {{ refresh_seconds }};
  var timer = setInterval(function() {
   seconds--;
   document.getElementById("refresh").textContent = "Next refresh in " + seconds + " seconds";
@@ -67,7 +60,3 @@ document.getElementById("date").innerHTML = date;
  }, 1000);
 </script>
 </body></html>"""
-
-
-HEADER = Template(_HEADER).render(**_PARAMS)
-FOOTER = Template(_FOOTER).render(**_PARAMS)

@@ -311,7 +311,7 @@ def main():
 
     if args.port:
         args.output = "html"
-    Output(type=args.output.lower(), keys=keys)
+    Output(type=args.output.lower(), keys=keys, refresh_seconds=600)
 
     if args.port:
         web_server()

@@ -5,6 +5,8 @@ Handle tabular output in these formats: text, json & html
 import json
 from typing import Optional, Union
 
+from jinja2 import Template
+
 from cloudview.singleton import Singleton
 from cloudview.templates import HEADER, FOOTER
 
@@ -19,6 +21,7 @@ class Output(metaclass=Singleton):
         self,
         type: Optional[str] = None,
         keys: Optional[Union[dict[str, str], list[str]]] = None,
+        **kwargs,
     ):
         """
         type must be either text, json or html
@@ -34,6 +37,7 @@ class Output(metaclass=Singleton):
         else:
             self._keys = keys or {}
         self._items: list[dict] = []
+        self._kwargs = kwargs
 
     def __repr__(self):
         return f'{type(self).__name__}(type="{self._type}", keys={self._keys})'
@@ -50,7 +54,7 @@ class Output(metaclass=Singleton):
             )
         elif self._type == "html":
             table_header = "".join([f"<th>{key.upper()}</th>" for key in self._keys])
-            print(f"{HEADER}{table_header}")
+            print(Template(HEADER).render(**self._kwargs), table_header)
 
     def info(self, item):
         """
@@ -77,4 +81,4 @@ class Output(metaclass=Singleton):
         if self._type == "json":
             print(json.dumps(self._items, indent=2, default=str))
         elif self._type == "html":
-            print(FOOTER)
+            print(Template(FOOTER).render(**self._kwargs))
