@@ -3,7 +3,7 @@ Handle tabular output in these formats: text, json & html
 """
 
 import json
-from typing import Optional
+from typing import Optional, Union
 
 from cloudview.singleton import Singleton
 from cloudview.templates import HEADER, FOOTER
@@ -18,8 +18,7 @@ class Output(metaclass=Singleton):
     def __init__(
         self,
         type: Optional[str] = None,
-        format: Optional[str] = None,
-        keys: Optional[list[str]] = None,
+        keys: Optional[Union[dict[str, str], list[str]]] = None,
     ):
         """
         type must be either text, json or html
@@ -30,21 +29,25 @@ class Output(metaclass=Singleton):
         if type not in ("text", "json", "html"):
             raise ValueError(f"Invalid type: {type}")
         self._type = type
-        self._format = format
-        if keys is None:
-            keys = []
-        self._keys = keys
+        if isinstance(keys, (list, tuple)):
+            self._keys = dict.fromkeys(keys, "")
+        else:
+            self._keys = keys or {}
         self._items: list[dict] = []
 
     def __repr__(self):
-        return f'{type(self).__name__}(type="{self._type}", format="{self._format}", keys={self._keys})'
+        return f'{type(self).__name__}(type="{self._type}", keys={self._keys})'
 
     def header(self):
         """
         Print the header for output
         """
         if self._type == "text":
-            print(self._format.format(item={key: key.upper() for key in self._keys}))
+            print(
+                "  ".join(
+                    [f"{key.upper():{align}}" for key, align in self._keys.items()]
+                )
+            )
         elif self._type == "html":
             table_header = "".join([f"<th>{key.upper()}</th>" for key in self._keys])
             print(f"{HEADER}{table_header}")
@@ -54,7 +57,9 @@ class Output(metaclass=Singleton):
         Dump item information
         """
         if self._type == "text":
-            print(self._format.format(item=item))
+            print(
+                "  ".join([f"{item[key]:{align}}" for key, align in self._keys.items()])
+            )
         elif self._type == "json":
             if isinstance(item, dict):
                 self._items.append(item)

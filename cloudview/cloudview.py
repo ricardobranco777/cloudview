@@ -298,15 +298,20 @@ def main():
     fmt = "%(asctime)s %(levelname)-8s %(message)s" if args.port else None
     logging.basicConfig(format=fmt, stream=sys.stderr, level=args.log.upper())
 
-    keys = "provider name size state time location".split()
-    fmt = "{item[provider]:15}  {item[name]:50}  {item[size]:>20}  {item[state]:>10}  {item[time]:30}  {item[location]:15}"
+    keys = {
+        "provider": "<15",
+        "name": "<50",
+        "size": ">20",
+        "state": ">10",
+        "time": "<30",
+        "location": "<15",
+    }
     if args.verbose:
-        keys.append("id")
-        fmt += "  {item[id]}"
+        keys.update({"id": ""})
 
     if args.port:
         args.output = "html"
-    Output(type=args.output.lower(), keys=keys, format=fmt)
+    Output(type=args.output.lower(), keys=keys)
 
     if args.port:
         web_server()

@@ -10,7 +10,7 @@ from cloudview.output import Output
 
 @pytest.fixture
 def text_output():
-    return Output(type="text", format="{item[name]}  {item[age]}")
+    return Output(type="text", keys=["name", "age"])
 
 
 @pytest.fixture
@@ -20,7 +20,7 @@ def json_output():
 
 @pytest.fixture
 def html_output():
-    return Output(type="html", keys=["name", "age", "href"], format="<tr>{lines}</tr>")
+    return Output(type="html", keys=["name", "age", "href"])
 
 
 # Use the "monkeypatch" fixture to reset the singleton instance before each test
@@ -36,15 +36,13 @@ def test_invalid_output_type():
 
 def test_text_output_header(text_output, capsys):
     expected_header = "NAME  AGE\n"
-    text_output._keys = ["name", "age"]
     text_output.header()
     captured = capsys.readouterr()
     assert captured.out == expected_header
 
 
 def test_text_output_info(text_output, capsys):
-    expected_info = "John   30\n"
-    text_output._format = "{item[name]}   {item[age]}"
+    expected_info = "John  30\n"
     text_output.info({"name": "John", "age": 30})
     captured = capsys.readouterr()
     assert captured.out == expected_info
