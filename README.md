@@ -27,7 +27,6 @@ Options:
     -T, --time TIME_FORMAT              time format as used by strftime(3)
     -V, --version                       show version and exit
     -v, --verbose                       be verbose
-    --insecure                          insecure mode
 ```
 
 ## Requirements

@@ -10,7 +10,6 @@ import sys
 import html
 from json import JSONEncoder
 from io import StringIO
-from pathlib import Path
 from operator import itemgetter
 from threading import Thread
 from urllib.parse import urlencode, quote, unquote
@@ -51,7 +50,6 @@ Options:
     -T, --time TIME_FORMAT              time format as used by strftime(3)
     -V, --version                       show version and exit
     -v, --verbose                       be verbose
-    --insecure                          insecure mode
 """
 
 PROVIDERS = {
@@ -63,15 +61,14 @@ PROVIDERS = {
 
 
 def get_clients(
-    config_file: Path,
-    insecure: bool = False,
+    config_file: str,
     provider: str = "",
     cloud: str = "",
 ) -> Generator[Optional[CSP], None, None]:
     """
     Get clients for cloud providers
     """
-    config = Config(config_file, insecure).get_config() if config_file.is_file() else {}
+    config = Config(config_file).get_config() if os.path.isfile(config_file) else {}
     providers = (
         (provider,)
         if provider
@@ -129,7 +126,7 @@ def print_info() -> Optional[Response]:
     """
     sys.stdout = StringIO() if args.port else sys.stdout
     threads = []
-    for client in get_clients(config_file=args.config, insecure=args.insecure):
+    for client in get_clients(config_file=args.config):
         threads.append(Thread(target=print_instances, args=(client,)))
     Output().header()
     for thread in threads:
@@ -196,14 +193,9 @@ def handle_instance(request: Request) -> Response:
     identifier = request.matchdict["identifier"]
     if provider not in PROVIDERS or not valid_elem(cloud) or not valid_elem(identifier):
         return not_found()
-    client = list(
-        get_clients(
-            config_file=args.config,
-            insecure=args.insecure,
-            provider=provider,
-            cloud=cloud,
-        )
-    )[0]
+    client = list(get_clients(config_file=args.config, provider=provider, cloud=cloud))[
+        0
+    ]
     if client is not None:
         info = client.get_instance(identifier, **request.params)
     if client is None or info is None:
@@ -238,9 +230,8 @@ def parse_args() -> argparse.Namespace:
     Parse command line options
     """
     argparser = argparse.ArgumentParser(usage=USAGE, add_help=False)
-    argparser.add_argument("-c", "--config", type=Path)
+    argparser.add_argument("-c", "--config", default="")
     argparser.add_argument("-h", "--help", action="store_true")
-    argparser.add_argument("--insecure", action="store_true")
     argparser.add_argument(
         "-l",
         "--log",
@@ -282,13 +273,11 @@ def main():
         print(f"Libcloud {libcloud.__version__}")
         sys.exit(0)
 
-    if args.config is None:
+    if not args.config:
         for file in (os.path.expanduser("~/clouds.yaml"), "clouds.yaml"):
             if os.path.isfile(file):
-                args.config = Path(file)
-        if args.config is None:
-            args.config = Path()
-    elif not args.config.is_file():
+                args.config = file
+    elif not os.path.isfile(args.config):
         sys.exit(f"ERROR: No such file: {args.config}")
 
     if not args.states:
