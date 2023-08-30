@@ -3,12 +3,13 @@ Handle tabular output in these formats: text, json & html
 """
 
 import json
+import os
 from typing import Optional, Union
 
 from jinja2 import Template
 
+from cloudview.cachedfile import CachedFile
 from cloudview.singleton import Singleton
-from cloudview.templates import HEADER, FOOTER
 
 
 # pylint: disable=redefined-builtin
@@ -53,8 +54,11 @@ class Output(metaclass=Singleton):
                 )
             )
         elif self._type == "html":
+            header = CachedFile(
+                os.path.join(os.path.dirname(__file__), "header.html")
+            ).get_data()
             table_header = "".join([f"<th>{key.upper()}</th>" for key in self._keys])
-            print(Template(HEADER).render(**self._kwargs), table_header)
+            print(Template(header).render(**self._kwargs), table_header)
 
     def info(self, item):
         """
@@ -81,4 +85,7 @@ class Output(metaclass=Singleton):
         if self._type == "json":
             print(json.dumps(self._items, indent=2, default=str))
         elif self._type == "html":
-            print(Template(FOOTER).render(**self._kwargs))
+            footer = CachedFile(
+                os.path.join(os.path.dirname(__file__), "footer.html")
+            ).get_data()
+            print(Template(footer).render(**self._kwargs))
