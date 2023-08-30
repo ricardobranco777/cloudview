@@ -1,14 +1,8 @@
-# pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,too-few-public-methods
+# pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,too-few-public-methods,redefined-outer-name
 
 import argparse
-import logging
 import pytest
-from libcloud.compute.types import Provider, LibcloudError
-from cloudview.cloudview import port_number, get_clients, valid_elem
-
-
-class EC2:
-    pass
+from cloudview.cloudview import port_number, valid_elem, get_clients, PROVIDERS
 
 
 def test_valid_port_number():
@@ -61,23 +55,145 @@ def test_valid_elem_url_decoding():
     assert valid_elem("hello world") is True
 
 
-def test_get_clients_unsupported_provider(caplog):
-    config_file = "config_file_path2"
+class MockEC2:
+    def __init__(self, cloud, **_):
+        self.cloud = cloud
 
-    with caplog.at_level(logging.ERROR):
-        clients = list(get_clients(config_file=config_file, provider="UNSUPPORTED"))
+
+class MockGCE:
+    def __init__(self, cloud, **_):
+        self.cloud = cloud
+
+
+@pytest.fixture
+def mock_config():
+    return {
+        "providers": {
+            "ec2": {"ec2_cloud": {"key": "value"}},
+            "gce": {"gce_cloud": {"key": "value"}},
+        }
+    }
+
+
+def test_get_clients_without_config(mocker):
+    mocker.patch("cloudview.cloudview.os.path.isfile", return_value=False)
+    mocker.patch.dict(
+        PROVIDERS,
+        {
+            "ec2": MockEC2,
+            "gce": MockGCE,
+        },
+    )
+    mocker.patch("cloudview.cloudview.Config", autospec=True)  # Mock the Config class
+
+    clients = list(get_clients("/path/to/test_config.yaml"))
+
+    assert len(clients) == 2
+    assert all(isinstance(client, (MockEC2, MockGCE)) for client in clients)
+
+
+def test_get_clients_with_config(mock_config, mocker):
+    mocker.patch("cloudview.cloudview.os.path.isfile", return_value=True)
+    mocker.patch(
+        "cloudview.cloudview.Config",
+        autospec=True,
+        return_value=mocker.Mock(get_config=lambda: mock_config),
+    )
+    mocker.patch.dict(
+        PROVIDERS,
+        {
+            "ec2": MockEC2,
+            "gce": MockGCE,
+        },
+    )
+
+    clients = list(get_clients("/path/to/test_config.yaml"))
+
+    assert len(clients) == 2
+    assert all(isinstance(client, (MockEC2, MockGCE)) for client in clients)
+
+
+def test_get_clients_with_valid_provider_cloud(mock_config, mocker):
+    mocker.patch("cloudview.cloudview.os.path.isfile", return_value=True)
+    mocker.patch(
+        "cloudview.cloudview.Config",
+        autospec=True,
+        return_value=mocker.Mock(get_config=lambda: mock_config),
+    )
+    mocker.patch.dict(
+        PROVIDERS,
+        {
+            "ec2": MockEC2,
+            "gce": MockGCE,
+        },
+    )
+
+    clients = list(
+        get_clients("/path/to/test_config.yaml", provider="ec2", cloud="ec2_cloud")
+    )
+
+    assert len(clients) == 1
+    assert isinstance(clients[0], MockEC2)
+
+
+def test_get_clients_with_valid_provider(mock_config, mocker):
+    mocker.patch("cloudview.cloudview.os.path.isfile", return_value=True)
+    mocker.patch(
+        "cloudview.cloudview.Config",
+        autospec=True,
+        return_value=mocker.Mock(get_config=lambda: mock_config),
+    )
+    mocker.patch.dict(
+        PROVIDERS,
+        {
+            "ec2": MockEC2,
+        },
+    )
+
+    clients = list(get_clients("/path/to/test_config.yaml", provider="ec2"))
+
+    assert len(clients) == 1
+    assert isinstance(clients[0], MockEC2)
+
+
+def test_get_clients_without_provider(mock_config, mocker):
+    mocker.patch("cloudview.cloudview.os.path.isfile", return_value=True)
+    mocker.patch(
+        "cloudview.cloudview.Config",
+        autospec=True,
+        return_value=mocker.Mock(get_config=lambda: mock_config),
+    )
+    mocker.patch.dict(
+        PROVIDERS,
+        {
+            "ec2": MockEC2,
+            "gce": MockGCE,
+        },
+    )
+
+    clients = list(get_clients("/path/to/test_config.yaml"))
+
+    assert len(clients) == 2
+    assert all(isinstance(client, (MockEC2, MockGCE)) for client in clients)
+
+
+def test_get_clients_with_unsupported_provider(mock_config, mocker, caplog):
+    mocker.patch("cloudview.cloudview.os.path.isfile", return_value=True)
+    mocker.patch(
+        "cloudview.cloudview.Config",
+        autospec=True,
+        return_value=mocker.Mock(get_config=lambda: mock_config),
+    )
+    mocker.patch.dict(
+        PROVIDERS,
+        {
+            "ec2": MockEC2,
+        },
+    )
+
+    clients = list(
+        get_clients("/path/to/test_config.yaml", provider="unsupported_provider")
+    )
 
     assert len(clients) == 0
-    assert "Unsupported provider" in caplog.text
-
-
-def test_get_clients_libcloud_error(mocker, caplog):
-    config_file = "config_file_path4"
-
-    EC2.__init__ = mocker.MagicMock(side_effect=LibcloudError("Test LibcloudError"))
-
-    with caplog.at_level(logging.ERROR):
-        clients = list(get_clients(config_file=config_file, provider=str(Provider.EC2)))
-
-    assert len(clients) == 0
-    assert "Unsupported provider" not in caplog.text  # LibcloudError is caught silently
+    assert "Unsupported provider" in caplog.records[0].message
