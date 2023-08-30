@@ -21,6 +21,7 @@ from pyramid.config import Configurator
 from pyramid.response import Response
 from pyramid.request import Request
 
+import yaml
 import libcloud
 from libcloud.compute.types import Provider, LibcloudError
 
@@ -29,9 +30,8 @@ from .azure import Azure
 from .gce import GCE
 from .openstack import Openstack
 from .instance import CSP, STATES
-from .config import Config
 from .output import Output
-from .utils import fix_date
+from .utils import fix_date, read_file
 from . import __version__
 
 
@@ -68,7 +68,7 @@ def get_clients(
     """
     Get clients for cloud providers
     """
-    config = Config(config_file).get_config() if os.path.isfile(config_file) else {}
+    config = yaml.full_load(read_file(config_file)) if config_file else {}
     providers = (
         (provider,)
         if provider

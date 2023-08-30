@@ -2,6 +2,7 @@
 Helper functions
 """
 
+import os
 import traceback
 from datetime import datetime
 
@@ -20,6 +21,16 @@ def exception(exc: Exception, trace=False) -> str:
             f"{exc.__class__.__name__}: {exc}",
         ]
     )
+
+
+def read_file(path: str) -> str:
+    """
+    Read file but raise RuntimeError if it has the wrong permissions
+    """
+    with open(path, encoding="utf-8") as file:
+        if os.fstat(file.fileno()).st_mode & 0o77:
+            raise RuntimeError(f"{path} has insecure permissions")
+        return file.read()
 
 
 def get_age(date: datetime):

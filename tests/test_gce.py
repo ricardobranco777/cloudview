@@ -10,6 +10,11 @@ from cloudview.instance import Instance
 os.environ.pop("GOOGLE_APPLICATION_CREDENTIALS", "")
 
 
+@pytest.fixture(autouse=True)
+def mock_fstat(mocker):
+    mocker.patch("os.fstat", return_value=mocker.Mock(st_mode=0o400))
+
+
 @pytest.fixture
 def mock_open(mocker):
     return mocker.patch("builtins.open")

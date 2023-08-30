@@ -17,7 +17,7 @@ from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
 
 from cloudview.instance import Instance, CSP
-from cloudview.utils import utc_date, exception
+from cloudview.utils import utc_date, exception, read_file
 
 
 def get_creds(creds: dict) -> dict[str, str]:
@@ -31,8 +31,7 @@ def get_creds(creds: dict) -> dict[str, str]:
         or all(v in creds for v in ("project", "user_id"))
     ):
         return creds
-    with open(creds_file, encoding="utf-8") as file:
-        data = json.loads(file.read())
+    data = json.loads(read_file(creds_file))
     return {
         "key": creds_file,
         "project": data["project_id"],
