@@ -13,7 +13,7 @@ flake8:
 
 .PHONY: pylint
 pylint:
-	@pylint $(FILES)
+	@pylint --disable=line-too-long $(FILES)
 
 .PHONY: test
 test:
