@@ -1,4 +1,4 @@
 [MASTER]
 disable=
   C0301, # line-too-long
-fail-under=9.97
+fail-under=9.98

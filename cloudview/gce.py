@@ -77,7 +77,7 @@ class GCE(CSP):
         """
         return self.driver.ex_list_zones()
 
-    def list_instances_in_zone(self, zone: GCEZone) -> list[Node]:
+    def list_instances_in_zone(self, zone: GCEZone) -> list[Instance]:
         """
         List instances in zone
         """
@@ -85,24 +85,27 @@ class GCE(CSP):
             logging.debug("GCE: %s status is %s", zone.name, zone.status)
             return []
         try:
-            return self.driver.list_nodes(ex_zone=zone)
+            return [
+                self._node_to_instance(node)
+                for node in self.driver.list_nodes(ex_zone=zone)
+            ]
         except (LibcloudError, RequestException) as exc:
             logging.error("GCE: %s: %s", self.cloud, exception(exc))
             return []
 
     def _get_instance(self, identifier: str, params: dict) -> Instance | None:
         try:
-            instance = self.driver.ex_get_node(params["name"], zone=params["zone"])
+            node = self.driver.ex_get_node(params["name"], zone=params["zone"])
         except (AttributeError, KeyError, LibcloudError, RequestException) as exc:
             logging.error("GCE: %s: %s: %s", self.cloud, identifier, exception(exc))
             return None
-        return self._node_to_instance(instance)
+        return self._node_to_instance(node)
 
     def _get_instances(self) -> list[Instance]:
         """
         Get GCE instances
         """
-        all_instances = []
+        instances = []
 
         try:
             zones = self.list_zones()
@@ -119,29 +122,26 @@ class GCE(CSP):
             }
             for future in concurrent.futures.as_completed(future_to_zone):
                 # zone = future_to_zone[future]
-                instances = future.result()
-                for instance in instances:
-                    all_instances.append(self._node_to_instance(instance))
+                instances.extend(future.result())
+        return instances
 
-        return all_instances
-
-    def _node_to_instance(self, instance: Node) -> Instance:
+    def _node_to_instance(self, node: Node) -> Instance:
         """
         Node to Instance
         """
         return Instance(
             provider=Provider.GCE,
             cloud=self.cloud,
-            name=instance.name,
-            id=instance.id,
-            size=instance.extra["machineType"].split("/")[-1],
-            time=utc_date(instance.extra["creationTimestamp"]),
-            state=instance.state,
-            location=instance.extra["zone"].name,
-            extra=instance.extra,
-            identifier=instance.name,
+            name=node.name,
+            id=node.id,
+            size=node.extra["machineType"].split("/")[-1],
+            time=utc_date(node.extra["creationTimestamp"]),
+            state=node.state,
+            location=node.extra["zone"].name,
+            extra=node.extra,
+            identifier=node.name,
             params={
-                "name": instance.name,
-                "zone": instance.extra["zone"].name,
+                "name": node.name,
+                "zone": node.extra["zone"].name,
             },
         )

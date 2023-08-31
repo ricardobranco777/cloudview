@@ -47,12 +47,15 @@ class EC2(CSP):
             region: cls(*key_secret, region=region) for region in self.regions
         }
 
-    def list_instances_in_region(self, region: str) -> list[Node]:
+    def list_instances_in_region(self, region: str) -> list[Instance]:
         """
-        List instance in region
+        List instances in region
         """
         try:
-            return self._drivers[region].list_nodes(ex_filters=None)
+            return [
+                self._node_to_instance(node, region)
+                for node in self._drivers[region].list_nodes(ex_filters=None)
+            ]
         except InvalidCredsError:
             pass
         except (LibcloudError, RequestException) as exc:
@@ -63,18 +66,17 @@ class EC2(CSP):
         instance_id = identifier
         try:
             region = params["region"]
-            instance = self._drivers[region].list_nodes(ex_node_ids=[instance_id])[0]
+            node = self._drivers[region].list_nodes(ex_node_ids=[instance_id])[0]
         except (KeyError, TypeError, LibcloudError, RequestException) as exc:
             logging.error("EC2: %s: %s: %s", self.cloud, identifier, exception(exc))
             return None
-        return self._node_to_instance(instance, region)
+        return self._node_to_instance(node, region)
 
     def _get_instances(self) -> list[Instance]:
         """
         Get EC2 instances
         """
-        all_instances = []
-
+        instances = []
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=len(self.regions)
         ) as executor:
@@ -83,26 +85,24 @@ class EC2(CSP):
                 for region in self.regions
             }
             for future in concurrent.futures.as_completed(future_to_region):
-                region = future_to_region[future]
-                instances = future.result()
-                for instance in instances:
-                    all_instances.append(self._node_to_instance(instance, region))
-        return all_instances
+                # region = future_to_region[future]
+                instances.extend(future.result())
+        return instances
 
-    def _node_to_instance(self, instance: Node, region: str) -> Instance:
+    def _node_to_instance(self, node: Node, region: str) -> Instance:
         """
         Node to Instance
         """
         return Instance(
             provider=Provider.EC2,
             cloud=self.cloud,
-            name=instance.name,
-            id=instance.id,
-            size=instance.extra["instance_type"],
-            time=utc_date(instance.extra["launch_time"]),
-            state=instance.state,
-            location=instance.extra["availability"],
-            extra=instance.extra,
-            identifier=instance.id,
+            name=node.name,
+            id=node.id,
+            size=node.extra["instance_type"],
+            time=utc_date(node.extra["launch_time"]),
+            state=node.state,
+            location=node.extra["availability"],
+            extra=node.extra,
+            identifier=node.id,
             params={"region": region},
         )

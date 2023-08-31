@@ -80,42 +80,37 @@ class Azure(CSP):
         """
         instance_id = params["id"]
         try:
-            instance = self.driver.ex_get_node(instance_id)
+            node = self.driver.ex_get_node(instance_id)
         except (AttributeError, LibcloudError, RequestException) as exc:
             logging.error("Azure: %s: %s: %s", self.cloud, identifier, exception(exc))
             return None
-        return self._node_to_instance(instance)
+        return self._node_to_instance(node)
 
     def _get_instances(self) -> list[Instance]:
         """
         Get Azure instances
         """
-        all_instances = []
-
         try:
-            instances = self.driver.list_nodes()
+            nodes = self.driver.list_nodes()
         except (AttributeError, LibcloudError, RequestException) as exc:
             logging.error("Azure: %s: %s", self.cloud, exception(exc))
             return []
+        return [self._node_to_instance(node) for node in nodes]
 
-        for instance in instances:
-            all_instances.append(self._node_to_instance(instance))
-        return all_instances
-
-    def _node_to_instance(self, instance: Node) -> Instance:
+    def _node_to_instance(self, node: Node) -> Instance:
         """
         Node to Instance
         """
         return Instance(
             provider=Provider.AZURE_ARM,
             cloud=self.cloud,
-            name=instance.name,
-            id=instance.extra["properties"]["vmId"],
-            size=instance.extra["properties"]["hardwareProfile"]["vmSize"],
-            time=utc_date(instance.extra["properties"]["timeCreated"]),
-            state=instance.state,
-            location=instance.extra["location"],
-            extra=instance.extra,
-            identifier=instance.id,
-            params={"id": instance.id},
+            name=node.name,
+            id=node.extra["properties"]["vmId"],
+            size=node.extra["properties"]["hardwareProfile"]["vmSize"],
+            time=utc_date(node.extra["properties"]["timeCreated"]),
+            state=node.state,
+            location=node.extra["location"],
+            extra=node.extra,
+            identifier=node.id,
+            params={"id": node.id},
         )

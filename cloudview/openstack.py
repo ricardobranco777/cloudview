@@ -118,45 +118,39 @@ class Openstack(CSP):
         """
         instance_id = identifier
         try:
-            instance = self.driver.ex_get_node_details(instance_id)
+            node = self.driver.ex_get_node_details(instance_id)
         except (AttributeError, LibcloudError, RequestException) as exc:
             logging.error(
                 "OpenStack: %s: %s: %s", self.cloud, identifier, exception(exc)
             )
             return None
-        return self._node_to_instance(instance)
+        return self._node_to_instance(node)
 
     def _get_instances(self) -> list[Instance]:
         """
         Get Openstack instances
         """
-        all_instances = []
-
         try:
-            instances = self.driver.list_nodes(**self.options)
+            nodes = self.driver.list_nodes(**self.options)
         except (LibcloudError, RequestException) as exc:
             logging.error("Openstack: %s: %s", self.cloud, exception(exc))
             return []
+        return [self._node_to_instance(node) for node in nodes]
 
-        for instance in instances:
-            all_instances.append(self._node_to_instance(instance))
-
-        return all_instances
-
-    def _node_to_instance(self, instance: Node) -> Instance:
+    def _node_to_instance(self, node: Node) -> Instance:
         """
         Node to Instance
         """
         return Instance(
             provider=Provider.OPENSTACK,
             cloud=self.cloud,
-            name=instance.name,
-            id=instance.id,
-            size=self.get_size(instance.extra["flavorId"]),
-            time=utc_date(instance.extra["created"]),
-            state=instance.state,
-            location=instance.extra["availability_zone"],
-            extra=instance.extra,
-            identifier=instance.id,
+            name=node.name,
+            id=node.id,
+            size=self.get_size(node.extra["flavorId"]),
+            time=utc_date(node.extra["created"]),
+            state=node.state,
+            location=node.extra["availability_zone"],
+            extra=node.extra,
+            identifier=node.id,
             params={},
         )
