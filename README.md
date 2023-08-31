@@ -19,6 +19,8 @@ Options:
     -l, --log debug|info|warning|error|critical
                                         logging level
     -o, --output text|html|json         output type
+    -P, --providers ec2|gce|azure_arm|openstack
+                                        list only specified providers
     -p, --port PORT                     run a web server on port PORT
     -r, --reverse                       reverse sort
     -s, --sort name|time|state          sort type

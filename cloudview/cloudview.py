@@ -42,6 +42,8 @@ Options:
     -l, --log debug|info|warning|error|critical
                                         logging level
     -o, --output text|html|json         output type
+    -P, --providers ec2|gce|azure_arm|openstack
+                                        list only specified providers
     -p, --port PORT                     run a web server on port PORT
     -r, --reverse                       reverse sort
     -s, --sort name|time|state          sort type
@@ -79,6 +81,8 @@ def get_clients(
     for xprovider in providers:
         if xprovider not in PROVIDERS:
             logging.error("Unsupported provider %s", xprovider)
+            continue
+        if PROVIDERS[xprovider] is None:
             continue
         clouds = (
             (cloud,)
@@ -242,6 +246,9 @@ def parse_args() -> argparse.Namespace:
         "-o", "--output", default="text", choices=["text", "html", "json"]
     )
     argparser.add_argument("-p", "--port", type=port_number)
+    argparser.add_argument(
+        "-P", "--providers", action="append", choices=list(PROVIDERS.keys())
+    )
     argparser.add_argument("-r", "--reverse", action="store_true")
     argparser.add_argument("-s", "--sort", choices=["name", "state", "time"])
     argparser.add_argument("-S", "--states", action="append", choices=STATES)
@@ -264,21 +271,18 @@ def main():
     """
     Main function
     """
-    if args.help:
-        print(USAGE)
-        sys.exit(0)
-    elif args.version:
-        print(f"cloudview {__version__}")
-        print(f"Python {sys.version}")
-        print(f"Libcloud {libcloud.__version__}")
-        sys.exit(0)
-
     if not args.config:
         for file in (os.path.expanduser("~/clouds.yaml"), "clouds.yaml"):
             if os.path.isfile(file):
                 args.config = file
     elif not os.path.isfile(args.config):
         sys.exit(f"ERROR: No such file: {args.config}")
+
+    if not args.providers:
+        args.providers = PROVIDERS.keys()
+    for provider in PROVIDERS:
+        if provider not in args.providers:
+            PROVIDERS[provider] = None
 
     if not args.states:
         args.states = STATES
@@ -310,8 +314,18 @@ def main():
 
 
 if __name__ == "__main__":
+    args = parse_args()
+
+    if args.help:
+        print(USAGE)
+        sys.exit(0)
+    elif args.version:
+        print(f"cloudview {__version__}")
+        print(f"Python {sys.version}")
+        print(f"Libcloud {libcloud.__version__}")
+        sys.exit(0)
+
     try:
-        args = parse_args()
         main()
     except KeyboardInterrupt:
         sys.exit(1)
