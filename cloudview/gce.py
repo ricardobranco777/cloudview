@@ -91,10 +91,9 @@ class GCE(CSP):
             return []
 
     def _get_instance(self, identifier: str, params: dict) -> Instance | None:
-        name = params["name"]
         try:
-            instance = self.driver.ex_get_node(name, zone="all")
-        except (AttributeError, LibcloudError, RequestException) as exc:
+            instance = self.driver.ex_get_node(params["name"], zone=params["zone"])
+        except (AttributeError, KeyError, LibcloudError, RequestException) as exc:
             logging.error("GCE: %s: %s: %s", self.cloud, identifier, exception(exc))
             return None
         return Instance(extra=instance.extra)
@@ -134,7 +133,10 @@ class GCE(CSP):
                             location=instance.extra["zone"].name,
                             extra=instance.extra,
                             identifier=instance.name,
-                            params={"name": instance.name},
+                            params={
+                                "name": instance.name,
+                                "zone": instance.extra["zone"].name,
+                            },
                         )
                     )
 

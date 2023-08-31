@@ -168,7 +168,9 @@ def test_gce_get_instance_with_valid_identifier(
     gce = GCE(cloud="test_cloud", **valid_creds)
     gce._driver = mock_driver
 
-    result = gce._get_instance("test_identifier", params={"name": "test_instance"})
+    result = gce._get_instance(
+        "test_identifier", params={"name": "test_instance", "zone": "test_zone"}
+    )
 
     assert isinstance(result, Instance)
     assert result.extra["name"] == "test_instance"
