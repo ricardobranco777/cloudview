@@ -67,7 +67,7 @@ class EC2(CSP):
         except (KeyError, TypeError, LibcloudError, RequestException) as exc:
             logging.error("EC2: %s: %s: %s", self.cloud, identifier, exception(exc))
             return None
-        return Instance(extra=instance.extra)
+        return self._node_to_instance(instance, region)
 
     def _get_instances(self) -> list[Instance]:
         """
@@ -86,19 +86,23 @@ class EC2(CSP):
                 region = future_to_region[future]
                 instances = future.result()
                 for instance in instances:
-                    all_instances.append(
-                        Instance(
-                            provider=Provider.EC2,
-                            cloud=self.cloud,
-                            name=instance.name,
-                            id=instance.id,
-                            size=instance.extra["instance_type"],
-                            time=utc_date(instance.extra["launch_time"]),
-                            state=instance.state,
-                            location=instance.extra["availability"],
-                            extra=instance.extra,
-                            identifier=instance.id,
-                            params={"region": region},
-                        )
-                    )
+                    all_instances.append(self._node_to_instance(instance, region))
         return all_instances
+
+    def _node_to_instance(self, instance: Node, region: str) -> Instance:
+        """
+        Node to Instance
+        """
+        return Instance(
+            provider=Provider.EC2,
+            cloud=self.cloud,
+            name=instance.name,
+            id=instance.id,
+            size=instance.extra["instance_type"],
+            time=utc_date(instance.extra["launch_time"]),
+            state=instance.state,
+            location=instance.extra["availability"],
+            extra=instance.extra,
+            identifier=instance.id,
+            params={"region": region},
+        )

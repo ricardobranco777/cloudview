@@ -10,7 +10,7 @@ from functools import cached_property
 from urllib.parse import urlparse
 
 import libcloud.security
-from libcloud.compute.base import NodeSize
+from libcloud.compute.base import Node, NodeSize
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
@@ -124,7 +124,7 @@ class Openstack(CSP):
                 "OpenStack: %s: %s: %s", self.cloud, identifier, exception(exc)
             )
             return None
-        return Instance(extra=instance.extra)
+        return self._node_to_instance(instance)
 
     def _get_instances(self) -> list[Instance]:
         """
@@ -139,20 +139,24 @@ class Openstack(CSP):
             return []
 
         for instance in instances:
-            all_instances.append(
-                Instance(
-                    provider=Provider.OPENSTACK,
-                    cloud=self.cloud,
-                    name=instance.name,
-                    id=instance.id,
-                    size=self.get_size(instance.extra["flavorId"]),
-                    time=utc_date(instance.extra["created"]),
-                    state=instance.state,
-                    location=instance.extra["availability_zone"],
-                    extra=instance.extra,
-                    identifier=instance.id,
-                    params={},
-                )
-            )
+            all_instances.append(self._node_to_instance(instance))
 
         return all_instances
+
+    def _node_to_instance(self, instance: Node) -> Instance:
+        """
+        Node to Instance
+        """
+        return Instance(
+            provider=Provider.OPENSTACK,
+            cloud=self.cloud,
+            name=instance.name,
+            id=instance.id,
+            size=self.get_size(instance.extra["flavorId"]),
+            time=utc_date(instance.extra["created"]),
+            state=instance.state,
+            location=instance.extra["availability_zone"],
+            extra=instance.extra,
+            identifier=instance.id,
+            params={},
+        )

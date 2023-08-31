@@ -7,6 +7,7 @@ import logging
 import os
 from functools import cached_property
 
+from libcloud.compute.base import Node
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
@@ -83,7 +84,7 @@ class Azure(CSP):
         except (AttributeError, LibcloudError, RequestException) as exc:
             logging.error("Azure: %s: %s: %s", self.cloud, identifier, exception(exc))
             return None
-        return Instance(extra=instance.extra)
+        return self._node_to_instance(instance)
 
     def _get_instances(self) -> list[Instance]:
         """
@@ -98,20 +99,23 @@ class Azure(CSP):
             return []
 
         for instance in instances:
-            all_instances.append(
-                Instance(
-                    provider=Provider.AZURE_ARM,
-                    cloud=self.cloud,
-                    name=instance.name,
-                    id=instance.extra["properties"]["vmId"],
-                    size=instance.extra["properties"]["hardwareProfile"]["vmSize"],
-                    time=utc_date(instance.extra["properties"]["timeCreated"]),
-                    state=instance.state,
-                    location=instance.extra["location"],
-                    extra=instance.extra,
-                    identifier=instance.id,
-                    params={"id": instance.id},
-                )
-            )
-
+            all_instances.append(self._node_to_instance(instance))
         return all_instances
+
+    def _node_to_instance(self, instance: Node) -> Instance:
+        """
+        Node to Instance
+        """
+        return Instance(
+            provider=Provider.AZURE_ARM,
+            cloud=self.cloud,
+            name=instance.name,
+            id=instance.extra["properties"]["vmId"],
+            size=instance.extra["properties"]["hardwareProfile"]["vmSize"],
+            time=utc_date(instance.extra["properties"]["timeCreated"]),
+            state=instance.state,
+            location=instance.extra["location"],
+            extra=instance.extra,
+            identifier=instance.id,
+            params={"id": instance.id},
+        )

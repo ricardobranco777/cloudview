@@ -162,6 +162,7 @@ def test_openstack_get_instance_with_valid_identifier(
     openstack = Openstack(cloud="test_cloud", **valid_creds)
     openstack._driver = mock_driver
 
+    mocker.patch.object(Openstack, "get_size", return_value="small")
     result = openstack._get_instance("test_instance_id", {})
 
     assert isinstance(result, Instance)

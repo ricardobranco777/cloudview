@@ -96,7 +96,7 @@ class GCE(CSP):
         except (AttributeError, KeyError, LibcloudError, RequestException) as exc:
             logging.error("GCE: %s: %s: %s", self.cloud, identifier, exception(exc))
             return None
-        return Instance(extra=instance.extra)
+        return self._node_to_instance(instance)
 
     def _get_instances(self) -> list[Instance]:
         """
@@ -121,23 +121,27 @@ class GCE(CSP):
                 # zone = future_to_zone[future]
                 instances = future.result()
                 for instance in instances:
-                    all_instances.append(
-                        Instance(
-                            provider=Provider.GCE,
-                            cloud=self.cloud,
-                            name=instance.name,
-                            id=instance.id,
-                            size=instance.extra["machineType"].split("/")[-1],
-                            time=utc_date(instance.extra["creationTimestamp"]),
-                            state=instance.state,
-                            location=instance.extra["zone"].name,
-                            extra=instance.extra,
-                            identifier=instance.name,
-                            params={
-                                "name": instance.name,
-                                "zone": instance.extra["zone"].name,
-                            },
-                        )
-                    )
+                    all_instances.append(self._node_to_instance(instance))
 
         return all_instances
+
+    def _node_to_instance(self, instance: Node) -> Instance:
+        """
+        Node to Instance
+        """
+        return Instance(
+            provider=Provider.GCE,
+            cloud=self.cloud,
+            name=instance.name,
+            id=instance.id,
+            size=instance.extra["machineType"].split("/")[-1],
+            time=utc_date(instance.extra["creationTimestamp"]),
+            state=instance.state,
+            location=instance.extra["zone"].name,
+            extra=instance.extra,
+            identifier=instance.name,
+            params={
+                "name": instance.name,
+                "zone": instance.extra["zone"].name,
+            },
+        )
