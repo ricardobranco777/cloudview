@@ -7,7 +7,7 @@ import logging
 import os
 import concurrent.futures
 
-from libcloud.compute.base import Node
+from libcloud.compute.base import Node, NodeDriver
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError, InvalidCredsError
 from requests.exceptions import RequestException
@@ -43,7 +43,7 @@ class EC2(CSP):
             raise LibcloudError(f"{exc}") from exc
         cls = get_driver(Provider.EC2)
         self.regions = cls.list_regions()
-        self._drivers = {
+        self._drivers: dict[str, NodeDriver] = {
             region: cls(*key_secret, region=region) for region in self.regions
         }
 

@@ -10,7 +10,7 @@ import concurrent.futures
 from functools import cached_property
 
 from cachetools import cached, TTLCache
-from libcloud.compute.base import Node
+from libcloud.compute.base import Node, NodeDriver
 from libcloud.compute.drivers.gce import GCEZone
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
@@ -53,10 +53,10 @@ class GCE(CSP):
             logging.error("GCE: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
         self._creds = creds
-        self._driver = None
+        self._driver: NodeDriver | None = None
 
     @cached_property
-    def driver(self):
+    def driver(self) -> NodeDriver:
         """
         Get driver
         """

@@ -7,7 +7,7 @@ import logging
 import os
 from functools import cached_property
 
-from libcloud.compute.base import Node
+from libcloud.compute.base import Node, NodeDriver
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
@@ -58,10 +58,10 @@ class Azure(CSP):
             "ex_fetch_nic": False,
             "ex_fetch_power_state": False,
         }
-        self._driver = None
+        self._driver: NodeDriver | None = None
 
     @cached_property
-    def driver(self):
+    def driver(self) -> NodeDriver:
         """
         Get driver
         """

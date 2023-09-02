@@ -10,7 +10,7 @@ from functools import cached_property
 from urllib.parse import urlparse
 
 import libcloud.security
-from libcloud.compute.base import Node, NodeSize
+from libcloud.compute.base import Node, NodeDriver, NodeSize
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
@@ -72,11 +72,11 @@ class Openstack(CSP):
             logging.error("Openstack: %s: %s", self.cloud, exception(exc))
             raise LibcloudError(f"{exc}") from exc
         self._creds = creds
-        self._driver = None
+        self._driver: NodeDriver | None = None
         self.options = {"ex_all_tenants": False}
 
     @cached_property
-    def driver(self):
+    def driver(self) -> NodeDriver:
         """
         Get driver
         """
