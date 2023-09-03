@@ -92,11 +92,6 @@ class CSP(metaclass=Singleton2):
         """
         Get instance by id
         """
-        if self._get_instances.cache.currsize:  # pylint: disable=no-member
-            for instance in self._get_instances():
-                if instance.id == identifier:
-                    logging.debug("returning cached info for %s", identifier)
-                    return instance
         try:
             return self._get_instance(identifier, params)
         except (LibcloudError, RequestException) as exc:
