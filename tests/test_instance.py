@@ -1,5 +1,6 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,no-member
 import pytest
+from cachetools import cached, TTLCache
 from cloudview.instance import Instance, CSP
 
 
@@ -48,16 +49,30 @@ def test_instance_unknown_attribute():
 
 
 class MockCSP(CSP):
+    @cached(cache=TTLCache(maxsize=1, ttl=300))
     def _get_instances(self):
         return [
-            Instance(identifier="id1", name="Instance1", extra={"status": "running"}),
-            Instance(identifier="id2", name="Instance2", extra={"status": "stopped"}),
+            Instance(
+                id="id1",
+                identifier="id1",
+                name="Instance1",
+                extra={"status": "running"},
+            ),
+            Instance(
+                id="id2",
+                identifier="id2",
+                name="Instance2",
+                extra={"status": "stopped"},
+            ),
         ]
 
     def _get_instance(self, identifier, params):
         if identifier == "id1":
             return Instance(
-                identifier="id1", name="Instance1", extra={"name=": "Instance1"}
+                id="id1",
+                identifier="id1",
+                name="Instance1",
+                extra={"name=": "Instance1"},
             )
         return None
 
@@ -78,7 +93,7 @@ def test_csp_get_instances():
 def test_csp_get_instance():
     csp = MockCSP()
     instance = csp.get_instance("id1")
-    assert instance["status"] == "running"
+    assert instance["name"] == "Instance1"
 
 
 def test_csp_get_instance_not_found():

@@ -205,7 +205,7 @@ def handle_instance(request: Request) -> Response:
     if client is None or info is None:
         return not_found()
     response = html.escape(
-        JSONEncoder(default=str, indent=4, sort_keys=True).encode(info)
+        JSONEncoder(default=str, indent=4, sort_keys=True).encode(info.extra)
     )
     header = """<!DOCTYPE html><html><head><meta charset="utf-8">
     <link rel="shortcut icon" href="/favicon.ico"></head><body>"""
@@ -239,7 +239,7 @@ def parse_args() -> argparse.Namespace:
     argparser.add_argument(
         "-l",
         "--log",
-        default="warning",
+        default="error",
         choices="debug info warning error critical".split(),
     )
     argparser.add_argument(

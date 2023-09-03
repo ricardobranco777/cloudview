@@ -9,12 +9,12 @@ import os
 from functools import cached_property
 from urllib.parse import urlparse
 
+from cachetools import cached, TTLCache
 import libcloud.security
 from libcloud.compute.base import Node, NodeDriver, NodeSize
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
-from cachetools import cached, TTLCache
 
 from cloudview.instance import Instance, CSP
 from cloudview.utils import utc_date, exception
@@ -92,61 +92,38 @@ class Openstack(CSP):
                 raise LibcloudError(f"{exc}") from exc
         return self._driver
 
-    def get_size(self, size_id: str) -> str:
-        """
-        Get size name by id
-        """
-        for size in self.get_sizes():
+    def _get_size(self, size_id: str) -> str:
+        for size in self._get_sizes():
             if size.id == size_id:
                 return size.name
         return "unknown"
 
     @cached(cache=TTLCache(maxsize=1, ttl=300))
-    def get_sizes(self) -> list[NodeSize]:
-        """
-        Get sizes
-        """
+    def _get_sizes(self) -> list[NodeSize]:
         try:
             return self.driver.list_sizes()
         except (LibcloudError, RequestException) as exc:
             logging.error("Openstack: %s: %s", self.cloud, exception(exc))
             raise
 
-    def _get_instance(self, identifier: str, _: dict) -> Instance | None:
-        """
-        Get instance
-        """
-        instance_id = identifier
-        try:
-            node = self.driver.ex_get_node_details(instance_id)
-        except (AttributeError, LibcloudError, RequestException) as exc:
-            logging.error(
-                "OpenStack: %s: %s: %s", self.cloud, identifier, exception(exc)
-            )
-            return None
+    def _get_instance(self, identifier: str, _: dict) -> Instance:
+        node = self.driver.ex_get_node_details(identifier)
         return self._node_to_instance(node)
 
+    @cached(cache=TTLCache(maxsize=1, ttl=300))
     def _get_instances(self) -> list[Instance]:
-        """
-        Get Openstack instances
-        """
-        try:
-            nodes = self.driver.list_nodes(**self.options)
-        except (LibcloudError, RequestException) as exc:
-            logging.error("Openstack: %s: %s", self.cloud, exception(exc))
-            return []
-        return [self._node_to_instance(node) for node in nodes]
+        return [
+            self._node_to_instance(node)
+            for node in self.driver.list_nodes(**self.options)
+        ]
 
     def _node_to_instance(self, node: Node) -> Instance:
-        """
-        Node to Instance
-        """
         return Instance(
             provider=Provider.OPENSTACK,
             cloud=self.cloud,
             name=node.name,
             id=node.id,
-            size=self.get_size(node.extra["flavorId"]),
+            size=self._get_size(node.extra["flavorId"]),
             time=utc_date(node.extra["created"]),
             state=node.state,
             location=node.extra["availability_zone"],

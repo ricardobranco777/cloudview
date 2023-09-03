@@ -156,9 +156,8 @@ def test_azure_get_instance_with_invalid_identifier(mock_driver, valid_creds):
     azure = Azure(cloud="test_cloud", **valid_creds)
     azure._driver = mock_driver
 
-    result = azure._get_instance("test_identifier", params={"id": "non_existent_id"})
-
-    assert result is None
+    with pytest.raises(LibcloudError):
+        _ = azure._get_instance("test_identifier", params={"id": "non_existent_id"})
 
 
 def test_azure_get_instances(mock_driver, mock_instance, valid_creds):

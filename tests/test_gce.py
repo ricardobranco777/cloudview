@@ -184,11 +184,11 @@ def test_gce_get_instance_with_invalid_identifier(mock_driver, valid_creds):
     gce = GCE(cloud="test_cloud", **valid_creds)
     gce._driver = mock_driver
 
-    result = gce._get_instance(
-        "test_identifier", params={"name": "non_existent_instance"}
-    )
-
-    assert result is None
+    with pytest.raises(LibcloudError):
+        _ = gce._get_instance(
+            "test_identifier",
+            params={"name": "non_existent_instance", "zone": "test_zone"},
+        )
 
 
 def test_gce_get_instances_with_driver_exception(mock_driver):
@@ -200,18 +200,6 @@ def test_gce_get_instances_with_driver_exception(mock_driver):
         assert len(result) == 0
 
 
-def test_gce_list_zones(mocker, mock_driver, valid_creds, mock_zone):
-    mock_zone.name = "test_zone"  # Set the name attribute of the mock_zone
-    mock_driver.ex_list_zones.return_value = [mock_zone]
-    gce = GCE(cloud="test_cloud", **valid_creds)
-    gce._driver = mock_driver
-
-    result = gce.list_zones()
-    assert len(result) == 1
-    assert result[0].name == "test_zone"
-    assert result[0].status == "UP"
-
-
 def test_gce_list_instances_in_zone(
     mocker, mock_driver, valid_creds, mock_zone, mock_instance
 ):
@@ -220,7 +208,7 @@ def test_gce_list_instances_in_zone(
     gce = GCE(cloud="test_cloud", **valid_creds)
     gce._driver = mock_driver
 
-    result = gce.list_instances_in_zone(mock_zone)
+    result = gce._list_instances_in_zone(mock_zone)
     assert len(result) == 1
     assert result[0].name == "test_instance"
     assert result[0].id == "test_instance_id"
@@ -232,8 +220,7 @@ def test_gce_get_instances(mocker, mock_driver, mock_zone, mock_instance, valid_
     mock_instance.name = "test_instance"  # Set the name attribute of the mock_instance
     mock_driver.ex_list_zones.return_value = [mock_zone]
     mock_driver.list_nodes.return_value = [mock_instance]
-    mocker.patch.object(GCE, "list_instances_in_zone", return_value=[mock_instance])
-    mocker.patch.object(GCE, "list_zones", return_value=[mock_zone])
+    mocker.patch.object(GCE, "_list_instances_in_zone", return_value=[mock_instance])
 
     gce = GCE(cloud="test_cloud", **valid_creds)
     gce._driver = mock_driver

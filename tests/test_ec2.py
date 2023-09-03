@@ -71,7 +71,7 @@ def test_list_instances_in_region(
     ec2 = EC2(**valid_creds)
     ec2._drivers = {"us-east-1": mock_ec2_driver}
 
-    instances = ec2.list_instances_in_region("us-east-1")
+    instances = ec2._list_instances_in_region("us-east-1")
     assert len(instances) == 1
     assert instances[0].id == "instance-id-123"
     assert instances[0].name == "test-instance"

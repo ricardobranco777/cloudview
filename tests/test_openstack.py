@@ -131,13 +131,13 @@ def test_openstack_get_size(mocker, mock_driver, valid_creds):
     openstack = Openstack(cloud="test_cloud", **valid_creds)
     openstack._driver = mock_driver
 
-    result = openstack.get_size("size_id_1")
+    result = openstack._get_size("size_id_1")
     assert result == "size_name_1"
 
-    result = openstack.get_size("size_id_2")
+    result = openstack._get_size("size_id_2")
     assert result == "size_name_2"
 
-    result = openstack.get_size("unknown_size_id")
+    result = openstack._get_size("unknown_size_id")
     assert result == "unknown"
 
 
@@ -149,7 +149,7 @@ def test_openstack_get_sizes(mocker, mock_driver, valid_creds):
     openstack = Openstack(cloud="test_cloud", **valid_creds)
     openstack._driver = mock_driver
 
-    result = openstack.get_sizes()
+    result = openstack._get_sizes()
     assert len(result) == 2
     assert result[0].id == "size_id_1"
     assert result[1].id == "size_id_2"
@@ -162,7 +162,7 @@ def test_openstack_get_instance_with_valid_identifier(
     openstack = Openstack(cloud="test_cloud", **valid_creds)
     openstack._driver = mock_driver
 
-    mocker.patch.object(Openstack, "get_size", return_value="small")
+    mocker.patch.object(Openstack, "_get_size", return_value="small")
     result = openstack._get_instance("test_instance_id", {})
 
     assert isinstance(result, Instance)
@@ -178,14 +178,13 @@ def test_openstack_get_instance_with_invalid_identifier(mock_driver, valid_creds
     openstack = Openstack(cloud="test_cloud", **valid_creds)
     openstack._driver = mock_driver
 
-    result = openstack._get_instance("non_existent_id", {})
-
-    assert result is None
+    with pytest.raises(LibcloudError):
+        _ = openstack._get_instance("non_existent_id", {})
 
 
 def test_openstack_get_instances(mocker, mock_driver, mock_instance, valid_creds):
     mock_driver.list_nodes.return_value = [mock_instance]
-    mocker.patch.object(Openstack, "get_size", return_value="small")
+    mocker.patch.object(Openstack, "_get_size", return_value="small")
 
     openstack = Openstack(cloud="test_cloud", **valid_creds)
     openstack._driver = mock_driver

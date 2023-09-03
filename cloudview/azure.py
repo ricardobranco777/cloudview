@@ -7,6 +7,7 @@ import logging
 import os
 from functools import cached_property
 
+from cachetools import cached, TTLCache
 from libcloud.compute.base import Node, NodeDriver
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
@@ -74,33 +75,16 @@ class Azure(CSP):
                 raise LibcloudError(f"{exc}") from exc
         return self._driver
 
-    def _get_instance(self, identifier: str, params: dict) -> Instance | None:
-        """
-        Get instance
-        """
+    def _get_instance(self, identifier: str, params: dict) -> Instance:
         instance_id = params["id"]
-        try:
-            node = self.driver.ex_get_node(instance_id)
-        except (AttributeError, LibcloudError, RequestException) as exc:
-            logging.error("Azure: %s: %s: %s", self.cloud, identifier, exception(exc))
-            return None
+        node = self.driver.ex_get_node(instance_id)
         return self._node_to_instance(node)
 
+    @cached(cache=TTLCache(maxsize=1, ttl=300))
     def _get_instances(self) -> list[Instance]:
-        """
-        Get Azure instances
-        """
-        try:
-            nodes = self.driver.list_nodes()
-        except (AttributeError, LibcloudError, RequestException) as exc:
-            logging.error("Azure: %s: %s", self.cloud, exception(exc))
-            return []
-        return [self._node_to_instance(node) for node in nodes]
+        return [self._node_to_instance(node) for node in self.driver.list_nodes()]
 
     def _node_to_instance(self, node: Node) -> Instance:
-        """
-        Node to Instance
-        """
         return Instance(
             provider=Provider.AZURE_ARM,
             cloud=self.cloud,

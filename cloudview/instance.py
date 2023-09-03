@@ -6,9 +6,11 @@ import logging
 from typing import Any
 
 from cachetools import cached, TTLCache
-from libcloud.compute.types import NodeState
+from libcloud.compute.types import NodeState, LibcloudError
+from requests.exceptions import RequestException
 
 from cloudview.singleton import Singleton2
+from cloudview.utils import exception
 
 STATES = [str(getattr(NodeState, _)) for _ in dir(NodeState) if _.isupper()]
 
@@ -66,39 +68,42 @@ class CSP(metaclass=Singleton2):
     def __repr__(self):
         return f'{type(self).__name__}(cloud="{self.cloud}")'
 
-    def _get_instances(self) -> list[Instance]:
-        """
-        Method to be overriden
-        """
-        assert False
-        return []
-
     @cached(cache=TTLCache(maxsize=1, ttl=300))
+    def _get_instances(self) -> list[Instance]:
+        raise NotImplementedError("CSP._get_instances needs to be overridden")
+
     def get_instances(self) -> list[Instance]:
         """
-        Cached get_instances()
+        Get instances
         """
-        return self._get_instances()
+        try:
+            return self._get_instances()
+        except (LibcloudError, RequestException) as exc:
+            logging.error(
+                "%s: %s: %s", self.__class__.__name__, self.cloud, exception(exc)
+            )
+            return []
 
-    def _get_instance(self, identifier: str, params: dict) -> Instance | None:
-        """
-        Get instance
-        """
+    def _get_instance(self, identifier: str, params: dict) -> Instance:
         raise NotImplementedError("CSP._get_instance needs to be overridden")
 
-    @cached(cache=TTLCache(maxsize=64, ttl=60))
-    def get_instance(self, identifier: str, **params) -> dict | None:
+    def get_instance(self, identifier: str, **params) -> Instance:
         """
         Get instance by id
         """
-        if self.get_instances.cache.currsize:  # pylint: disable=no-member
-            for instance in self.get_instances():
-                if instance.identifier == identifier:
-                    logging.debug(
-                        "get_instance: returning cached info for %s", identifier
-                    )
-                    return instance.extra
-        instance = self._get_instance(identifier, params)  # type: ignore
-        if instance is None:
-            return None
-        return instance.extra
+        if self._get_instances.cache.currsize:  # pylint: disable=no-member
+            for instance in self._get_instances():
+                if instance.id == identifier:
+                    logging.debug("returning cached info for %s", identifier)
+                    return instance
+        try:
+            return self._get_instance(identifier, params)
+        except (LibcloudError, RequestException) as exc:
+            logging.error(
+                "%s: %s: %s: %s",
+                self.__class__.__name__,
+                self.cloud,
+                identifier,
+                exception(exc),
+            )
+            raise LibcloudError(f"{exc}") from exc

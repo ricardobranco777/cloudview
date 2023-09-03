@@ -64,23 +64,12 @@ class GCE(CSP):
             cls = get_driver(Provider.GCE)
             try:
                 self._driver = cls(self.user_id, **self._creds)
-                self.list_zones()
             except (LibcloudError, RequestException) as exc:
                 logging.error("GCE: %s: %s", self.cloud, exception(exc))
                 raise LibcloudError(f"{exc}") from exc
         return self._driver
 
-    @cached(cache=TTLCache(maxsize=1, ttl=300))
-    def list_zones(self) -> list[GCEZone]:
-        """
-        List zones
-        """
-        return self.driver.ex_list_zones()
-
-    def list_instances_in_zone(self, zone: GCEZone) -> list[Instance]:
-        """
-        List instances in zone
-        """
+    def _list_instances_in_zone(self, zone: GCEZone) -> list[Instance]:
         if zone.status != "UP":
             logging.debug("GCE: %s status is %s", zone.name, zone.status)
             return []
@@ -93,42 +82,24 @@ class GCE(CSP):
             logging.error("GCE: %s: %s", self.cloud, exception(exc))
             return []
 
-    def _get_instance(self, identifier: str, params: dict) -> Instance | None:
-        try:
-            node = self.driver.ex_get_node(params["name"], zone=params["zone"])
-        except (AttributeError, KeyError, LibcloudError, RequestException) as exc:
-            logging.error("GCE: %s: %s: %s", self.cloud, identifier, exception(exc))
-            return None
+    def _get_instance(self, identifier: str, params: dict) -> Instance:
+        node = self.driver.ex_get_node(params["name"], zone=params["zone"])
         return self._node_to_instance(node)
 
+    @cached(cache=TTLCache(maxsize=1, ttl=300))
     def _get_instances(self) -> list[Instance]:
-        """
-        Get GCE instances
-        """
+        zones = self.driver.ex_list_zones()
         instances = []
-
-        try:
-            zones = self.list_zones()
-        except (LibcloudError, RequestException) as exc:
-            logging.error("GCE: %s: %s", self.cloud, exception(exc))
-            return []
-
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=min(10, len(zones))
-        ) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(zones)) as executor:
             future_to_zone = {
-                executor.submit(self.list_instances_in_zone, zone): zone
+                executor.submit(self._list_instances_in_zone, zone): zone
                 for zone in zones
             }
             for future in concurrent.futures.as_completed(future_to_zone):
-                # zone = future_to_zone[future]
                 instances.extend(future.result())
         return instances
 
     def _node_to_instance(self, node: Node) -> Instance:
-        """
-        Node to Instance
-        """
         return Instance(
             provider=Provider.GCE,
             cloud=self.cloud,
