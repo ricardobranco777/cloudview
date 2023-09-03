@@ -57,9 +57,9 @@ class EC2(CSP):
             pass
         return []
 
-    def _get_instance(self, identifier: str, params: dict) -> Instance:
+    def _get_instance(self, instance_id: str, params: dict) -> Instance:
         region = params["region"]
-        node = self._drivers[region].list_nodes(ex_node_ids=[identifier])[0]
+        node = self._drivers[region].list_nodes(ex_node_ids=[instance_id])[0]
         return self._node_to_instance(node, region)
 
     @cached(cache=TTLCache(maxsize=1, ttl=CACHED_SECONDS))
@@ -87,6 +87,5 @@ class EC2(CSP):
             state=node.state,
             location=node.extra["availability"],
             extra=node.extra,
-            identifier=node.id,
             params={"region": region},
         )

@@ -54,23 +54,23 @@ class MockCSP(CSP):
         return [
             Instance(
                 id="id1",
-                identifier="id1",
+                instance_id="id1",
                 name="Instance1",
                 extra={"status": "running"},
             ),
             Instance(
                 id="id2",
-                identifier="id2",
+                instance_id="id2",
                 name="Instance2",
                 extra={"status": "stopped"},
             ),
         ]
 
-    def _get_instance(self, identifier, params):
-        if identifier == "id1":
+    def _get_instance(self, instance_id, params):
+        if instance_id == "id1":
             return Instance(
                 id="id1",
-                identifier="id1",
+                instance_id="id1",
                 name="Instance1",
                 extra={"name=": "Instance1"},
             )
@@ -87,7 +87,7 @@ def test_csp_get_instances():
     instances = csp.get_instances()
     assert len(instances) == 2
     assert instances[0].name == "Instance1"
-    assert instances[1].identifier == "id2"
+    assert instances[1].instance_id == "id2"
 
 
 def test_csp_get_instance():

@@ -82,7 +82,7 @@ class GCE(CSP):
             logging.error("GCE: %s: %s", self.cloud, exception(exc))
             return []
 
-    def _get_instance(self, identifier: str, params: dict) -> Instance:
+    def _get_instance(self, instance_id: str, params: dict) -> Instance:
         node = self.driver.ex_get_node(params["name"], zone=params["zone"])
         return self._node_to_instance(node)
 
@@ -110,7 +110,6 @@ class GCE(CSP):
             state=node.state,
             location=node.extra["zone"].name,
             extra=node.extra,
-            identifier=node.name,
             params={
                 "name": node.name,
                 "zone": node.extra["zone"].name,

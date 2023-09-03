@@ -85,21 +85,21 @@ class CSP(metaclass=Singleton2):
             )
             return []
 
-    def _get_instance(self, identifier: str, params: dict) -> Instance:
+    def _get_instance(self, instance_id: str, params: dict) -> Instance:
         raise NotImplementedError("CSP._get_instance needs to be overridden")
 
-    def get_instance(self, identifier: str, **params) -> Instance:
+    def get_instance(self, instance_id: str, **params) -> Instance:
         """
         Get instance by id
         """
         try:
-            return self._get_instance(identifier, params)
+            return self._get_instance(instance_id, params)
         except (LibcloudError, RequestException) as exc:
             logging.error(
                 "%s: %s: %s: %s",
                 self.__class__.__name__,
                 self.cloud,
-                identifier,
+                instance_id,
                 exception(exc),
             )
             raise LibcloudError(f"{exc}") from exc

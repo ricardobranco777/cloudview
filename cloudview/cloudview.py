@@ -194,14 +194,18 @@ def handle_instance(request: Request) -> Response:
     logging.info(request)
     provider = request.matchdict["provider"]
     cloud = request.matchdict["cloud"]
-    identifier = request.matchdict["identifier"]
-    if provider not in PROVIDERS or not valid_elem(cloud) or not valid_elem(identifier):
+    instance_id = request.matchdict["instance_id"]
+    if (
+        provider not in PROVIDERS
+        or not valid_elem(cloud)
+        or not valid_elem(instance_id)
+    ):
         return not_found()
     client = list(get_clients(config_file=args.config, provider=provider, cloud=cloud))[
         0
     ]
     if client is not None:
-        info = client.get_instance(identifier, **request.params)
+        info = client.get_instance(instance_id, **request.params)
     if client is None or info is None:
         return not_found()
     response = html.escape(
@@ -222,7 +226,7 @@ def web_server():
         config.add_view(handle_requests, route_name="handle_requests")
         config.add_route("test", "/test")
         config.add_view(test, route_name="test")
-        config.add_route("instance", "instance/{provider}/{cloud}/{identifier}")
+        config.add_route("instance", "instance/{provider}/{cloud}/{instance_id}")
         config.scan()
         app = config.make_wsgi_app()
         server = make_server("0.0.0.0", args.port, app)

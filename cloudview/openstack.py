@@ -106,8 +106,8 @@ class Openstack(CSP):
             logging.error("Openstack: %s: %s", self.cloud, exception(exc))
             raise
 
-    def _get_instance(self, identifier: str, _: dict) -> Instance:
-        node = self.driver.ex_get_node_details(identifier)
+    def _get_instance(self, instance_id: str, _: dict) -> Instance:
+        node = self.driver.ex_get_node_details(instance_id)
         return self._node_to_instance(node)
 
     @cached(cache=TTLCache(maxsize=1, ttl=CACHED_SECONDS))
@@ -128,6 +128,5 @@ class Openstack(CSP):
             state=node.state,
             location=node.extra["availability_zone"],
             extra=node.extra,
-            identifier=node.id,
             params={},
         )

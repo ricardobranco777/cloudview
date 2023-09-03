@@ -75,7 +75,7 @@ class Azure(CSP):
                 raise LibcloudError(f"{exc}") from exc
         return self._driver
 
-    def _get_instance(self, identifier: str, params: dict) -> Instance:
+    def _get_instance(self, instance_id: str, params: dict) -> Instance:
         instance_id = params["id"]
         node = self.driver.ex_get_node(instance_id)
         return self._node_to_instance(node)
@@ -95,6 +95,5 @@ class Azure(CSP):
             state=node.state,
             location=node.extra["location"],
             extra=node.extra,
-            identifier=node.id,
             params={"id": node.id},
         )
