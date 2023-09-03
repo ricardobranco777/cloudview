@@ -12,7 +12,7 @@ from libcloud.compute.base import Node, NodeDriver
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError, InvalidCredsError
 
-from cloudview.instance import Instance, CSP
+from cloudview.instance import Instance, CSP, CACHED_SECONDS
 from cloudview.utils import utc_date, exception
 
 
@@ -62,7 +62,7 @@ class EC2(CSP):
         node = self._drivers[region].list_nodes(ex_node_ids=[identifier])[0]
         return self._node_to_instance(node, region)
 
-    @cached(cache=TTLCache(maxsize=1, ttl=300))
+    @cached(cache=TTLCache(maxsize=1, ttl=CACHED_SECONDS))
     def _get_instances(self) -> list[Instance]:
         instances = []
         with concurrent.futures.ThreadPoolExecutor(

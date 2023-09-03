@@ -16,7 +16,7 @@ from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
 
-from cloudview.instance import Instance, CSP
+from cloudview.instance import Instance, CSP, CACHED_SECONDS
 from cloudview.utils import utc_date, exception
 
 
@@ -98,7 +98,7 @@ class Openstack(CSP):
                 return size.name
         return "unknown"
 
-    @cached(cache=TTLCache(maxsize=1, ttl=300))
+    @cached(cache=TTLCache(maxsize=1, ttl=CACHED_SECONDS))
     def _get_sizes(self) -> list[NodeSize]:
         try:
             return self.driver.list_sizes()
@@ -110,7 +110,7 @@ class Openstack(CSP):
         node = self.driver.ex_get_node_details(identifier)
         return self._node_to_instance(node)
 
-    @cached(cache=TTLCache(maxsize=1, ttl=300))
+    @cached(cache=TTLCache(maxsize=1, ttl=CACHED_SECONDS))
     def _get_instances(self) -> list[Instance]:
         return [
             self._node_to_instance(node)

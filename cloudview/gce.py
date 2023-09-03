@@ -16,7 +16,7 @@ from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
 
-from cloudview.instance import Instance, CSP
+from cloudview.instance import Instance, CSP, CACHED_SECONDS
 from cloudview.utils import utc_date, exception, read_file
 
 
@@ -86,7 +86,7 @@ class GCE(CSP):
         node = self.driver.ex_get_node(params["name"], zone=params["zone"])
         return self._node_to_instance(node)
 
-    @cached(cache=TTLCache(maxsize=1, ttl=300))
+    @cached(cache=TTLCache(maxsize=1, ttl=CACHED_SECONDS))
     def _get_instances(self) -> list[Instance]:
         zones = self.driver.ex_list_zones()
         instances = []

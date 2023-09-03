@@ -12,6 +12,7 @@ from requests.exceptions import RequestException
 from cloudview.singleton import Singleton2
 from cloudview.utils import exception
 
+CACHED_SECONDS = 300
 STATES = [str(getattr(NodeState, _)) for _ in dir(NodeState) if _.isupper()]
 
 
