@@ -39,6 +39,7 @@ USAGE = f"""Usage: {os.path.basename(sys.argv[0])} [OPTIONS]
 Options:
     -h, --help                          show this help message and exit
     -c, --config FILE                   path to clouds.yaml
+    -f, --format FORMAT                 jinja template for text output
     -l, --log debug|info|warning|error|critical
                                         logging level
     -o, --output text|html|json         output type
@@ -240,6 +241,7 @@ def parse_args() -> argparse.Namespace:
     argparser = argparse.ArgumentParser(usage=USAGE, add_help=False)
     argparser.add_argument("-c", "--config", default="")
     argparser.add_argument("-h", "--help", action="store_true")
+    argparser.add_argument("-f", "--format")
     argparser.add_argument(
         "-l",
         "--log",
@@ -303,12 +305,16 @@ def main():
         "time": "<30",
         "location": "<15",
     }
+    # template = "  ".join(f'{{{{"{{:{align}}}".format({key})}}}}' for key, align in keys.items())
+
     if args.verbose:
         keys.update({"id": ""})
 
     if args.port:
         args.output = "html"
-    Output(type=args.output.lower(), keys=keys, refresh_seconds=600)
+    Output(
+        type=args.output.lower(), keys=keys, template=args.format, refresh_seconds=600
+    )
 
     if args.port:
         web_server()

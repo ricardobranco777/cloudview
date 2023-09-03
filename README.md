@@ -16,6 +16,7 @@ Docker image available at `ghcr.io/ricardobranco777/cloudview:latest`
 Usage: cloudview [OPTIONS]
 Options:
     -c, --config FILE                   path to clouds.yaml
+    -f, --format FORMAT                 jinja template for text output
     -l, --log debug|info|warning|error|critical
                                         logging level
     -o, --output text|html|json         output type

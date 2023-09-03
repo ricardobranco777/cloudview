@@ -19,6 +19,7 @@ class Output(metaclass=Singleton):
     def __init__(
         self,
         type: str | None = None,
+        template: str | None = None,
         keys: dict[str, str] | list[str] | None = None,
         **kwargs,
     ):
@@ -31,6 +32,7 @@ class Output(metaclass=Singleton):
         if type not in ("text", "json", "html"):
             raise ValueError(f"Invalid type: {type}")
         self._type = type
+        self._template = template
         if isinstance(keys, (list, tuple)):
             self._keys = dict.fromkeys(keys, "")
         else:
@@ -46,11 +48,12 @@ class Output(metaclass=Singleton):
         Print the header for output
         """
         if self._type == "text":
-            print(
-                "  ".join(
-                    [f"{key.upper():{align}}" for key, align in self._keys.items()]
+            if self._template is None:
+                print(
+                    "  ".join(
+                        [f"{key.upper():{align}}" for key, align in self._keys.items()]
+                    )
                 )
-            )
         elif self._type == "html":
             table_header = "".join([f"<th>{key.upper()}</th>" for key in self._keys])
             with open(
@@ -64,9 +67,14 @@ class Output(metaclass=Singleton):
         Dump item information
         """
         if self._type == "text":
-            print(
-                "  ".join([f"{item[key]:{align}}" for key, align in self._keys.items()])
-            )
+            if self._template is None:
+                print(
+                    "  ".join(
+                        [f"{item[key]:{align}}" for key, align in self._keys.items()]
+                    )
+                )
+            else:
+                print(Template(self._template).render(item.__dict__))
         elif self._type == "json":
             if isinstance(item, dict):
                 self._items.append(item)
