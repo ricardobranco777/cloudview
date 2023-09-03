@@ -48,6 +48,7 @@ def mock_ec2_instance():
             "instance_type": "t2.micro",
             "launch_time": "2023-04-19T13:04:22.000Z",
             "availability": "us-east-1a",
+            "tags": {"Name": "test-instance"},
         },
     )
 
