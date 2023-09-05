@@ -8,12 +8,11 @@ import os
 import logging
 import sys
 import html
+from concurrent.futures import ThreadPoolExecutor
 from json import JSONEncoder
 from io import StringIO
 from operator import itemgetter
-from threading import Thread
 from urllib.parse import urlencode, quote, unquote
-from typing import Generator
 
 from wsgiref.simple_server import make_server
 from pyramid.view import view_config
@@ -67,7 +66,7 @@ def get_clients(
     config_file: str,
     provider: str = "",
     cloud: str = "",
-) -> Generator[CSP | None, None, None]:
+) -> list[CSP]:
     """
     Get clients for cloud providers
     """
@@ -79,6 +78,7 @@ def get_clients(
         if config
         else PROVIDERS.keys()
     )
+    clients = []
     for xprovider in providers:
         if xprovider not in PROVIDERS:
             logging.error("Unsupported provider %s", xprovider)
@@ -95,11 +95,12 @@ def get_clients(
         for xcloud in clouds:
             try:
                 creds = config["providers"][xprovider][xcloud] if config else {}
-                yield PROVIDERS[xprovider](cloud=xcloud, **creds)
+                clients.append(PROVIDERS[xprovider](cloud=xcloud, **creds))
             except KeyError:
                 logging.error("Unsupported provider/cloud %s/%s", xprovider, xcloud)
             except LibcloudError:
                 pass
+    return clients
 
 
 def print_instances(client: CSP) -> None:
@@ -129,15 +130,12 @@ def print_info() -> Response | None:
     """
     Print information about instances
     """
+    clients = get_clients(config_file=args.config)
     sys.stdout = StringIO() if args.port else sys.stdout
-    threads = []
-    for client in get_clients(config_file=args.config):
-        threads.append(Thread(target=print_instances, args=(client,)))
     Output().header()
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
+    if len(clients) > 0:
+        with ThreadPoolExecutor(max_workers=len(clients)) as executor:
+            executor.map(print_instances, clients)
     Output().footer()
     if args.port:
         response = sys.stdout.getvalue()
