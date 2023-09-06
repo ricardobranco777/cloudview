@@ -4,7 +4,6 @@ Instance class
 
 import logging
 from datetime import datetime
-from typing import Optional
 
 from cachetools import cached, TTLCache
 from libcloud.compute.types import NodeState, LibcloudError
@@ -33,7 +32,6 @@ class Instance:  # pylint: disable=too-many-instance-attributes
         "state",
         "location",
         "extra",
-        "identifier",
         "params",
     )
 
@@ -48,7 +46,6 @@ class Instance:  # pylint: disable=too-many-instance-attributes
         state: str = "",
         location: str = "",
         extra: dict | None = None,
-        identifier: str = "",
         params: dict | None = None,
     ):
         self.provider = provider
@@ -60,7 +57,6 @@ class Instance:  # pylint: disable=too-many-instance-attributes
         self.state = state
         self.location = location
         self.extra = extra
-        self.identifier = identifier
         self.params = params
 
     def __repr__(self):
