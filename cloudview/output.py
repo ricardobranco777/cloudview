@@ -40,7 +40,7 @@ class Output(metaclass=Singleton):
         self.items: list[dict] = []
         self.kwargs = kwargs
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"{type(self).__name__}("
             + ", ".join(

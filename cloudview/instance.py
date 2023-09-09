@@ -25,7 +25,7 @@ class Instance:
         for attr, value in kwargs.items():
             setattr(self, attr, value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         attrs = [x for x in dir(self) if not callable(x) and not x.startswith("_")]
         return (
             f"{type(self).__name__}("
@@ -66,7 +66,7 @@ class CSP(metaclass=Singleton2):
     def __init__(self, cloud: str = ""):
         self.cloud = cloud or "_"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{type(self).__name__}(cloud="{self.cloud}")'
 
     @cached(cache=TTLCache(maxsize=1, ttl=300))
