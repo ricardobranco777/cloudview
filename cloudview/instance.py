@@ -31,9 +31,9 @@ class Instance:
             f"{type(self).__name__}("
             + ", ".join(
                 [
-                    f'{x}="{getattr(self, x)}"'
-                    if isinstance(x, str)
-                    else f"{x}={getattr(self, x)}"
+                    f"{x}={repr(getattr(self, x))}"
+                    if getattr(self, x) is not None
+                    else f"{x}=None"
                     for x in attrs
                 ]
             )
