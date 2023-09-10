@@ -26,19 +26,8 @@ class Instance:
             setattr(self, attr, value)
 
     def __repr__(self) -> str:
-        attrs = [x for x in dir(self) if not callable(x) and not x.startswith("_")]
-        return (
-            f"{type(self).__name__}("
-            + ", ".join(
-                [
-                    f"{x}={repr(getattr(self, x))}"
-                    if getattr(self, x) is not None
-                    else f"{x}=None"
-                    for x in attrs
-                ]
-            )
-            + ")"
-        )
+        attrs = ", ".join(f"{attr}={getattr(self, attr)!r}" for attr in vars(self))
+        return f"{self.__class__.__name__}({attrs})"
 
     # Allow access this object as a dictionary
 
@@ -67,7 +56,7 @@ class CSP(metaclass=Singleton2):
         self.cloud = cloud or "_"
 
     def __repr__(self) -> str:
-        return f'{type(self).__name__}(cloud="{self.cloud}")'
+        return f"{self.__class__.__name__}(cloud='{self.cloud}')"
 
     @cached(cache=TTLCache(maxsize=1, ttl=300))
     def _get_instances(self) -> list[Instance]:

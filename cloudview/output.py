@@ -31,80 +31,66 @@ class Output(metaclass=Singleton):
         """
         if type not in ("text", "json", "html"):
             raise ValueError(f"Invalid type: {type}")
-        self.type = type
-        self.template = template
+        self._type = type
+        self._template = template
         if isinstance(keys, (list, tuple)):
-            self.keys = dict.fromkeys(keys, "")
+            self._keys = dict.fromkeys(keys, "")
         else:
-            self.keys = keys or {}
-        self.items: list[dict] = []
-        self.kwargs = kwargs
-
-    def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}("
-            + ", ".join(
-                [
-                    f"{k}='{repr(getattr(self, k))}'"
-                    if getattr(self, k) is not None
-                    else f"{k}=None"
-                    for k in ("type", "template", "keys")
-                ]
-            )
-            + ")"
-        )
+            self._keys = keys or {}
+        self._kwargs = kwargs
+        self._items: list[dict] = []
 
     def header(self):
         """
         Print the header for output
         """
-        if self.type == "text":
-            if self.template is None:
+        if self._type == "text":
+            if self._template is None:
                 print(
                     "  ".join(
-                        [f"{key.upper():{align}}" for key, align in self.keys.items()]
+                        [f"{key.upper():{align}}" for key, align in self._keys.items()]
                     )
                 )
-        elif self.type == "html":
-            table_header = "".join([f"<th>{key.upper()}</th>" for key in self.keys])
+        elif self._type == "html":
+            table_header = "".join([f"<th>{key.upper()}</th>" for key in self._keys])
             with open(
                 os.path.join(os.path.dirname(__file__), "header.html"), encoding="utf-8"
             ) as file:
                 header = file.read()
-            print(Template(header).render(**self.kwargs), table_header)
+            print(Template(header).render(**self._kwargs), table_header)
 
     def info(self, item):
         """
         Dump item information
         """
-        if self.type == "text":
-            if self.template is None:
+        if self._type == "text":
+            if self._template is None:
                 print(
                     "  ".join(
-                        [f"{item[key]:{align}}" for key, align in self.keys.items()]
+                        [f"{item[key]:{align}}" for key, align in self._keys.items()]
                     )
                 )
             else:
-                print(Template(self.template).render(item.__dict__))
-        elif self.type == "json":
+                print(Template(self._template).render(item.__dict__))
+        elif self._type == "json":
             if isinstance(item, dict):
-                self.items.append(item)
+                self._items.append(item)
             else:
-                self.items.append(item.__dict__)
-        elif self.type == "html":
+                self._items.append(item.__dict__)
+        elif self._type == "html":
             item["name"] = f"<a href=\"{item['href']}\">{item['name']}</a>"
-            lines = "".join([f" <td>{item[key]}</td>" for key in self.keys])
+            lines = "".join([f" <td>{item[key]}</td>" for key in self._keys])
             print(f"<tr>\n{lines}\n</tr>")
 
     def footer(self):
         """
         Print the footer for output
         """
-        if self.type == "json":
-            print(json.dumps(self.items, indent=2, default=str))
-        elif self.type == "html":
+        if self._type == "json":
+            print(json.dumps(self._items, indent=2, default=str))
+        elif self._type == "html":
             with open(
                 os.path.join(os.path.dirname(__file__), "footer.html"), encoding="utf-8"
             ) as file:
                 footer = file.read()
-            print(Template(footer).render(**self.kwargs))
+            print(Template(footer).render(**self._kwargs))

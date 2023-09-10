@@ -1,7 +1,14 @@
-# pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,no-member
+# pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,no-member,eval-used
 import pytest
 from cachetools import cached, TTLCache
 from cloudview.instance import Instance, CSP
+
+
+def test_instance_repr():
+    item = Instance(name="Example", value=42, none=None, map={1: "2"})
+    repr_string = repr(item)
+    recreated_item = eval(repr_string)
+    assert item.__dict__ == recreated_item.__dict__
 
 
 def test_instance_creation():
