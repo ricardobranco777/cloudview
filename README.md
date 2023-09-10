@@ -13,23 +13,30 @@ Docker image available at `ghcr.io/ricardobranco777/cloudview:latest`
 ## Usage
 
 ```
-Usage: cloudview [OPTIONS]
-Options:
-    -c, --config FILE                   path to clouds.yaml
-    -f, --format FORMAT                 jinja template for text output
-    -l, --log debug|info|warning|error|critical
-                                        logging level
-    -o, --output text|html|json         output type
-    -P, --providers ec2|gce|azure_arm|openstack
-                                        list only specified providers
-    -p, --port PORT                     run a web server on port PORT
-    -r, --reverse                       reverse sort
-    -s, --sort name|time|state          sort type
-    -S, --states error|migrating|normal|paused|pending|rebooting|reconfiguring|running|starting|stopped|stopping|suspended|terminated|unknown|updating
-                                        filter by instance state
-    -T, --time TIME_FORMAT              time format as used by strftime(3)
-    -V, --version                       show version and exit
-    -v, --verbose                       be verbose
+usage: cloudview.py [-h] [-c CONFIG] [-f FORMAT] [-l {debug,info,warning,error,critical}] [-o {text,html,json}] [-p PORT] [-P {ec2,gce,azure_arm,openstack}] [-r] [-s {name,state,time}]
+                    [-S {error,migrating,normal,paused,pending,rebooting,reconfiguring,running,starting,stopped,stopping,suspended,terminated,unknown,updating}] [-T TIME] [-v] [-V]
+
+options:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+                        path to clouds.yaml (default: None)
+  -f FORMAT, --format FORMAT
+                        jinja template for text output (default: None)
+  -l {debug,info,warning,error,critical}, --log {debug,info,warning,error,critical}
+                        logging level (default: error)
+  -o {text,html,json}, --output {text,html,json}
+                        output type (default: text)
+  -p PORT, --port PORT  run a web server on specified port (default: None)
+  -P {ec2,gce,azure_arm,openstack}, --providers {ec2,gce,azure_arm,openstack}
+                        list only specified providers (default: None)
+  -r, --reverse         reverse sort (default: False)
+  -s {name,state,time}, --sort {name,state,time}
+                        sort type (default: None)
+  -S {error,migrating,normal,paused,pending,rebooting,reconfiguring,running,starting,stopped,stopping,suspended,terminated,unknown,updating}, --states {error,migrating,normal,paused,pending,rebooting,reconfiguring,running,starting,stopped,stopping,suspended,terminated,unknown,updating}
+                        filter by instance state (default: None)
+  -T TIME, --time TIME  time format (default: %a %b %d %H:%M:%S %Z %Y)
+  -v, --verbose         be verbose (default: None)
+  --version             show program's version number and exit
 ```
 
 ## Requirements

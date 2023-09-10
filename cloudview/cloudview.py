@@ -34,26 +34,6 @@ from .utils import fix_date, read_file
 from . import __version__
 
 
-USAGE = f"""Usage: {os.path.basename(sys.argv[0])} [OPTIONS]
-Options:
-    -h, --help                          show this help message and exit
-    -c, --config FILE                   path to clouds.yaml
-    -f, --format FORMAT                 jinja template for text output
-    -l, --log debug|info|warning|error|critical
-                                        logging level
-    -o, --output text|html|json         output type
-    -P, --providers ec2|gce|azure_arm|openstack
-                                        list only specified providers
-    -p, --port PORT                     run a web server on port PORT
-    -r, --reverse                       reverse sort
-    -s, --sort name|time|state          sort type
-    -S, --states error|migrating|normal|paused|pending|rebooting|reconfiguring|running|starting|stopped|stopping|suspended|terminated|unknown|updating
-                                        filter by instance state
-    -T, --time TIME_FORMAT              time format as used by strftime(3)
-    -V, --version                       show version and exit
-    -v, --verbose                       be verbose
-"""
-
 PROVIDERS = {
     str(Provider.EC2): EC2,
     str(Provider.GCE): GCE,
@@ -236,29 +216,58 @@ def parse_args() -> argparse.Namespace:
     """
     Parse command line options
     """
-    argparser = argparse.ArgumentParser(usage=USAGE, add_help=False)
-    argparser.add_argument("-c", "--config", default="")
-    argparser.add_argument("-h", "--help", action="store_true")
-    argparser.add_argument("-f", "--format")
+    version = "\n".join(
+        [
+            f"cloudview {__version__}",
+            f"Python {sys.version}",
+            f"Libcloud {libcloud.__version__}",
+        ]
+    )
+    argparser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    argparser.add_argument("-c", "--config", type=str, help="path to clouds.yaml")
+    argparser.add_argument("-f", "--format", help="jinja template for text output")
     argparser.add_argument(
         "-l",
         "--log",
         default="error",
         choices="debug info warning error critical".split(),
+        help="logging level",
     )
     argparser.add_argument(
-        "-o", "--output", default="text", choices=["text", "html", "json"]
+        "-o",
+        "--output",
+        default="text",
+        choices=["text", "html", "json"],
+        help="output type",
     )
-    argparser.add_argument("-p", "--port", type=port_number)
     argparser.add_argument(
-        "-P", "--providers", action="append", choices=list(PROVIDERS.keys())
+        "-p", "--port", type=port_number, help="run a web server on specified port"
     )
-    argparser.add_argument("-r", "--reverse", action="store_true")
-    argparser.add_argument("-s", "--sort", choices=["name", "state", "time"])
-    argparser.add_argument("-S", "--states", action="append", choices=STATES)
-    argparser.add_argument("-T", "--time", default="%a %b %d %H:%M:%S %Z %Y")
-    argparser.add_argument("-v", "--verbose", action="count")
-    argparser.add_argument("-V", "--version", action="store_true")
+    argparser.add_argument(
+        "-P",
+        "--providers",
+        action="append",
+        choices=list(PROVIDERS.keys()),
+        help="list only specified providers",
+    )
+    argparser.add_argument("-r", "--reverse", action="store_true", help="reverse sort")
+    argparser.add_argument(
+        "-s", "--sort", choices=["name", "state", "time"], help="sort type"
+    )
+    argparser.add_argument(
+        "-S",
+        "--states",
+        action="append",
+        choices=STATES,
+        help="filter by instance state",
+    )
+    argparser.add_argument(
+        "-T", "--time", default="%a %b %d %H:%M:%S %Z %Y", help="time format"
+    )
+    argparser.add_argument("-v", "--verbose", action="count", help="be verbose")
+    argparser.add_argument("--version", action="version", version=version)
     return argparser.parse_args()
 
 
@@ -323,16 +332,6 @@ def main():
 
 if __name__ == "__main__":
     args = parse_args()
-
-    if args.help:
-        print(USAGE)
-        sys.exit(0)
-    elif args.version:
-        print(f"cloudview {__version__}")
-        print(f"Python {sys.version}")
-        print(f"Libcloud {libcloud.__version__}")
-        sys.exit(0)
-
     try:
         main()
     except KeyboardInterrupt:
