@@ -3,7 +3,7 @@ cachetools==5.3.1
 certifi==2023.7.22
 cffi==1.15.1
 charset-normalizer==3.2.0
-cryptography==41.0.3
+cryptography==41.0.4
 hupper==1.12
 idna==3.4
 Jinja2==3.1.2
