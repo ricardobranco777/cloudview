@@ -2,6 +2,7 @@
 Handle tabular output in these formats: text, json & html
 """
 
+import html
 import json
 import os
 
@@ -53,6 +54,7 @@ class Output(metaclass=Singleton):
                 )
         elif self._type == "html":
             table_header = "".join([f"<th>{key.upper()}</th>" for key in self._keys])
+            table_header = f'<table style="width:100%" id="instances"><thead><tr>{table_header}</tr></thead><tbody>'
             with open(
                 os.path.join(os.path.dirname(__file__), "header.html"), encoding="utf-8"
             ) as file:
@@ -78,9 +80,13 @@ class Output(metaclass=Singleton):
             else:
                 self._items.append(item.__dict__)
         elif self._type == "html":
-            item["name"] = f"<a href=\"{item['href']}\">{item['name']}</a>"
-            lines = "".join([f" <td>{item[key]}</td>" for key in self._keys])
-            print(f"<tr>\n{lines}\n</tr>")
+            info = {
+                k: html.escape(item[k]) if isinstance(item[k], str) else item[k]
+                for k in self._keys
+            }
+            info["name"] = f"<a href=\"{item['href']}\">{item['name']}</a>"
+            cells = "".join([f"<td>{info[key]}</td>" for key in self._keys])
+            print(f"<tr>{cells}</tr>")
 
     def footer(self):
         """
@@ -93,4 +99,5 @@ class Output(metaclass=Singleton):
                 os.path.join(os.path.dirname(__file__), "footer.html"), encoding="utf-8"
             ) as file:
                 footer = file.read()
-            print(Template(footer).render(**self._kwargs))
+            table_footer = "</tbody></table>"
+            print(table_footer, Template(footer).render(**self._kwargs))

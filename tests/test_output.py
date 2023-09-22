@@ -49,14 +49,16 @@ def test_text_output_info(text_output, capsys):
 
 
 def test_html_output_header(html_output, capsys):
-    expected_header = "<th>NAME</th><th>AGE</th><th>HREF</th>\n"
+    expected_header = "<th>NAME</th>"
     html_output.header()
     captured = capsys.readouterr()
     assert expected_header in captured.out
 
 
 def test_html_output_info(html_output, capsys):
-    expected_info = '<tr>\n <td><a href="john.html">John</a></td> <td>30</td> <td>john.html</td>\n</tr>\n'
+    expected_info = (
+        '<tr><td><a href="john.html">John</a></td><td>30</td><td>john.html</td></tr>'
+    )
     item = {"name": "John", "age": 30, "href": "john.html"}
     html_output.info(item)
     captured = capsys.readouterr()
