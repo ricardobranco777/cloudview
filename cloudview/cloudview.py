@@ -232,7 +232,7 @@ def parse_args() -> argparse.Namespace:
         "-l",
         "--log",
         default="error",
-        choices="debug info warning error critical".split(),
+        choices=["none", "debug", "info", "warning", "error", "critical"],
         help="logging level",
     )
     argparser.add_argument(
@@ -301,9 +301,6 @@ def main():
         args.states = STATES
     args.states = set(args.states)
 
-    fmt = "%(asctime)s %(levelname)-8s %(message)s" if args.port else None
-    logging.basicConfig(format=fmt, stream=sys.stderr, level=args.log.upper())
-
     keys = {
         "provider": "<15",
         "name": "<50",
@@ -332,6 +329,14 @@ def main():
 
 if __name__ == "__main__":
     args = parse_args()
+    if args.log == "none":
+        logging.disable()
+    else:
+        logging.basicConfig(
+            format="%(asctime)s %(levelname)-8s %(message)s",
+            stream=sys.stderr,
+            level=args.log.upper(),
+        )
     try:
         main()
     except KeyboardInterrupt:

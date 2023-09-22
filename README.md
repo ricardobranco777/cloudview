@@ -13,8 +13,9 @@ Docker image available at `ghcr.io/ricardobranco777/cloudview:latest`
 ## Usage
 
 ```
-usage: cloudview.py [-h] [-c CONFIG] [-f FORMAT] [-l {debug,info,warning,error,critical}] [-o {text,html,json}] [-p PORT] [-P {ec2,gce,azure_arm,openstack}] [-r] [-s {name,state,time}]
-                    [-S {error,migrating,normal,paused,pending,rebooting,reconfiguring,running,starting,stopped,stopping,suspended,terminated,unknown,updating}] [-T TIME] [-v] [-V]
+usage: cloudview.py [-h] [-c CONFIG] [-f FORMAT] [-l {none,debug,info,warning,error,critical}] [-o {text,html,json}] [-p PORT] [-P {ec2,gce,azure_arm,openstack}] [-r]
+                    [-s {name,state,time}] [-S {error,migrating,normal,paused,pending,rebooting,reconfiguring,running,starting,stopped,stopping,suspended,terminated,unknown,updating}]
+                    [-T TIME] [-v] [--version]
 
 options:
   -h, --help            show this help message and exit
@@ -22,7 +23,7 @@ options:
                         path to clouds.yaml (default: None)
   -f FORMAT, --format FORMAT
                         jinja template for text output (default: None)
-  -l {debug,info,warning,error,critical}, --log {debug,info,warning,error,critical}
+  -l {none,debug,info,warning,error,critical}, --log {none,debug,info,warning,error,critical}
                         logging level (default: error)
   -o {text,html,json}, --output {text,html,json}
                         output type (default: text)
