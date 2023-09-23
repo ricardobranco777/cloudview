@@ -50,7 +50,7 @@ def get_clients(
     """
     Get clients for cloud providers
     """
-    config = yaml.full_load(read_file(config_file)) if config_file else {}
+    config = yaml.safe_load(read_file(config_file)) if config_file else {}
     providers = (
         (provider,)
         if provider

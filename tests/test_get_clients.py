@@ -11,7 +11,7 @@ def mock_read_file(mocker):
 
 @pytest.fixture
 def mock_yaml(mocker):
-    return mocker.patch("cloudview.cloudview.yaml.full_load")
+    return mocker.patch("cloudview.cloudview.yaml.safe_load")
 
 
 def test_get_clients_supported_provider(mock_read_file, mock_yaml, mocker):
