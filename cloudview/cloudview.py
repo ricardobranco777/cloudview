@@ -30,7 +30,7 @@ from .gce import GCE
 from .openstack import Openstack
 from .instance import CSP, STATES
 from .output import Output
-from .utils import fix_date, read_file
+from .utils import dateit, read_file
 from . import __version__
 
 
@@ -102,7 +102,7 @@ def print_instances(client: CSP) -> None:
             params = urlencode(instance.params)
             resource = "/".join([instance.provider.lower(), f"{instance.id}?{params}"])
             instance.href = f"instance/{resource}"
-        instance.time = fix_date(instance.time, args.time if args.verbose else None)
+        instance.time = dateit(instance.time, args.time)
         Output().info(instance)
 
 
@@ -264,7 +264,11 @@ def parse_args() -> argparse.Namespace:
         help="filter by instance state",
     )
     argparser.add_argument(
-        "-T", "--time", default="%a %b %d %H:%M:%S %Z %Y", help="time format"
+        "-t",
+        "--time",
+        default="%a %b %d %H:%M:%S %Z %Y",
+        metavar="TIME_FORMAT",
+        help="strftime format or age|timeago",
     )
     argparser.add_argument("-v", "--verbose", action="count", help="be verbose")
     argparser.add_argument("--version", action="version", version=version)
@@ -306,7 +310,7 @@ def main():
         "name": "<50",
         "size": ">20",
         "state": ">10",
-        "time": "<30",
+        "time": "<15" if args.time in {"age", "timeago"} else "<30",
         "location": "<15",
     }
     # template = "  ".join(f'{{{{"{{:{align}}}".format({key})}}}}' for key, align in keys.items())

@@ -15,7 +15,7 @@ Docker image available at `ghcr.io/ricardobranco777/cloudview:latest`
 ```
 usage: cloudview.py [-h] [-c CONFIG] [-f FORMAT] [-l {none,debug,info,warning,error,critical}] [-o {text,html,json}] [-p PORT] [-P {ec2,gce,azure_arm,openstack}] [-r]
                     [-s {name,state,time}] [-S {error,migrating,normal,paused,pending,rebooting,reconfiguring,running,starting,stopped,stopping,suspended,terminated,unknown,updating}]
-                    [-T TIME] [-v] [--version]
+                    [-t TIME_FORMAT] [-v] [--version]
 
 options:
   -h, --help            show this help message and exit
@@ -35,7 +35,8 @@ options:
                         sort type (default: None)
   -S {error,migrating,normal,paused,pending,rebooting,reconfiguring,running,starting,stopped,stopping,suspended,terminated,unknown,updating}, --states {error,migrating,normal,paused,pending,rebooting,reconfiguring,running,starting,stopped,stopping,suspended,terminated,unknown,updating}
                         filter by instance state (default: None)
-  -T TIME, --time TIME  time format (default: %a %b %d %H:%M:%S %Z %Y)
+  -t TIME_FORMAT, --time TIME_FORMAT
+                        strftime format or age|timeago (default: %a %b %d %H:%M:%S %Z %Y)
   -v, --verbose         be verbose (default: None)
   --version             show program's version number and exit
 ```

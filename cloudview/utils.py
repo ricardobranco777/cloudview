@@ -40,18 +40,52 @@ def get_age(date: datetime):
     return string
 
 
-def utc_date(date: str) -> datetime:
+def timeago(date: datetime) -> str:
     """
-    return UTC normalized datetime object from date string
+    Time ago
     """
-    return utc.normalize(parser.parse(date))
+    diff = datetime.now(tz=utc) - date
+    seconds = int(diff.total_seconds())
+    ago = "ago"
+    if seconds < 0:
+        ago = "in the future"
+        seconds = abs(seconds)
+    if seconds < 60:
+        return f"{seconds} second{'s' if seconds != 1 else ''} {ago}"
+    minutes = seconds // 60
+    if minutes < 60:
+        return f"{minutes} minute{'s' if minutes != 1 else ''} {ago}"
+    hours = minutes // 60
+    if hours < 24:
+        return f"{hours} hour{'s' if hours != 1 else ''} {ago}"
+    days = hours // 24
+    if days < 30:
+        return f"{days} day{'s' if days != 1 else ''} {ago}"
+    months = days // 30
+    if months < 12:
+        return f"{months} month{'s' if months != 1 else ''} {ago}"
+    years = months // 12
+    return f"{years} year{'s' if years != 1 else ''} {ago}"
 
 
-def fix_date(date: datetime, time_format=None):
+def dateit(date: datetime, time_format: str = "%a %b %d %H:%M:%S %Z %Y") -> str:
     """
-    Converts datetime object to local time or the
-    timezone specified by the TZ environment variable
+    Return date in desired format
     """
-    if time_format is not None:
-        return date.astimezone().strftime(time_format)
-    return get_age(date)
+    date = date.astimezone()
+    if time_format == "timeago":
+        return timeago(date)
+    return date.strftime(time_format)
+
+
+def utc_date(date: str | datetime) -> datetime:
+    """
+    Return UTC normalized datetime object from date
+    """
+    if isinstance(date, str):
+        date = parser.parse(date)
+    if date.tzinfo is not None:
+        date = date.astimezone(utc)
+    else:
+        date = date.replace(tzinfo=utc)
+    return date
