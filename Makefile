@@ -17,7 +17,7 @@ pylint:
 
 .PHONY: test
 test:
-	@SKIP_SELENIUM=1 pytest --capture=sys -v --cov --cov-report term-missing
+	@SKIP_SELENIUM=1 TZ=Europe/Berlin pytest --capture=sys -v --cov --cov-report term-missing
 
 .PHONY: selenium
 selenium:

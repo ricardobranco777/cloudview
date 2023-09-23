@@ -41,7 +41,16 @@ def test_utc_date():
 
 # Test cases for the dateit function
 def test_dateit():
+    # Test date formatting with the default format
     dt = datetime(2023, 9, 10, 15, 30, 0, tzinfo=utc)
+    formatted_date = dateit(dt)
+    assert formatted_date == "Sun Sep 10 17:30:00 CEST 2023"
+
+    # Test date formatting with a custom format
+    custom_format = "%Y-%m-%d %H:%M:%S"
+    formatted_date = dateit(dt, time_format=custom_format)
+    assert formatted_date == "2023-09-10 17:30:00"
+
     # Test date formatting with a different custom format
     another_format = "%A, %d %B %Y"
     formatted_date = dateit(dt, time_format=another_format)
