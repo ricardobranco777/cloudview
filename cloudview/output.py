@@ -20,7 +20,6 @@ class Output(metaclass=Singleton):
     def __init__(
         self,
         type: str | None = None,
-        template: str | None = None,
         keys: dict[str, str] | list[str] | None = None,
         **kwargs,
     ):
@@ -33,11 +32,14 @@ class Output(metaclass=Singleton):
         if type not in ("text", "json", "html"):
             raise ValueError(f"Invalid type: {type}")
         self._type = type
-        self._template = template
         if isinstance(keys, (list, tuple)):
             self._keys = dict.fromkeys(keys, "")
         else:
             self._keys = keys or {}
+        if self._type == "text":
+            self._output_format = "  ".join(
+                f"{{{key}:{align}}}" for key, align in self._keys.items()
+            )
         self._kwargs = kwargs
         self._items: list[dict] = []
 
@@ -46,15 +48,12 @@ class Output(metaclass=Singleton):
         Print the header for output
         """
         if self._type == "text":
-            if self._template is None:
-                print(
-                    "  ".join(
-                        [f"{key.upper():{align}}" for key, align in self._keys.items()]
-                    )
-                )
+            print(
+                self._output_format.format(**{key: key.upper() for key in self._keys})
+            )
         elif self._type == "html":
-            table_header = "".join([f"<th>{key.upper()}</th>" for key in self._keys])
-            table_header = f'<table style="width:100%" id="instances"><thead><tr>{table_header}</tr></thead><tbody>'
+            table_header = "".join(f"<th>{key.upper()}</th>" for key in self._keys)
+            table_header = f'<table style="width:100%"><thead><tr>{table_header}</tr></thead><tbody>'
             with open(
                 os.path.join(os.path.dirname(__file__), "header.html"), encoding="utf-8"
             ) as file:
@@ -66,14 +65,10 @@ class Output(metaclass=Singleton):
         Dump item information
         """
         if self._type == "text":
-            if self._template is None:
-                print(
-                    "  ".join(
-                        [f"{item[key]:{align}}" for key, align in self._keys.items()]
-                    )
-                )
+            if isinstance(item, dict):
+                print(self._output_format.format(**item))
             else:
-                print(Template(self._template).render(item.__dict__))
+                print(self._output_format.format(**item.__dict__))
         elif self._type == "json":
             if isinstance(item, dict):
                 self._items.append(item)
@@ -85,7 +80,7 @@ class Output(metaclass=Singleton):
                 for k in self._keys
             }
             info["name"] = f"<a href=\"{item['href']}\">{item['name']}</a>"
-            cells = "".join([f"<td>{info[key]}</td>" for key in self._keys])
+            cells = "".join(f"<td>{info[key]}</td>" for key in self._keys)
             print(f"<tr>{cells}</tr>")
 
     def footer(self):

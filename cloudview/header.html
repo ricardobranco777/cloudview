@@ -23,11 +23,11 @@ th, td {
 th {
   text-align: left;
 }
-table#instances tr:nth-child(even) {
-  background-color: lightgray;
-}
-table#instances tr:nth-child(odd) {
+tr:not(:first-child):nth-child(odd) {
   background-color: white;
+}
+tr:not(:first-child):nth-child(even) {
+  background-color: lightgray;
 }
 </style>
 <body>

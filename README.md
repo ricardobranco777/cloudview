@@ -21,8 +21,8 @@ options:
   -h, --help            show this help message and exit
   -c CONFIG, --config CONFIG
                         path to clouds.yaml (default: None)
-  -f FORMAT, --format FORMAT
-                        jinja template for text output (default: None)
+  -f FIELDS, --fields FIELDS
+                        output fields (default: provider,name,size,state,time,location)
   -l {none,debug,info,warning,error,critical}, --log {none,debug,info,warning,error,critical}
                         logging level (default: error)
   -o {text,html,json}, --output {text,html,json}
@@ -39,6 +39,8 @@ options:
                         strftime format or age|timeago (default: %a %b %d %H:%M:%S %Z %Y)
   -v, --verbose         be verbose (default: None)
   --version             show program's version number and exit
+
+output fields for --fields: provider,name,id,size,state,time,location
 ```
 
 ## Requirements

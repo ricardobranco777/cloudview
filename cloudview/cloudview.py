@@ -21,7 +21,6 @@ from pyramid.response import Response
 from pyramid.request import Request
 
 import yaml
-import libcloud
 from libcloud.compute.types import Provider, LibcloudError
 
 from .ec2 import EC2
@@ -216,18 +215,18 @@ def parse_args() -> argparse.Namespace:
     """
     Parse command line options
     """
-    version = "\n".join(
-        [
-            f"cloudview {__version__}",
-            f"Python {sys.version}",
-            f"Libcloud {libcloud.__version__}",
-        ]
-    )
+    version = f"cloudview {__version__}"
     argparser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog="output fields for --fields: provider,name,id,size,state,time,location",
     )
     argparser.add_argument("-c", "--config", type=str, help="path to clouds.yaml")
-    argparser.add_argument("-f", "--format", help="jinja template for text output")
+    argparser.add_argument(
+        "-f",
+        "--fields",
+        default="provider,name,size,state,time,location",
+        help="output fields",
+    )
     argparser.add_argument(
         "-l",
         "--log",
@@ -313,16 +312,14 @@ def main():
         "time": "<15" if args.time in {"age", "timeago"} else "<30",
         "location": "<15",
     }
-    # template = "  ".join(f'{{{{"{{:{align}}}".format({key})}}}}' for key, align in keys.items())
+    keys = {key: keys.get(key, "") for key in args.fields.split(",")}
 
     if args.verbose:
         keys.update({"id": ""})
 
     if args.port:
         args.output = "html"
-    Output(
-        type=args.output.lower(), keys=keys, template=args.format, refresh_seconds=600
-    )
+    Output(type=args.output.lower(), keys=keys, refresh_seconds=600)
 
     if args.port:
         web_server()
