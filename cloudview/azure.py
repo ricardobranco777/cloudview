@@ -14,7 +14,7 @@ from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
 
 from cloudview.instance import Instance, CSP, CACHED_SECONDS
-from cloudview.utils import utc_date, exception
+from cloudview.utils import utc_date
 
 
 def get_creds() -> dict[str, str]:
@@ -52,7 +52,7 @@ class Azure(CSP):
                 creds.pop("secret"),
             )
         except KeyError as exc:
-            logging.error("Azure: %s: %s", self.cloud, exception(exc))
+            logging.error("Azure: %s: %s", self.cloud, exc)
             raise LibcloudError(f"{exc}") from exc
         self.options = {
             "ex_resource_group": None,
@@ -71,7 +71,7 @@ class Azure(CSP):
             try:
                 self._driver = cls(*self._creds, **self.options)
             except RequestException as exc:
-                logging.error("Azure: %s: %s", self.cloud, exception(exc))
+                logging.error("Azure: %s: %s", self.cloud, exc)
                 raise LibcloudError(f"{exc}") from exc
         return self._driver
 

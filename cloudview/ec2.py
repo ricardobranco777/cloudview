@@ -13,7 +13,7 @@ from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError, InvalidCredsError
 
 from cloudview.instance import Instance, CSP, CACHED_SECONDS
-from cloudview.utils import utc_date, exception
+from cloudview.utils import utc_date
 
 
 def get_creds() -> dict[str, str]:
@@ -39,7 +39,7 @@ class EC2(CSP):
         try:
             key_secret = (creds.pop("key"), creds.pop("secret"))
         except KeyError as exc:
-            logging.error("EC2: %s: %s", self.cloud, exception(exc))
+            logging.error("EC2: %s: %s", self.cloud, exc)
             raise LibcloudError(f"{exc}") from exc
         cls = get_driver(Provider.EC2)
         self.regions = cls.list_regions()

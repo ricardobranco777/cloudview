@@ -3,24 +3,11 @@ Helper functions
 """
 
 import os
-import traceback
 from datetime import datetime
 
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
 from pytz import utc
-
-
-def exception(exc: Exception, trace=False) -> str:
-    """
-    Describe exception with traceback
-    """
-    return "".join(
-        [
-            traceback.format_exc() if trace else "",
-            f"{exc.__class__.__name__}: {exc}",
-        ]
-    )
 
 
 def read_file(path: str) -> str:

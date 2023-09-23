@@ -3,15 +3,7 @@
 from datetime import datetime
 from pytz import utc
 from freezegun import freeze_time
-from cloudview.utils import exception, get_age, utc_date
-
-
-def test_exception():
-    try:
-        _ = 1 / 0
-    except ZeroDivisionError as exc:
-        expected_output = "ZeroDivisionError: division by zero"
-        assert exception(exc) == expected_output
+from cloudview.utils import get_age, utc_date
 
 
 @freeze_time("2023-07-15 10:30:00", tz_offset=0)

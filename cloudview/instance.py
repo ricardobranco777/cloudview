@@ -10,7 +10,6 @@ from libcloud.compute.types import NodeState, LibcloudError
 from requests.exceptions import RequestException
 
 from cloudview.singleton import Singleton2
-from cloudview.utils import exception
 
 CACHED_SECONDS = 300
 STATES = [str(getattr(NodeState, _)) for _ in dir(NodeState) if _.isupper()]
@@ -69,9 +68,7 @@ class CSP(metaclass=Singleton2):
         try:
             return self._get_instances()
         except (LibcloudError, RequestException) as exc:
-            logging.error(
-                "%s: %s: %s", self.__class__.__name__, self.cloud, exception(exc)
-            )
+            logging.error("%s: %s: %s", self.__class__.__name__, self.cloud, exc)
             return []
 
     def _get_instance(self, instance_id: str, params: dict) -> Instance:
@@ -89,6 +86,6 @@ class CSP(metaclass=Singleton2):
                 self.__class__.__name__,
                 self.cloud,
                 instance_id,
-                exception(exc),
+                exc,
             )
             raise LibcloudError(f"{exc}") from exc

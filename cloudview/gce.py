@@ -17,7 +17,7 @@ from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
 
 from cloudview.instance import Instance, CSP, CACHED_SECONDS
-from cloudview.utils import utc_date, exception, read_file
+from cloudview.utils import utc_date, read_file
 
 
 def get_creds(creds: dict) -> dict[str, str]:
@@ -50,7 +50,7 @@ class GCE(CSP):
             creds = get_creds(creds)
             self.user_id = creds.pop("user_id")
         except (KeyError, OSError, json.decoder.JSONDecodeError) as exc:
-            logging.error("GCE: %s: %s", self.cloud, exception(exc))
+            logging.error("GCE: %s: %s", self.cloud, exc)
             raise LibcloudError(f"{exc}") from exc
         self._creds = creds
         self._driver: NodeDriver | None = None
@@ -65,7 +65,7 @@ class GCE(CSP):
             try:
                 self._driver = cls(self.user_id, **self._creds)
             except (LibcloudError, RequestException) as exc:
-                logging.error("GCE: %s: %s", self.cloud, exception(exc))
+                logging.error("GCE: %s: %s", self.cloud, exc)
                 raise LibcloudError(f"{exc}") from exc
         return self._driver
 
@@ -79,7 +79,7 @@ class GCE(CSP):
                 for node in self.driver.list_nodes(ex_zone=zone)
             ]
         except (LibcloudError, RequestException) as exc:
-            logging.error("GCE: %s: %s", self.cloud, exception(exc))
+            logging.error("GCE: %s: %s", self.cloud, exc)
             return []
 
     def _get_instance(self, instance_id: str, params: dict) -> Instance:

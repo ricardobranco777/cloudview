@@ -17,7 +17,7 @@ from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
 
 from cloudview.instance import Instance, CSP, CACHED_SECONDS
-from cloudview.utils import utc_date, exception
+from cloudview.utils import utc_date
 
 
 libcloud.security.CA_CERTS_PATH = os.getenv("REQUESTS_CA_BUNDLE")
@@ -69,7 +69,7 @@ class Openstack(CSP):
         try:
             self.key = creds.pop("key")
         except KeyError as exc:
-            logging.error("Openstack: %s: %s", self.cloud, exception(exc))
+            logging.error("Openstack: %s: %s", self.cloud, exc)
             raise LibcloudError(f"{exc}") from exc
         self._creds = creds
         self._driver: NodeDriver | None = None
@@ -85,10 +85,10 @@ class Openstack(CSP):
             try:
                 self._driver = cls(self.key, **self._creds)
             except LibcloudError as exc:
-                logging.error("Openstack: %s: %s", self.cloud, exception(exc))
+                logging.error("Openstack: %s: %s", self.cloud, exc)
                 raise
             except RequestException as exc:
-                logging.error("Openstack: %s: %s", self.cloud, exception(exc))
+                logging.error("Openstack: %s: %s", self.cloud, exc)
                 raise LibcloudError(f"{exc}") from exc
         return self._driver
 
@@ -103,7 +103,7 @@ class Openstack(CSP):
         try:
             return self.driver.list_sizes()
         except (LibcloudError, RequestException) as exc:
-            logging.error("Openstack: %s: %s", self.cloud, exception(exc))
+            logging.error("Openstack: %s: %s", self.cloud, exc)
             raise
 
     def _get_instance(self, instance_id: str, _: dict) -> Instance:
