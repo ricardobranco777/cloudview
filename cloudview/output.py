@@ -11,6 +11,18 @@ from jinja2 import Template
 from cloudview.singleton import Singleton
 
 
+def html_tag(tag: str, content: str = "", **kwargs) -> str:
+    """
+    HTML tag
+    """
+    attributes = " ".join(
+        f'{key}="{value}"' for key, value in kwargs.items() if value is not None
+    )
+    if attributes:
+        return f"<{tag} {attributes}>{content}</{tag}>"
+    return f"<{tag}>{content}</{tag}>"
+
+
 # pylint: disable=redefined-builtin
 class Output(metaclass=Singleton):
     """
@@ -52,8 +64,9 @@ class Output(metaclass=Singleton):
                 self._output_format.format(**{key: key.upper() for key in self._keys})
             )
         elif self._type == "html":
-            table_header = "".join(f"<th>{key.upper()}</th>" for key in self._keys)
-            table_header = f'<table style="width:100%"><thead><tr>{table_header}</tr></thead><tbody>'
+            cells = "".join(html_tag("th", key.upper()) for key in self._keys)
+            table_header = html_tag("thead", html_tag("tr", cells))
+            table_header = f'<table style="width:100%">{table_header}<tbody>'
             with open(
                 os.path.join(os.path.dirname(__file__), "header.html"), encoding="utf-8"
             ) as file:
@@ -79,9 +92,9 @@ class Output(metaclass=Singleton):
                 k: html.escape(item[k]) if isinstance(item[k], str) else item[k]
                 for k in self._keys
             }
-            info["name"] = f"<a href=\"{item['href']}\">{item['name']}</a>"
-            cells = "".join(f"<td>{info[key]}</td>" for key in self._keys)
-            print(f"<tr>{cells}</tr>")
+            info["name"] = html_tag("a", html.escape(item["name"]), href=item["href"])
+            cells = "".join(html_tag("td", info[key]) for key in self._keys)
+            print(html_tag("tr", cells))
 
     def footer(self):
         """

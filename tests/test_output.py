@@ -5,7 +5,7 @@ import json
 import pytest
 
 from cloudview.instance import Instance
-from cloudview.output import Output
+from cloudview.output import Output, html_tag
 
 
 @pytest.fixture
@@ -87,3 +87,28 @@ def test_json_output_obj(json_output, capsys):
     json_output.footer()
     captured = capsys.readouterr()
     assert [info.__dict__] == json.loads(captured.out)
+
+
+# Test cases for the html_tag function
+def test_html_tag_basic():
+    # Test with a simple HTML tag
+    result = html_tag("div", "Hello, World!")
+    assert result == "<div>Hello, World!</div>"
+
+
+def test_html_tag_with_attributes():
+    # Test with attributes
+    result = html_tag("a", "Click me", href="https://example.com", target="_blank")
+    assert result == '<a href="https://example.com" target="_blank">Click me</a>'
+
+
+def test_html_tag_empty_content():
+    # Test with empty content
+    result = html_tag("p")
+    assert result == "<p></p>"
+
+
+def test_html_tag_empty_attributes():
+    # Test with empty attributes
+    result = html_tag("span", "This is a span", **{})
+    assert result == "<span>This is a span</span>"
