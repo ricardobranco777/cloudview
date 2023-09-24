@@ -8,7 +8,7 @@ document.getElementById("date").innerHTML = date;
  let seconds = {{ refresh_seconds }};
  let timer = setInterval(function() {
   seconds--;
-  document.getElementById("refresh").textContent = "Next refresh in " + seconds + " seconds";
+  document.getElementById("refresh").textContent = `Next refresh in ${seconds} seconds`;
   if (seconds <= 0) {
    clearInterval(timer);
    document.getElementById("refresh").textContent = "Refreshing...";
