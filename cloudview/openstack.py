@@ -30,7 +30,7 @@ def get_creds() -> dict:
     url = os.getenv("OS_AUTH_URL")
     if not url:
         return {}
-    creds = {}
+    creds: dict[str, str] = {}
     for key, *env_vars in (
         ("key", "OS_USERNAME"),
         ("secret", "OS_PASSWORD"),
@@ -40,7 +40,7 @@ def get_creds() -> dict:
         for var in env_vars:
             value = os.getenv(var)
             if value:
-                creds.update({key: value})
+                creds |= {key: value}
                 break
     if not url.startswith(("https://", "http://")):
         url = f"https://{url}"
@@ -48,13 +48,11 @@ def get_creds() -> dict:
     auth_url = f"{url.scheme}://{url.netloc}"
     server = url.netloc.split(":")[0]
     base_url = f"{url.scheme}://{server}:8774/v2.1"
-    creds.update(
-        {
-            "ex_force_auth_url": auth_url,
-            "ex_force_base_url": base_url,
-            "api_version": "2.2",
-        }
-    )
+    creds |= {
+        "ex_force_auth_url": auth_url,
+        "ex_force_base_url": base_url,
+        "api_version": "2.2",
+    }
     return creds
 
 

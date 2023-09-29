@@ -20,11 +20,11 @@ def get_creds() -> dict[str, str]:
     """
     Get credentials
     """
-    creds = {}
+    creds: dict[str, str] = {}
     for key, env in (("key", "AWS_ACCESS_KEY_ID"), ("secret", "AWS_SECRET_ACCESS_KEY")):
         value = os.getenv(env)
         if value:
-            creds.update({key: value})
+            creds |= {key: value}
     return creds
 
 

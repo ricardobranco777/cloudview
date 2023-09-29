@@ -83,10 +83,7 @@ class Output(metaclass=Singleton):
             else:
                 print(self._output_format.format(**item.__dict__))
         elif self._type == "json":
-            if isinstance(item, dict):
-                self._items.append(item)
-            else:
-                self._items.append(item.__dict__)
+            self._items.append(item if isinstance(item, dict) else item.__dict__)
         elif self._type == "html":
             info = {
                 k: html.escape(item[k]) if isinstance(item[k], str) else item[k]

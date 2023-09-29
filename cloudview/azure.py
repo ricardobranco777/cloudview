@@ -21,7 +21,7 @@ def get_creds() -> dict[str, str]:
     """
     Get credentials
     """
-    creds = {}
+    creds: dict[str, str] = {}
     for key, *env_vars in (
         ("key", "AZURE_CLIENT_ID", "ARM_CLIENT_ID"),
         ("secret", "AZURE_CLIENT_SECRET", "ARM_CLIENT_SECRET"),
@@ -31,7 +31,7 @@ def get_creds() -> dict[str, str]:
         for var in env_vars:
             value = os.getenv(var)
             if value:
-                creds.update({key: value})
+                creds |= {key: value}
                 break
     return creds
 

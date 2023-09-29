@@ -315,7 +315,7 @@ def main():
     keys = {key: keys.get(key, "") for key in args.fields.split(",")}
 
     if args.verbose:
-        keys.update({"id": ""})
+        keys |= {"id": ""}
 
     if args.port:
         args.output = "html"
