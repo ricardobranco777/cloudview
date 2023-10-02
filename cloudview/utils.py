@@ -83,7 +83,10 @@ def utc_date(date: str | datetime) -> datetime:
     Return UTC normalized datetime object from date
     """
     if isinstance(date, str):
-        date = parser.parse(date)
+        if date.isdigit():
+            date = datetime.fromtimestamp(int(date))
+        else:
+            date = parser.parse(date)
     if date.tzinfo is not None:
         date = date.astimezone(utc)
     else:
