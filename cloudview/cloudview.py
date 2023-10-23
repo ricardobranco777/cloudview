@@ -7,7 +7,6 @@ import argparse
 import os
 import logging
 import sys
-import html
 from concurrent.futures import ThreadPoolExecutor
 from json import JSONEncoder
 from io import StringIO
@@ -147,8 +146,7 @@ def not_found():
     """
     Not found!
     """
-    response = Response("Not found!")
-    response.status_int = 404
+    response = Response("Not found!", status=404)
     return response
 
 
@@ -186,13 +184,8 @@ def handle_instance(request: Request) -> Response:
         info = client.get_instance(instance_id, **request.params)
     if client is None or info is None:
         return not_found()
-    response = html.escape(
-        JSONEncoder(default=str, indent=4, sort_keys=True).encode(info.extra)
-    )
-    header = """<!DOCTYPE html><html><head><meta charset="utf-8">
-    <link rel="shortcut icon" href="/favicon.ico"></head><body>"""
-    footer = "</body></html>"
-    return Response(f"{header}<pre>{response}</pre>{footer}")
+    response = JSONEncoder(default=str, indent=4, sort_keys=True).encode(info.extra)
+    return Response(response, content_type='application/json; charset=utf-8')
 
 
 def web_server():
