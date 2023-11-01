@@ -61,7 +61,7 @@ class Output(metaclass=Singleton):
         """
         if self._type == "text":
             print(
-                self._output_format.format(**{key: key.upper() for key in self._keys})
+                self._output_format.format_map({key: key.upper() for key in self._keys})
             )
         elif self._type == "html":
             cells = "".join(html_tag("th", key.upper()) for key in self._keys)
@@ -79,9 +79,9 @@ class Output(metaclass=Singleton):
         """
         if self._type == "text":
             if isinstance(item, dict):
-                print(self._output_format.format(**item))
+                print(self._output_format.format_map(item))
             else:
-                print(self._output_format.format(**item.__dict__))
+                print(self._output_format.format_map(item.__dict__))
         elif self._type == "json":
             self._items.append(item if isinstance(item, dict) else item.__dict__)
         elif self._type == "html":
