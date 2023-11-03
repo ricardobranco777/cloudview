@@ -3,6 +3,8 @@ Instance class
 """
 
 import logging
+from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 from cachetools import cached, TTLCache
@@ -15,18 +17,22 @@ CACHED_SECONDS = 300
 STATES = [str(getattr(NodeState, _)) for _ in dir(NodeState) if _.isupper()]
 
 
-class Instance:
+@dataclass(kw_only=True)
+class Instance:  # pylint: disable=too-many-instance-attributes
     """
     Instance class
     """
 
-    def __init__(self, **kwargs):
-        for attr, value in kwargs.items():
-            setattr(self, attr, value)
-
-    def __repr__(self) -> str:
-        attrs = ", ".join(f"{attr}={getattr(self, attr)!r}" for attr in vars(self))
-        return f"{self.__class__.__name__}({attrs})"
+    provider: str
+    cloud: str
+    name: str
+    id: str
+    size: str
+    time: str | datetime
+    state: str
+    location: str
+    extra: dict
+    params: dict
 
     # Allow access this object as a dictionary
 

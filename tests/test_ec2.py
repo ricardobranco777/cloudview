@@ -50,6 +50,11 @@ def mock_ec2_instance():
             "availability": "us-east-1a",
             "tags": {"Name": "test-instance"},
         },
+        provider="Provider",
+        cloud="Cloud",
+        time="2023-04-19T13:04:22.000Z",
+        location="Location",
+        params={},
     )
 
 

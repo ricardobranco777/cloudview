@@ -52,9 +52,7 @@ def get_clients(
     providers = (
         (provider,)
         if provider
-        else config["providers"].keys()
-        if config
-        else PROVIDERS.keys()
+        else config["providers"].keys() if config else PROVIDERS.keys()
     )
     clients = []
     for xprovider in providers:
@@ -66,9 +64,7 @@ def get_clients(
         clouds = (
             (cloud,)
             if cloud
-            else config["providers"][xprovider].keys()
-            if config
-            else ("",)
+            else config["providers"][xprovider].keys() if config else ("",)
         )
         for xcloud in clouds:
             try:
@@ -100,6 +96,7 @@ def print_instances(client: CSP) -> None:
             params = urlencode(instance.params)
             resource = "/".join([instance.provider.lower(), f"{instance.id}?{params}"])
             instance.href = f"instance/{resource}"
+        assert not isinstance(instance.time, str)
         instance.time = dateit(instance.time, args.time)
         Output().info(instance)
 

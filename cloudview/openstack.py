@@ -120,7 +120,7 @@ class Openstack(CSP):
             provider=Provider.OPENSTACK,
             cloud=self.cloud,
             name=node.name,
-            id=node.id,
+            id=str(node.id),
             size=self._get_size(node.extra["flavorId"]),
             time=utc_date(node.extra["created"]),
             state=node.state,

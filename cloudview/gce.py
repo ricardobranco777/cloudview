@@ -104,7 +104,7 @@ class GCE(CSP):
             provider=Provider.GCE,
             cloud=self.cloud,
             name=node.name,
-            id=node.id,
+            id=str(node.id),
             size=node.extra["machineType"].split("/")[-1],
             time=utc_date(node.extra["creationTimestamp"]),
             state=node.state,

@@ -82,7 +82,18 @@ def test_json_output_dict(json_output, capsys):
 
 def test_json_output_obj(json_output, capsys):
     json_output.header()
-    info = Instance(name="instance-1", age="30")
+    info = Instance(
+        name="instance-1",
+        provider="P",
+        cloud="C",
+        id="id",
+        size="s",
+        time="T",
+        state="S",
+        location="L",
+        extra={},
+        params={},
+    )
     json_output.info(info)
     json_output.footer()
     captured = capsys.readouterr()

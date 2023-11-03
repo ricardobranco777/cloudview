@@ -81,7 +81,7 @@ class EC2(CSP):
             provider=Provider.EC2,
             cloud=self.cloud,
             name=node.extra["tags"].get("Name", node.name),
-            id=node.id,
+            id=str(node.id),
             size=node.extra["instance_type"],
             time=utc_date(node.extra["launch_time"]),
             state=node.state,
