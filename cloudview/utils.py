@@ -75,6 +75,8 @@ def dateit(date: datetime, time_format: str = "%a %b %d %H:%M:%S %Z %Y") -> str:
     date = date.astimezone()
     if time_format == "timeago":
         return timeago(date)
+    if time_format == "age":
+        return get_age(date)
     return date.strftime(time_format)
 
 
