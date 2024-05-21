@@ -177,10 +177,12 @@ def handle_instance(request: Request) -> Response:
     client = list(get_clients(config_file=args.config, provider=provider, cloud=cloud))[
         0
     ]
+    if client is None:
+        return not_found()
     if client is not None:
         info = client.get_instance(instance_id, **request.params)
-    if client is None or info is None:
-        return not_found()
+        if client is None:
+            return not_found()
     response = JSONEncoder(default=str, indent=4, sort_keys=True).encode(info.extra)
     return Response(response, content_type="application/json; charset=utf-8")
 
