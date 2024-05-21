@@ -181,7 +181,7 @@ def handle_instance(request: Request) -> Response:
         return not_found()
     if client is not None:
         info = client.get_instance(instance_id, **request.params)
-        if client is None:
+        if info is None:
             return not_found()
     response = JSONEncoder(default=str, indent=4, sort_keys=True).encode(info.extra)
     return Response(response, content_type="application/json; charset=utf-8")
