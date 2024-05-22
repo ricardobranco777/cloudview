@@ -37,6 +37,7 @@ CHECK_VARIABLES+=("${openstack_variables[@]}")
 
 name="cloudview$$"
 container_options=(
+	--security-opt label=disable
 	--rm		# Remove container after running
 	-it		# Allow user to interrupt execution
 	--net=host	# Use host's DNS
@@ -108,5 +109,5 @@ for var in "${CHECK_VARIABLES[@]}" ; do
 	fi
 done
 
-echo docker run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
-exec docker run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
+echo "$DOCKER" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
+exec "$DOCKER" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
