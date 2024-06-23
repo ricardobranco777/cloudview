@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Allow use of DOCKER=podman
-DOCKER="${DOCKER:-docker}"
+DOCKER="${DOCKER:-podman}"
 IMAGE="${IMAGE:-ghcr.io/ricardobranco777/cloudview:latest}"
 ARGS=("$@")
 
@@ -13,7 +13,6 @@ CHECK_CERTIFICATES=(
 )
 
 CHECK_VARIABLES=(
-	# System certificates
 	REQUESTS_CA_BUNDLE
 	# EC2
 	AWS_ACCESS_KEY_ID
@@ -88,11 +87,20 @@ get_config
 # Mount as volumes all values in clouds.yaml that are pathnames
 volumes=()
 if [ -f "$clouds_yaml" ] ; then
-	volumes+=(-v "$clouds_yaml:$clouds_yaml:ro")
+	volumes+=(-v "$clouds_yaml:$clouds_yaml:ro,Z")
+	if [[ $(stat -c '%u' "$clouds_yaml") -ne $EUID ]] ; then
+		volumes+=(-v "$clouds_yaml:$clouds_yaml:ro")
+	else
+		volumes+=(-v "$clouds_yaml:$clouds_yaml:ro,Z")
+	fi
 	mapfile -t values < <(sed -re 's/#.*//' -e 's/"(.*)"/\1/' -e "s/'(.*)'/\1/" < "$clouds_yaml" | awk '$NF ~ /^\// { print $NF }')
 	for value in "${values[@]}" ; do
 		if [ -f "$value" ] ; then
-			volumes+=(-v "$value:$value:ro")
+			if [[ $(stat -c '%u' "$value") -ne $EUID ]] ; then
+				volumes+=(-v "$value:$value:ro")
+			else
+				volumes+=(-v "$value:$value:ro,Z")
+			fi
 		fi
 	done
 fi
@@ -105,7 +113,11 @@ for var in "${CHECK_VARIABLES[@]}" ; do
 	fi
 	# Mount as volume if variable is a file
 	if [[ -f ${!var} ]] ; then
-		volumes+=(-v "${!var}:${!var}:ro")
+		if [[ $(stat -c '%u' "${!var}") -ne $EUID ]] ; then
+			volumes+=(-v "${!var}:${!var}:ro")
+		else
+			volumes+=(-v "${!var}:${!var}:ro,Z")
+		fi
 	fi
 done
 
