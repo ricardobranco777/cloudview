@@ -55,9 +55,9 @@ NOTES:
 - The key names are not arbitrary and are the names of the arguments passed to the class factory of each provider in libcloud.
 - If this file is not present, **cloudview** will try to get the information from the standard `AWS_*`, `AZURE_*`, `GOOGLE_*` & `OS_` environment variables.
 
-## cloudview.sh
+## cloudview script
 
-The [cloudview.sh](cloudview.sh) script scans `clouds.yaml` and environment variables to execute the proper `docker` command.
+The [cloudview](scripts/cloudview) script scans `clouds.yaml` and environment variables to execute the proper `docker` command.
 
 ## To run the web server with Docker Compose:
 

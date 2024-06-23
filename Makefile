@@ -1,4 +1,5 @@
 FILES=*/*.py
+BIN=cloudview
 
 .PHONY: all
 all: flake8 pylint test mypy black
@@ -26,3 +27,15 @@ selenium:
 .PHONY: mypy
 mypy:
 	@mypy --disable-error-code=attr-defined --exclude tests/ --ignore-missing-imports $(FILES)
+
+.PHONY: shellcheck
+shellcheck:
+	@shellcheck scripts/$(BIN) nginx/entrypoint.sh
+
+.PHONY: install
+install:
+	@install -m 0755 scripts/$(BIN) $(HOME)/bin/
+
+.PHONY: uninstall
+uninstall:
+	@cd $(HOME)/bin ; rm -f $(BIN)
