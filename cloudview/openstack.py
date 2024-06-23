@@ -61,7 +61,7 @@ class Openstack(CSP):
     Class for handling Openstack stuff
     """
 
-    def __init__(self, cloud: str = "", **creds):
+    def __init__(self, cloud: str = "", **creds) -> None:
         super().__init__(cloud)
         creds = creds or get_creds()
         try:

@@ -10,7 +10,7 @@ class Singleton(type):
     Singleton metaclass
     """
 
-    def __init__(cls, name, bases, attrs):
+    def __init__(cls, name, bases, attrs) -> None:
         super().__init__(name, bases, attrs)
         cls._singleton_instance = None
 
@@ -25,9 +25,9 @@ class Singleton2(type):
     Singleton metaclass that considers arguments
     """
 
-    def __init__(cls, name, bases, attrs):
+    def __init__(cls, name, bases, attrs) -> None:
         super().__init__(name, bases, attrs)
-        cls._singleton_instances = {}
+        cls._singleton_instances: dict[tuple, type] = {}
         cls.__singleton_lock = threading.RLock()
 
     def __call__(cls, *args, **kwargs):

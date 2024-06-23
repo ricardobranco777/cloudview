@@ -20,7 +20,7 @@ def read_file(path: str) -> str:
         return file.read()
 
 
-def get_age(date: datetime):
+def get_age(date: datetime) -> str:
     """
     Get age
     """

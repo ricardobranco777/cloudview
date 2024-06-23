@@ -36,16 +36,16 @@ class Instance:  # pylint: disable=too-many-instance-attributes
 
     # Allow access this object as a dictionary
 
-    def __getitem__(self, item: str):
+    def __getitem__(self, item: str) -> Any:
         try:
             return getattr(self, item)
         except AttributeError as exc:
             raise KeyError(exc) from exc
 
-    def __setitem__(self, item: str, value: Any):
+    def __setitem__(self, item: str, value: Any) -> None:
         setattr(self, item, value)
 
-    def __delitem__(self, item: str):
+    def __delitem__(self, item: str) -> None:
         try:
             delattr(self, item)
         except AttributeError as exc:
@@ -57,7 +57,7 @@ class CSP(metaclass=Singleton2):
     Cloud Service Provider class
     """
 
-    def __init__(self, cloud: str = ""):
+    def __init__(self, cloud: str = "") -> None:
         self.cloud = cloud or "_"
 
     def __repr__(self) -> str:

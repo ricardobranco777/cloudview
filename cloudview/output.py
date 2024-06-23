@@ -34,7 +34,7 @@ class Output(metaclass=Singleton):
         type: str | None = None,
         keys: dict[str, str] | list[str] | None = None,
         **kwargs,
-    ):
+    ) -> None:
         """
         type must be either text, json or html
         fmt is the format string used for text
@@ -55,7 +55,7 @@ class Output(metaclass=Singleton):
         self._kwargs = kwargs
         self._items: list[dict] = []
 
-    def header(self):
+    def header(self) -> None:
         """
         Print the header for output
         """
@@ -73,7 +73,7 @@ class Output(metaclass=Singleton):
                 header = file.read()
             print(Template(header).render(**self._kwargs), table_header)
 
-    def info(self, item):
+    def info(self, item) -> None:
         """
         Dump item information
         """
@@ -93,7 +93,7 @@ class Output(metaclass=Singleton):
             cells = "".join(html_tag("td", info[key]) for key in self._keys)
             print(html_tag("tr", cells))
 
-    def footer(self):
+    def footer(self) -> None:
         """
         Print the footer for output
         """

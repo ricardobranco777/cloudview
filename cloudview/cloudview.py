@@ -11,6 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 from json import JSONEncoder
 from io import StringIO
 from operator import itemgetter
+from typing import Any
 from urllib.parse import urlencode, quote, unquote
 
 from wsgiref.simple_server import make_server
@@ -32,7 +33,7 @@ from .utils import dateit, read_file
 from . import __version__
 
 
-PROVIDERS = {
+PROVIDERS: dict[str, Any] = {
     str(Provider.EC2): EC2,
     str(Provider.GCE): GCE,
     str(Provider.AZURE_ARM): Azure,
@@ -139,12 +140,11 @@ def test(request: Request | None = None) -> Response | None:
     return None
 
 
-def not_found():
+def not_found() -> Response:
     """
     Not found!
     """
-    response = Response("Not found!", status=404)
-    return response
+    return Response("Not found!", status=404)
 
 
 def valid_elem(elem: str) -> bool:
@@ -187,7 +187,7 @@ def handle_instance(request: Request) -> Response:
     return Response(response, content_type="application/json; charset=utf-8")
 
 
-def web_server():
+def web_server() -> None:
     """
     Setup the WSGI server
     """
@@ -275,7 +275,7 @@ def port_number(port: str) -> int:
     raise argparse.ArgumentTypeError(f"{port} is an invalid port number")
 
 
-def main():
+def main() -> None:
     """
     Main function
     """
