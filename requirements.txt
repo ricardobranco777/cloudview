@@ -1,6 +1,6 @@
 apache-libcloud==3.8.0
 cachetools==5.3.3
-certifi==2024.6.2
+certifi==2024.7.4
 cffi==1.16.0
 charset-normalizer==3.3.2
 cryptography==42.0.8
@@ -17,7 +17,7 @@ python-dateutil==2.9.0.post0
 pytz==2024.1
 PyYAML==6.0.1
 requests==2.32.3
-setuptools==70.0.0
+setuptools==70.2.0
 six==1.16.0
 translationstring==1.4
 urllib3==2.2.2
