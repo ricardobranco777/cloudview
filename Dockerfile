@@ -10,7 +10,7 @@ RUN	zypper addrepo https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_
 		python3-pyramid \
 		python3-python-dateutil \
 		python3-pytz \
-		python311-PyYAML && \
+		python3-PyYAML && \
 	zypper clean -a
 
 ENV	REQUESTS_CA_BUNDLE=/etc/ssl/ca-bundle.pem
