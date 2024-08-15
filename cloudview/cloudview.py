@@ -114,7 +114,7 @@ def print_info() -> Response | None:
             executor.map(print_instances, clients)
     Output().footer()
     if args.port:
-        response = sys.stdout.getvalue()
+        response = sys.stdout.getvalue()  # type: ignore
         sys.stdout.close()
         return response
     return None
