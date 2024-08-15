@@ -121,5 +121,5 @@ for var in "${CHECK_VARIABLES[@]}" ; do
 	fi
 done
 
-echo "$DOCKER" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
+#echo "$DOCKER" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
 exec "$DOCKER" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
