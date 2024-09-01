@@ -7,13 +7,12 @@ import logging
 import os
 from functools import cached_property
 
-from cachetools import cached, TTLCache
 from libcloud.compute.base import Node, NodeDriver
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
 
-from cloudview.instance import Instance, CSP, CACHED_SECONDS
+from cloudview.instance import Instance, CSP
 from cloudview.utils import utc_date
 
 
@@ -75,12 +74,6 @@ class Azure(CSP):
                 raise LibcloudError(f"{exc}") from exc
         return self._driver
 
-    def _get_instance(self, instance_id: str, params: dict) -> Instance:
-        instance_id = params["id"]
-        node = self.driver.ex_get_node(instance_id)
-        return self._node_to_instance(node)
-
-    @cached(cache=TTLCache(maxsize=1, ttl=CACHED_SECONDS))
     def _get_instances(self) -> list[Instance]:
         return [self._node_to_instance(node) for node in self.driver.list_nodes()]
 
@@ -95,5 +88,4 @@ class Azure(CSP):
             state=node.state,
             location=node.extra["location"],
             extra=node.extra,
-            params={"id": node.id},
         )

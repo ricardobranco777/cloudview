@@ -49,8 +49,6 @@ jobs:
         run: make test
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
-      - name: Selenium test
-        run: make selenium
 
   shellcheck:
     name: Shellcheck
@@ -61,15 +59,3 @@ jobs:
         uses: ludeeus/action-shellcheck@master
         with:
           scandir: .
-
-  docker:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-buildx-action@v2
-      - name: test docker image
-        run: |
-          docker compose -f examples/docker-compose.yml --project-directory . build --pull
-          PASS=testing docker compose -f examples/docker-compose.yml --project-directory . up -d
-          sleep 10
-          test "$(curl -4k -u test:testing https://localhost:8443/test)" = "OK"

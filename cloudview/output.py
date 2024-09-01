@@ -1,32 +1,16 @@
 """
-Handle tabular output in these formats: text, json & html
+Handle tabular output in these formats: text, json
 """
 
-import html
 import json
-import os
-
-from jinja2 import Template
 
 from cloudview.singleton import Singleton
-
-
-def html_tag(tag: str, content: str = "", **kwargs) -> str:
-    """
-    HTML tag
-    """
-    attributes = " ".join(
-        f'{key}="{value}"' for key, value in kwargs.items() if value is not None
-    )
-    if attributes:
-        return f"<{tag} {attributes}>{content}</{tag}>"
-    return f"<{tag}>{content}</{tag}>"
 
 
 # pylint: disable=redefined-builtin
 class Output(metaclass=Singleton):
     """
-    Helper class to handle tabular output in text, json or html
+    Helper class to handle tabular output in text, json
     """
 
     def __init__(
@@ -36,12 +20,11 @@ class Output(metaclass=Singleton):
         **kwargs,
     ) -> None:
         """
-        type must be either text, json or html
+        type must be either text, json
         fmt is the format string used for text
         keys are the items in the dictionary
-        seconds is the refresh time for HTML output
         """
-        if type not in ("text", "json", "html"):
+        if type not in ("text", "json"):
             raise ValueError(f"Invalid type: {type}")
         self._type = type
         if isinstance(keys, (list, tuple)):
@@ -63,15 +46,6 @@ class Output(metaclass=Singleton):
             print(
                 self._output_format.format_map({key: key.upper() for key in self._keys})
             )
-        elif self._type == "html":
-            cells = "".join(html_tag("th", key.upper()) for key in self._keys)
-            table_header = html_tag("thead", html_tag("tr", cells))
-            table_header = f'<table style="width:100%">{table_header}<tbody>'
-            with open(
-                os.path.join(os.path.dirname(__file__), "header.html"), encoding="utf-8"
-            ) as file:
-                header = file.read()
-            print(Template(header).render(**self._kwargs), table_header)
 
     def info(self, item) -> None:
         """
@@ -84,14 +58,6 @@ class Output(metaclass=Singleton):
                 print(self._output_format.format_map(item.__dict__))
         elif self._type == "json":
             self._items.append(item if isinstance(item, dict) else item.__dict__)
-        elif self._type == "html":
-            info = {
-                k: html.escape(item[k]) if isinstance(item[k], str) else item[k]
-                for k in self._keys
-            }
-            info["name"] = html_tag("a", html.escape(item["name"]), href=item["href"])
-            cells = "".join(html_tag("td", info[key]) for key in self._keys)
-            print(html_tag("tr", cells))
 
     def footer(self) -> None:
         """
@@ -99,10 +65,3 @@ class Output(metaclass=Singleton):
         """
         if self._type == "json":
             print(json.dumps(self._items, indent=2, default=str))
-        elif self._type == "html":
-            with open(
-                os.path.join(os.path.dirname(__file__), "footer.html"), encoding="utf-8"
-            ) as file:
-                footer = file.read()
-            table_footer = "</tbody></table>"
-            print(table_footer, Template(footer).render(**self._kwargs))

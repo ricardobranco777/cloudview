@@ -13,7 +13,7 @@ Docker image available at `ghcr.io/ricardobranco777/cloudview:latest`
 ## Usage
 
 ```
-usage: cloudview.py [-h] [-c CONFIG] [-f FORMAT] [-l {none,debug,info,warning,error,critical}] [-o {text,html,json}] [-p PORT] [-P {ec2,gce,azure_arm,openstack}] [-r]
+usage: cloudview.py [-h] [-c CONFIG] [-f FORMAT] [-l {none,debug,info,warning,error,critical}] [-o {text,json}] [-P {ec2,gce,azure_arm,openstack}] [-r]
                     [-s {name,state,time}] [-S {error,migrating,normal,paused,pending,rebooting,reconfiguring,running,starting,stopped,stopping,suspended,terminated,unknown,updating}]
                     [-t TIME_FORMAT] [-v] [--version]
 
@@ -25,9 +25,8 @@ options:
                         output fields (default: provider,name,size,state,time,location)
   -l {none,debug,info,warning,error,critical}, --log {none,debug,info,warning,error,critical}
                         logging level (default: error)
-  -o {text,html,json}, --output {text,html,json}
+  -o {text,json}, --output {text,json}
                         output type (default: text)
-  -p PORT, --port PORT  run a web server on specified port (default: None)
   -P {ec2,gce,azure_arm,openstack}, --providers {ec2,gce,azure_arm,openstack}
                         list only specified providers (default: None)
   -r, --reverse         reverse sort (default: False)
@@ -59,16 +58,6 @@ NOTES:
 
 The [cloudview](scripts/cloudview) script scans `clouds.yaml` and environment variables to execute the proper `docker` command.
 
-## To run the web server with Docker Compose:
-
-If you have a TLS key pair, put the certificates in `cert.pem`, the private key in `key.pem` and the file containing the passphrase to the private key in `key.txt`.  Then edit the [docker-compose.yml](examples/docker-compose.yml) file to mount the directory to `/etc/nginx/ssl` in the container like this: `- "/path/to/tls:/etc/nginx/ssl:ro"`.  Set and export the `NGINX_HOST` environment variable with the FQDN of your host.
-
-For HTTP Basic Authentication, create a file named `auth.htpasswd` in the same directory with the TLS key pair.
-
-If you don't have a TLS key pair, a self-signed certificate and a random password for logging in will be generated.  You can see the latter with `docker compose logs`.  The user is `test`.
-
-After running `docker compose build` & `docker compose up -d` you can browse to [https://localhost:8443](https://localhost:8443)
-
 ## Debugging
 
 - For debugging you can set the `LIBCLOUD_DEBUG` environment variable to a path like `/dev/stderr`
@@ -79,7 +68,3 @@ After running `docker compose build` & `docker compose up -d` you can browse to 
 - [Azure](https://libcloud.readthedocs.io/en/stable/compute/drivers/azure_arm.html)
 - [GCE](https://libcloud.readthedocs.io/en/stable/compute/drivers/gce.html)
 - [Openstack](https://libcloud.readthedocs.io/en/stable/compute/drivers/openstack.html)
-
-## Similar projects
-
-  - [public cloud watch](https://github.com/SUSE/pcw/)

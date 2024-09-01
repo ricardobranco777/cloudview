@@ -54,7 +54,6 @@ def mock_ec2_instance():
         cloud="Cloud",
         time="2023-04-19T13:04:22.000Z",
         location="Location",
-        params={},
     )
 
 
@@ -82,19 +81,6 @@ def test_list_instances_in_region(
     assert instances[0].id == "instance-id-123"
     assert instances[0].name == "test-instance"
     assert instances[0].size == "t2.micro"
-
-
-def test_get_instance(mock_ec2_driver, mock_ec2_instance, mocker, valid_creds):
-    mocker.patch("cloudview.ec2.get_creds", return_value=valid_creds)
-    mock_ec2_driver.list_nodes.return_value = [mock_ec2_instance]
-
-    ec2 = EC2(**valid_creds)
-    ec2.regions = ["us-east-1"]
-    ec2._drivers = {"us-east-1": mock_ec2_driver}
-
-    instance = ec2._get_instance("instance-id-123", {"region": "us-east-1"})
-    assert isinstance(instance, Instance)
-    assert instance.extra["instance_type"] == "t2.micro"
 
 
 def test_get_instances(mock_ec2_driver, mock_ec2_instance, mocker, valid_creds):

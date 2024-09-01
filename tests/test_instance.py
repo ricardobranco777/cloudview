@@ -1,6 +1,5 @@
-# pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,no-member,eval-used
+# pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,no-member,eval-used,too-few-public-methods
 import pytest
-from cachetools import cached, TTLCache
 from cloudview.instance import Instance, CSP
 
 
@@ -15,7 +14,6 @@ def test_instance_repr():
         state="Running",
         location="L",
         extra={},
-        params={},
     )
     repr_string = repr(item)
     recreated_item = eval(repr_string)
@@ -33,7 +31,6 @@ def test_instance_creation():
         state="Running",
         location="L",
         extra={},
-        params={},
     )
     assert instance.name == "Example"
     assert instance.state == "Running"
@@ -50,7 +47,6 @@ def test_instance_dict_access():
         state="Running",
         location="L",
         extra={},
-        params={},
     )
 
     assert instance["name"] == "Example"
@@ -68,7 +64,6 @@ def test_instance_dict_assignment():
         state="S",
         location="L",
         extra={},
-        params={},
     )
 
     instance["name"] = "Updated Name"
@@ -87,7 +82,6 @@ def test_instance_dict_deletion():
         state="S",
         location="L",
         extra={},
-        params={},
     )
 
     with pytest.raises(KeyError):
@@ -111,14 +105,12 @@ def test_instance_unknown_attribute():
         state="S",
         location="L",
         extra={},
-        params={},
     )
     with pytest.raises(AttributeError):
         _ = instance.unknown_attribute
 
 
 class MockCSP(CSP):
-    @cached(cache=TTLCache(maxsize=1, ttl=300))
     def _get_instances(self):
         return [
             Instance(
@@ -131,7 +123,6 @@ class MockCSP(CSP):
                 time="T",
                 state="S",
                 location="L",
-                params={},
             ),
             Instance(
                 id="id2",
@@ -143,25 +134,8 @@ class MockCSP(CSP):
                 time="T",
                 state="S",
                 location="L",
-                params={},
             ),
         ]
-
-    def _get_instance(self, instance_id, params):
-        if instance_id == "id1":
-            return Instance(
-                id="id1",
-                name="Instance1",
-                extra={"name=": "Instance1"},
-                provider="P",
-                cloud="C",
-                size="s",
-                time="T",
-                state="S",
-                location="L",
-                params={},
-            )
-        return None
 
 
 def test_csp_creation():
@@ -175,15 +149,3 @@ def test_csp_get_instances():
     assert len(instances) == 2
     assert instances[0].name == "Instance1"
     assert instances[1].id == "id2"
-
-
-def test_csp_get_instance():
-    csp = MockCSP()
-    instance = csp.get_instance("id1")
-    assert instance["name"] == "Instance1"
-
-
-def test_csp_get_instance_not_found():
-    csp = MockCSP()
-    instance = csp.get_instance("unknown_id")
-    assert instance is None
