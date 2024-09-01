@@ -155,33 +155,6 @@ def test_openstack_get_sizes(mocker, mock_driver, valid_creds):
     assert result[1].id == "size_id_2"
 
 
-def test_openstack_get_instance_with_valid_identifier(
-    mocker, mock_driver, mock_instance, valid_creds
-):
-    mock_driver.ex_get_node_details.return_value = mock_instance
-    openstack = Openstack(cloud="test_cloud", **valid_creds)
-    openstack._driver = mock_driver
-
-    mocker.patch.object(Openstack, "_get_size", return_value="small")
-    result = openstack._get_instance("test_instance_id", {})
-
-    assert isinstance(result, Instance)
-    assert result.extra["id"] == "test_instance_id"
-    assert result.extra["name"] == "test_instance"
-    assert result.extra["size"] == "small"
-    assert result.extra["state"] == "running"
-    assert result.extra["location"] == "test_location"
-
-
-def test_openstack_get_instance_with_invalid_identifier(mock_driver, valid_creds):
-    mock_driver.ex_get_node_details.side_effect = LibcloudError("Node not found")
-    openstack = Openstack(cloud="test_cloud", **valid_creds)
-    openstack._driver = mock_driver
-
-    with pytest.raises(LibcloudError):
-        _ = openstack._get_instance("non_existent_id", {})
-
-
 def test_openstack_get_instances(mocker, mock_driver, mock_instance, valid_creds):
     mock_driver.list_nodes.return_value = [mock_instance]
     mocker.patch.object(Openstack, "_get_size", return_value="small")

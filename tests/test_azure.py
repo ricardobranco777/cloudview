@@ -134,32 +134,6 @@ def test_azure_init_with_missing_creds(mocker, mock_get_driver):
         Azure(cloud="test_cloud", **creds)
 
 
-def test_azure_get_instance_with_valid_identifier(
-    mock_driver, mock_instance, valid_creds
-):
-    mock_driver.ex_get_node.return_value = mock_instance
-    azure = Azure(cloud="test_cloud", **valid_creds)
-    azure._driver = mock_driver
-
-    result = azure._get_instance("test_identifier", params={"id": "test_instance_id"})
-
-    assert isinstance(result, Instance)
-    assert result.extra["id"] == "test_instance_id"
-    assert result.extra["name"] == "test_instance"
-    assert result.extra["size"] == "Standard_B1ms"
-    assert result.extra["state"] == "running"
-    assert result.extra["location"] == "test_location"
-
-
-def test_azure_get_instance_with_invalid_identifier(mock_driver, valid_creds):
-    mock_driver.ex_get_node.side_effect = LibcloudError("Node not found")
-    azure = Azure(cloud="test_cloud", **valid_creds)
-    azure._driver = mock_driver
-
-    with pytest.raises(LibcloudError):
-        _ = azure._get_instance("test_identifier", params={"id": "non_existent_id"})
-
-
 def test_azure_get_instances(mock_driver, mock_instance, valid_creds):
     mock_driver.list_nodes.return_value = [mock_instance]
     azure = Azure(cloud="test_cloud", **valid_creds)

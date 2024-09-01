@@ -7,12 +7,11 @@ import logging
 import os
 import concurrent.futures
 
-from cachetools import cached, TTLCache
 from libcloud.compute.base import Node, NodeDriver
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError, InvalidCredsError
 
-from cloudview.instance import Instance, CSP, CACHED_SECONDS
+from cloudview.instance import Instance, CSP
 from cloudview.utils import utc_date
 
 
@@ -28,7 +27,7 @@ def get_creds() -> dict[str, str]:
     return creds
 
 
-class EC2(CSP):
+class EC2(CSP):  # pylint: disable=too-few-public-methods
     """
     Class for handling EC2 stuff
     """
@@ -50,19 +49,13 @@ class EC2(CSP):
     def _list_instances_in_region(self, region: str) -> list[Instance]:
         try:
             return [
-                self._node_to_instance(node, region)
+                self._node_to_instance(node)
                 for node in self._drivers[region].list_nodes(ex_filters=None)
             ]
         except InvalidCredsError:
             pass
         return []
 
-    def _get_instance(self, instance_id: str, params: dict) -> Instance:
-        region = params["region"]
-        node = self._drivers[region].list_nodes(ex_node_ids=[instance_id])[0]
-        return self._node_to_instance(node, region)
-
-    @cached(cache=TTLCache(maxsize=1, ttl=CACHED_SECONDS))
     def _get_instances(self) -> list[Instance]:
         instances = []
         with concurrent.futures.ThreadPoolExecutor(
@@ -76,7 +69,7 @@ class EC2(CSP):
                 instances.extend(future.result())
         return instances
 
-    def _node_to_instance(self, node: Node, region: str) -> Instance:
+    def _node_to_instance(self, node: Node) -> Instance:
         return Instance(
             provider=Provider.EC2,
             cloud=self.cloud,
@@ -87,5 +80,4 @@ class EC2(CSP):
             state=node.state,
             location=node.extra["availability"],
             extra=node.extra,
-            params={"region": region},
         )

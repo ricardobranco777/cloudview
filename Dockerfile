@@ -4,10 +4,7 @@ RUN	zypper addrepo https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_
 	zypper --gpg-auto-import-keys -n install ca-certificates-suse && \
 	zypper -n install \
 		python3-apache-libcloud \
-		python3-cachetools \
 		python3-cryptography \
-		python3-Jinja2 \
-		python3-pyramid \
 		python3-python-dateutil \
 		python3-pytz \
 		python3-PyYAML && \

@@ -5,7 +5,6 @@ import os
 import pytest
 from libcloud.compute.types import LibcloudError
 from cloudview.gce import get_creds, GCE
-from cloudview.instance import Instance
 
 os.environ.pop("GOOGLE_APPLICATION_CREDENTIALS", "")
 
@@ -159,36 +158,6 @@ def test_gce_init_with_missing_creds(mocker, mock_get_driver):
     creds = {}
     with pytest.raises(LibcloudError):
         GCE(cloud="test_cloud", **creds)
-
-
-def test_gce_get_instance_with_valid_identifier(
-    mocker, mock_driver, mock_instance, valid_creds
-):
-    mock_driver.ex_get_node.return_value = mock_instance
-    gce = GCE(cloud="test_cloud", **valid_creds)
-    gce._driver = mock_driver
-
-    result = gce._get_instance(
-        "test_identifier", params={"name": "test_instance", "zone": "test_zone"}
-    )
-
-    assert isinstance(result, Instance)
-    assert result.extra["name"] == "test_instance"
-    assert result.extra["size"] == "test_size"
-    assert result.extra["state"] == "running"
-    assert result.extra["location"] == "test_zone"
-
-
-def test_gce_get_instance_with_invalid_identifier(mock_driver, valid_creds):
-    mock_driver.ex_get_node.side_effect = LibcloudError("Node not found")
-    gce = GCE(cloud="test_cloud", **valid_creds)
-    gce._driver = mock_driver
-
-    with pytest.raises(LibcloudError):
-        _ = gce._get_instance(
-            "test_identifier",
-            params={"name": "non_existent_instance", "zone": "test_zone"},
-        )
 
 
 def test_gce_get_instances_with_driver_exception(mock_driver):

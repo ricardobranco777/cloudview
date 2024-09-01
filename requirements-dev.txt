@@ -1,8 +1,5 @@
 apache-libcloud
-cachetools
 cryptography
-Jinja2
-pyramid
 python-dateutil
 pytz
 PyYAML

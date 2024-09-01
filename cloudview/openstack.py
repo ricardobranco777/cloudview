@@ -9,14 +9,13 @@ import os
 from functools import cached_property
 from urllib.parse import urlparse
 
-from cachetools import cached, TTLCache
 import libcloud.security
 from libcloud.compute.base import Node, NodeDriver, NodeSize
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
 
-from cloudview.instance import Instance, CSP, CACHED_SECONDS
+from cloudview.instance import Instance, CSP
 from cloudview.utils import utc_date
 
 
@@ -96,7 +95,6 @@ class Openstack(CSP):
                 return size.name
         return "unknown"
 
-    @cached(cache=TTLCache(maxsize=1, ttl=CACHED_SECONDS))
     def _get_sizes(self) -> list[NodeSize]:
         try:
             return self.driver.list_sizes()
@@ -104,11 +102,6 @@ class Openstack(CSP):
             logging.error("Openstack: %s: %s", self.cloud, exc)
             raise
 
-    def _get_instance(self, instance_id: str, _: dict) -> Instance:
-        node = self.driver.ex_get_node_details(instance_id)
-        return self._node_to_instance(node)
-
-    @cached(cache=TTLCache(maxsize=1, ttl=CACHED_SECONDS))
     def _get_instances(self) -> list[Instance]:
         return [
             self._node_to_instance(node)
@@ -126,5 +119,4 @@ class Openstack(CSP):
             state=node.state,
             location=node.extra["availability_zone"],
             extra=node.extra,
-            params={},
         )

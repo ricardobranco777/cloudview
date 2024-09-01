@@ -9,14 +9,13 @@ import os
 import concurrent.futures
 from functools import cached_property
 
-from cachetools import cached, TTLCache
 from libcloud.compute.base import Node, NodeDriver
 from libcloud.compute.drivers.gce import GCEZone
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider, LibcloudError
 from requests.exceptions import RequestException
 
-from cloudview.instance import Instance, CSP, CACHED_SECONDS
+from cloudview.instance import Instance, CSP
 from cloudview.utils import utc_date, read_file
 
 
@@ -82,11 +81,6 @@ class GCE(CSP):
             logging.error("GCE: %s: %s", self.cloud, exc)
             return []
 
-    def _get_instance(self, instance_id: str, params: dict) -> Instance:
-        node = self.driver.ex_get_node(params["name"], zone=params["zone"])
-        return self._node_to_instance(node)
-
-    @cached(cache=TTLCache(maxsize=1, ttl=CACHED_SECONDS))
     def _get_instances(self) -> list[Instance]:
         zones = self.driver.ex_list_zones()
         instances = []
@@ -110,8 +104,4 @@ class GCE(CSP):
             state=node.state,
             location=node.extra["zone"].name,
             extra=node.extra,
-            params={
-                "name": node.name,
-                "zone": node.extra["zone"].name,
-            },
         )
