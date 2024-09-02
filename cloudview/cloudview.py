@@ -18,8 +18,7 @@ from .ec2 import EC2
 from .azure import Azure
 from .gce import GCE
 from .openstack import Openstack
-from .instance import CSP, STATES
-from .output import Output
+from .instance import CSP, Instance, STATES
 from .utils import dateit, read_file
 from . import __version__
 
@@ -69,9 +68,9 @@ def get_clients(
     return clients
 
 
-def print_instances(client: CSP) -> None:
+def get_instances(client: CSP) -> list[Instance]:
     """
-    Print instances
+    Get instances
     """
     instances = [
         instance
@@ -82,23 +81,7 @@ def print_instances(client: CSP) -> None:
         instances.sort(
             key=itemgetter(args.sort, "name"), reverse=args.reverse  # type:ignore
         )
-    for instance in instances:
-        instance.provider = "/".join([instance.provider, instance.cloud])
-        assert not isinstance(instance.time, str)
-        instance.time = dateit(instance.time, args.time)
-        Output().info(instance)
-
-
-def print_info() -> None:
-    """
-    Print information about instances
-    """
-    clients = get_clients(config_file=args.config)
-    Output().header()
-    if len(clients) > 0:
-        with ThreadPoolExecutor(max_workers=len(clients)) as executor:
-            executor.map(print_instances, clients)
-    Output().footer()
+    return instances
 
 
 def parse_args() -> argparse.Namespace:
@@ -123,13 +106,6 @@ def parse_args() -> argparse.Namespace:
         default="error",
         choices=["none", "debug", "info", "warning", "error", "critical"],
         help="logging level",
-    )
-    argparser.add_argument(
-        "-o",
-        "--output",
-        default="text",
-        choices=["text", "json"],
-        help="output type",
     )
     argparser.add_argument(
         "-P",
@@ -191,12 +167,20 @@ def main() -> None:
         "location": "<15",
     }
     keys = {key: keys.get(key, "") for key in args.fields.split(",")}
-
     if args.verbose:
         keys |= {"id": ""}
+    output_format = "  ".join(f"{{{key}:{align}}}" for key, align in keys.items())
+    print(output_format.format_map({key: key.upper() for key in keys}))
 
-    Output(type=args.output.lower(), keys=keys)
-    print_info()
+    clients = get_clients(config_file=args.config)
+    if len(clients) > 0:
+        with ThreadPoolExecutor(max_workers=len(clients)) as executor:
+            for instances in executor.map(get_instances, clients):
+                for instance in instances:
+                    instance.provider = f"{instance.provider}/{instance.cloud}"
+                    assert not isinstance(instance.time, str)
+                    instance.time = dateit(instance.time, args.time)
+                    print(output_format.format_map(instance.__dict__))
 
 
 if __name__ == "__main__":
