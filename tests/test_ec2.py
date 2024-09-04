@@ -62,11 +62,6 @@ def valid_creds():
     return {"key": "your_access_key", "secret": "your_secret_key"}
 
 
-@pytest.fixture(autouse=True)
-def reset_singleton(monkeypatch):
-    monkeypatch.setattr(EC2, "_singleton_instances", {})
-
-
 def test_list_instances_in_region(
     mock_ec2_driver, mock_ec2_instance, mocker, valid_creds
 ):

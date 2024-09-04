@@ -9,8 +9,6 @@ from datetime import datetime
 from libcloud.compute.types import NodeState, LibcloudError
 from requests.exceptions import RequestException
 
-from cloudview.singleton import Singleton2
-
 STATES = [str(getattr(NodeState, _)) for _ in dir(NodeState) if _.isupper()]
 
 
@@ -31,7 +29,7 @@ class Instance:  # pylint: disable=too-many-instance-attributes
     extra: dict
 
 
-class CSP(metaclass=Singleton2):
+class CSP:
     """
     Cloud Service Provider class
     """

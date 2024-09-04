@@ -62,11 +62,6 @@ def test_get_creds_missing_env_vars():
     assert "subscription_id" not in creds
 
 
-@pytest.fixture(autouse=True)
-def reset_singleton(monkeypatch):
-    monkeypatch.setattr(Azure, "_singleton_instances", {})
-
-
 @pytest.fixture
 def valid_creds():
     return {
