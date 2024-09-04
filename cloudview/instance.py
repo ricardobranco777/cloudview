@@ -5,7 +5,6 @@ Instance class
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
 
 from libcloud.compute.types import NodeState, LibcloudError
 from requests.exceptions import RequestException
@@ -30,23 +29,6 @@ class Instance:  # pylint: disable=too-many-instance-attributes
     state: str
     location: str
     extra: dict
-
-    # Allow access this object as a dictionary
-
-    def __getitem__(self, item: str) -> Any:
-        try:
-            return getattr(self, item)
-        except AttributeError as exc:
-            raise KeyError(exc) from exc
-
-    def __setitem__(self, item: str, value: Any) -> None:
-        setattr(self, item, value)
-
-    def __delitem__(self, item: str) -> None:
-        try:
-            delattr(self, item)
-        except AttributeError as exc:
-            raise KeyError(exc) from exc
 
 
 class CSP(metaclass=Singleton2):

@@ -36,64 +36,6 @@ def test_instance_creation():
     assert instance.state == "Running"
 
 
-def test_instance_dict_access():
-    instance = Instance(
-        name="Example",
-        provider="P",
-        cloud="C",
-        id="id",
-        size="s",
-        time="T",
-        state="Running",
-        location="L",
-        extra={},
-    )
-
-    assert instance["name"] == "Example"
-    assert instance["state"] == "Running"
-
-
-def test_instance_dict_assignment():
-    instance = Instance(
-        name="name",
-        provider="P",
-        cloud="C",
-        id="id",
-        size="s",
-        time="T",
-        state="S",
-        location="L",
-        extra={},
-    )
-
-    instance["name"] = "Updated Name"
-
-    assert instance.name == "Updated Name"
-
-
-def test_instance_dict_deletion():
-    instance = Instance(
-        name="name",
-        provider="P",
-        cloud="C",
-        id="id",
-        size="s",
-        time="T",
-        state="S",
-        location="L",
-        extra={},
-    )
-
-    with pytest.raises(KeyError):
-        del instance["nonexistent"]
-    del instance["name"]
-    with pytest.raises(AttributeError):
-        _ = instance.name
-
-    with pytest.raises(KeyError):
-        del instance["nonexistent"]
-
-
 def test_instance_unknown_attribute():
     instance = Instance(
         name="name",
