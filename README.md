@@ -13,9 +13,9 @@ Docker image available at `ghcr.io/ricardobranco777/cloudview:latest`
 ## Usage
 
 ```
-usage: cloudview.py [-h] [-c CONFIG] [-f FORMAT] [-l {none,debug,info,warning,error,critical}] [-P {ec2,gce,azure_arm,openstack}] [-r]
-                    [-s {name,state,time}] [-S {error,migrating,normal,paused,pending,rebooting,reconfiguring,running,starting,stopped,stopping,suspended,terminated,unknown,updating}]
-                    [-t TIME_FORMAT] [-v] [--version]
+usage: cloudview.py [-h] [-c CONFIG] [-f FIELDS] [-l {none,debug,info,warning,error,critical}] [-p {ec2,gce,azure_arm,openstack}] [-r] [-s {name,state,time}]
+                    [-S {error,migrating,normal,paused,pending,rebooting,reconfiguring,running,starting,stopped,stopping,suspended,terminated,unknown,updating}] [-t TIME_FORMAT] [-v]
+                    [--version]
 
 options:
   -h, --help            show this help message and exit
@@ -25,7 +25,7 @@ options:
                         output fields (default: provider,name,size,state,time,location)
   -l {none,debug,info,warning,error,critical}, --log {none,debug,info,warning,error,critical}
                         logging level (default: error)
-  -P {ec2,gce,azure_arm,openstack}, --providers {ec2,gce,azure_arm,openstack}
+  -p {ec2,gce,azure_arm,openstack}, --provides {ec2,gce,azure_arm,openstack}
                         list only specified providers (default: None)
   -r, --reverse         reverse sort (default: False)
   -s {name,state,time}, --sort {name,state,time}

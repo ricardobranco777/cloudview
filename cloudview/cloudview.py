@@ -108,8 +108,8 @@ def parse_args() -> argparse.Namespace:
         help="logging level",
     )
     argparser.add_argument(
-        "-P",
-        "--providers",
+        "-p",
+        "--provider",
         action="append",
         choices=list(PROVIDERS.keys()),
         help="list only specified providers",
