@@ -1,4 +1,4 @@
-FROM	registry.opensuse.org/opensuse/bci/python:3.11
+FROM	registry.opensuse.org/opensuse/bci/python:latest
 
 RUN	zypper addrepo https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo && \
 	zypper --gpg-auto-import-keys -n install ca-certificates-suse && \
