@@ -5,6 +5,13 @@ DOCKER="${DOCKER:-podman}"
 IMAGE="${IMAGE:-ghcr.io/ricardobranco777/cloudview:latest}"
 ARGS=("$@")
 
+if [ "$1" = "--version" ] ; then
+        latest=$(curl -s https://api.github.com/repos/ricardobranco777/cloudview/tags | jq -Mr '.[0].name')
+        if [ "${latest#v}" != $("$DOCKER" run --rm "$IMAGE" --version) ] ; then
+                echo "Latest version available: $latest" >&2
+        fi
+fi
+
 CHECK_CERTIFICATES=(
 	/etc/ssl/certs/ca-certificates.crt
 	/etc/pki/tls/certs/ca-bundle.crt
