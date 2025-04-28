@@ -7,7 +7,7 @@ ARGS=("$@")
 
 if [ "$1" = "--version" ] ; then
         latest=$(curl -s https://api.github.com/repos/ricardobranco777/cloudview/tags | jq -Mr '.[0].name')
-        if [ "${latest#v}" != $("$DOCKER" run --rm "$IMAGE" --version) ] ; then
+        if [ "${latest#v}" != "$("$DOCKER" run --rm "$IMAGE" --version)" ] ; then
                 echo "Latest version available: $latest" >&2
         fi
 fi
