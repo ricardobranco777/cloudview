@@ -26,7 +26,7 @@ mypy:
 
 .PHONY: shellcheck
 shellcheck:
-	@shellcheck scripts/$(BIN) nginx/entrypoint.sh
+	@shellcheck scripts/$(BIN)
 
 .PHONY: install
 install:
