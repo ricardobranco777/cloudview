@@ -94,11 +94,11 @@ get_config
 # Mount as volumes all values in clouds.yaml that are pathnames
 volumes=()
 if [ -f "$clouds_yaml" ] ; then
-	volumes+=(-v "$clouds_yaml:$clouds_yaml:ro,Z")
+	volumes+=(-v "$clouds_yaml:$clouds_yaml:ro,z")
 	if [[ $(stat -c '%u' "$clouds_yaml") -ne $EUID ]] ; then
 		volumes+=(-v "$clouds_yaml:$clouds_yaml:ro")
 	else
-		volumes+=(-v "$clouds_yaml:$clouds_yaml:ro,Z")
+		volumes+=(-v "$clouds_yaml:$clouds_yaml:ro,z")
 	fi
 	mapfile -t values < <(sed -re 's/#.*//' -e 's/"(.*)"/\1/' -e "s/'(.*)'/\1/" < "$clouds_yaml" | awk '$NF ~ /^\// { print $NF }')
 	for value in "${values[@]}" ; do
@@ -106,7 +106,7 @@ if [ -f "$clouds_yaml" ] ; then
 			if [[ $(stat -c '%u' "$value") -ne $EUID ]] ; then
 				volumes+=(-v "$value:$value:ro")
 			else
-				volumes+=(-v "$value:$value:ro,Z")
+				volumes+=(-v "$value:$value:ro,z")
 			fi
 		fi
 	done
@@ -123,7 +123,7 @@ for var in "${CHECK_VARIABLES[@]}" ; do
 		if [[ $(stat -c '%u' "${!var}") -ne $EUID ]] ; then
 			volumes+=(-v "${!var}:${!var}:ro")
 		else
-			volumes+=(-v "${!var}:${!var}:ro,Z")
+			volumes+=(-v "${!var}:${!var}:ro,z")
 		fi
 	fi
 done
