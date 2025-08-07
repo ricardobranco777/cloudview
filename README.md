@@ -25,7 +25,7 @@ options:
                         output fields (default: provider,name,size,state,time,location)
   -l {none,debug,info,warning,error,critical}, --log {none,debug,info,warning,error,critical}
                         logging level (default: error)
-  -p {ec2,gce,azure_arm,openstack}, --provides {ec2,gce,azure_arm,openstack}
+  -p {ec2,gce,azure_arm,openstack}, --providers {ec2,gce,azure_arm,openstack}
                         list only specified providers (default: None)
   -r, --reverse         reverse sort (default: False)
   -s {name,state,time}, --sort {name,state,time}

@@ -109,7 +109,7 @@ def parse_args() -> argparse.Namespace:
     )
     argparser.add_argument(
         "-p",
-        "--provider",
+        "--providers",
         action="append",
         choices=list(PROVIDERS.keys()),
         help="list only specified providers",
