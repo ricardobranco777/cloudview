@@ -18,7 +18,6 @@ from requests.exceptions import RequestException
 from cloudview.instance import Instance, CSP
 from cloudview.utils import utc_date
 
-
 libcloud.security.CA_CERTS_PATH = os.getenv("REQUESTS_CA_BUNDLE")
 
 

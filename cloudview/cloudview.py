@@ -22,7 +22,6 @@ from .instance import CSP, Instance, STATES
 from .utils import dateit, read_file
 from . import __version__
 
-
 PROVIDERS: dict[str, Any] = {
     str(Provider.EC2): EC2,
     str(Provider.GCE): GCE,
@@ -79,7 +78,7 @@ def get_instances(client: CSP) -> list[Instance]:
     ]
     if args.sort:
         instances.sort(
-            key=itemgetter(args.sort, "name"), reverse=args.reverse  # type:ignore
+            key=itemgetter(args.sort, "name"), reverse=args.reverse  # type: ignore
         )
     return instances
 
