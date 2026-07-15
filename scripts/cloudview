@@ -40,7 +40,6 @@ mapfile -t openstack_variables < <(env | grep ^OS_ | awk -F= '{ print $1 }')
 CHECK_VARIABLES+=("${openstack_variables[@]}")
 
 name="cloudview$$"
-	#--security-opt label=disable
 container_options=(
 	--security-opt no-new-privileges
 	--rm		# Remove container after running
