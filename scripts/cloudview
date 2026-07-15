@@ -146,5 +146,10 @@ if [ -z "$RUNTIME" ]; then
 	fi
 fi
 
+# Do not use sudo if we're in docker group
+if [[ $RUNTIME =~ docker ]] && id -Gn | grep -qw docker; then
+	SUDO=
+fi
+
 #echo "$SUDO" "$RUNTIME" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
 exec "$SUDO" "$RUNTIME" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
