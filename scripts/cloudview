@@ -4,10 +4,10 @@ IMAGE="${IMAGE:-ghcr.io/ricardobranco777/cloudview:latest}"
 ARGS=("$@")
 
 if [ "$1" = "--version" ] ; then
-        latest=$(curl -s https://api.github.com/repos/ricardobranco777/cloudview/tags | jq -Mr '.[0].name')
-        if [ "${latest#v}" != "$("$DOCKER" run --rm "$IMAGE" --version)" ] ; then
-                echo "Latest version available: $latest" >&2
-        fi
+	latest=$(curl -s https://api.github.com/repos/ricardobranco777/cloudview/tags | jq -Mr '.[0].name')
+	if [ "${latest#v}" != "$("$DOCKER" run --rm "$IMAGE" --version)" ] ; then
+		echo "Latest version available: $latest" >&2
+	fi
 fi
 
 CHECK_CERTIFICATES=(
@@ -40,8 +40,9 @@ mapfile -t openstack_variables < <(env | grep ^OS_ | awk -F= '{ print $1 }')
 CHECK_VARIABLES+=("${openstack_variables[@]}")
 
 name="cloudview$$"
+	#--security-opt label=disable
 container_options=(
-	--security-opt label=disable
+	--security-opt no-new-privileges
 	--rm		# Remove container after running
 	-it		# Allow user to interrupt execution
 	--net=host	# Use host's DNS
@@ -131,20 +132,20 @@ PODMAN=$(command -v podman)
 
 # We need unprivileged user namespaces for rootless containers
 if unshare -U true >/dev/null 2>&1; then
-        SUDO=
+	SUDO=
 else
-        SUDO=${SUDO:-$(command -v sudo)}
+	SUDO=${SUDO:-$(command -v sudo)}
 fi
 
 # Use Docker if unprivileged user namespaces are disabled and
 # the socket exists, otherwise use podman if available
 if [ -z "$RUNTIME" ]; then
-        if [ -n "$SUDO" ] && [ -S /var/run/docker.sock ]; then
-                RUNTIME=$DOCKER
-        else
-                RUNTIME=${PODMAN:-$DOCKER}
-        fi
+	if [ -n "$SUDO" ] && [ -S /var/run/docker.sock ]; then
+		RUNTIME=$DOCKER
+	else
+		RUNTIME=${PODMAN:-$DOCKER}
+	fi
 fi
 
-#echo "$RUNTIME" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
+#echo "$SUDO" "$RUNTIME" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
 exec "$SUDO" "$RUNTIME" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
