@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Allow use of DOCKER=podman
-DOCKER="${DOCKER:-podman}"
 IMAGE="${IMAGE:-ghcr.io/ricardobranco777/cloudview:latest}"
 ARGS=("$@")
 
@@ -128,5 +126,25 @@ for var in "${CHECK_VARIABLES[@]}" ; do
 	fi
 done
 
+DOCKER=$(command -v docker)
+PODMAN=$(command -v podman)
+
+# We need unprivileged user namespaces for rootless containers
+if unshare -U true >/dev/null 2>&1; then
+        SUDO=
+else
+        SUDO=${SUDO:-$(command -v sudo)}
+fi
+
+# Use Docker if unprivileged user namespaces are disabled and
+# the socket exists, otherwise use podman if available
+if [ -z "$RUNTIME" ]; then
+        if [ -n "$SUDO" ] && [ -S /var/run/docker.sock ]; then
+                RUNTIME=$DOCKER
+        else
+                RUNTIME=${PODMAN:-$DOCKER}
+        fi
+fi
+
 #echo "$DOCKER" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
-exec "$DOCKER" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
+exec "$SUDO" "$DOCKER" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
