@@ -46,7 +46,7 @@ container_options=(
 	--read-only
 	--rm		# Remove container after running
 	--name "$name"
-	--user $(id -u)
+	--user "$(id -u):$(id -g)"
 	--security-opt no-new-privileges
 	-e LIBCLOUD_DEBUG="$LIBCLOUD_DEBUG"
 )
