@@ -41,11 +41,13 @@ CHECK_VARIABLES+=("${openstack_variables[@]}")
 
 name="cloudview$$"
 container_options=(
-	--security-opt no-new-privileges
-	--rm		# Remove container after running
+	--cap-drop=ALL
 	-it		# Allow user to interrupt execution
-	--net=host	# Use host's DNS
+	--read-only
+	--rm		# Remove container after running
 	--name "$name"
+	--user $(id -u)
+	--security-opt no-new-privileges
 	-e LIBCLOUD_DEBUG="$LIBCLOUD_DEBUG"
 )
 
@@ -129,6 +131,8 @@ done
 DOCKER=$(command -v docker)
 PODMAN=$(command -v podman)
 
+RUNTIME="${RUNTIME:-${PODMAN:-$DOCKER}}"
+
 # We need unprivileged user namespaces for rootless containers
 if unshare -U true >/dev/null 2>&1; then
 	SUDO=
@@ -136,20 +140,16 @@ else
 	SUDO=${SUDO:-$(command -v sudo)}
 fi
 
-# Use Docker if unprivileged user namespaces are disabled and
-# the socket exists, otherwise use podman if available
-if [ -z "$RUNTIME" ]; then
-	if [ -n "$SUDO" ] && [ -S /var/run/docker.sock ]; then
-		RUNTIME=$DOCKER
-	else
-		RUNTIME=${PODMAN:-$DOCKER}
-	fi
-fi
-
 # Do not use sudo if we're in docker group
-if [[ $RUNTIME =~ docker ]] && id -Gn | grep -qw docker; then
-	SUDO=
+if [[ $RUNTIME =~ docker ]]; then
+	if id -Gn | grep -qw docker; then
+		SUDO=
+	fi
+	opts+=(--net=host)
 fi
 
-#echo "$SUDO" "$RUNTIME" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
-exec "$SUDO" "$RUNTIME" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
+if [ -n "$SUDO" ]; then
+	SUDO="$SUDO --preserve-env=DEBUG,BUGZILLA_TOKEN,GITHUB_TOKEN,GITLAB_TOKEN,JIRA_TOKEN,REDMINE_TOKEN,REPOS"
+fi
+
+exec $SUDO "$RUNTIME" run "${container_options[@]}" "${variables[@]}" "${volumes[@]}" "$IMAGE" "${ARGS[@]}"
