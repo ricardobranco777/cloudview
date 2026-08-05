@@ -1,12 +1,12 @@
 apache-libcloud==3.9.1
-certifi==2026.6.17
-cffi==2.0.0
-charset-normalizer==3.4.7
-cryptography==49.0.0
+certifi==2026.7.22
+cffi==2.1.1
+charset-normalizer==3.4.9
+cryptography==50.0.0
 idna==3.18
 pycparser==3.0
 python-dateutil==2.9.0.post0
-pytz==2026.2
+pytz==2026.3.post1
 PyYAML==6.0.3
 requests==2.34.2
 six==1.17.0
